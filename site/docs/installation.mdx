@@ -1,0 +1,59 @@
+# Installation (AKIOS V1.0)
+
+Choose the install path that matches your platform and security needs.
+
+## Pip package (recommended on native Linux)
+Maximum security (kernel-hard: cgroups + seccomp). Works on macOS/Windows with standard process isolation.
+```bash
+pip install akios
+akios --version
+akios init my-project
+cd my-project
+akios run templates/hello-workflow.yml
+```
+
+## Docker wrapper (cross-platform)
+One shell script manages the Docker image and provides the same CLI everywhere.
+```bash
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+ls -la akios && file akios   # verify
+chmod +x akios
+./akios init my-project
+cd my-project
+./akios run templates/hello-workflow.yml
+# Refresh image when needed:
+AKIOS_FORCE_PULL=1 ./akios status
+```
+
+## Direct Docker (fallback/automation)
+Use if the wrapper cannot be downloaded or for scripted CI.
+```bash
+docker run --rm -v \"$(pwd):/app\" -w /app akiosai/akios:v1.0.0 init my-project
+docker run --rm -v \"$(pwd):/app\" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+```
+
+## Decision helper
+- **Linux + max security** → Pip (kernel-hard).
+- **Cross-platform team** → Docker wrapper.
+- **CI / fallback** → Direct Docker.
+
+
+## Which to choose
+| Option | Best for | Security level |
+|--------|----------|----------------|
+| Pip (Linux) | Max security, Python workflows | Full kernel-hard |
+| Docker wrapper | Cross-platform, teams | Strong container isolation |
+| Direct Docker | CI/fallback | Strong container isolation |
+
+## Next steps
+Run the guided setup and first workflow:
+```bash
+akios setup            # guided provider/key/budget setup
+akios run templates/hello-workflow.yml
+akios status           # verify
+```
+
+## Related
+- [Quickstart](quickstart.html)
+- [Security](security.html)
+- [Deployment](deployment.html)

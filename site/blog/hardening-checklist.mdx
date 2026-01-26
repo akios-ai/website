@@ -1,0 +1,50 @@
+<header class="post-header">
+  <div class="post-meta">January 26, 2026</div>
+  <h1>Hardening Checklist for AKIOS 1.0</h1>
+  <div class="post-author">
+    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
+    <span>AJ</span>
+  </div>
+</header>
+
+<div class="post-content">
+  <p class="lead">
+    AKIOS is minimal, but you still need a few guardrails to keep agents contained in real environments. Use this short checklist before you ship.
+  </p>
+
+  <h2>Host hardening</h2>
+  <ul>
+    <li>Run on a recent Linux kernel with <code>seccomp</code>, <code>userns</code>, <code>cgroups v2</code> enabled.</li>
+    <li>Disable unneeded capabilities for the AKIOS process (drop <code>NET_ADMIN</code>, <code>SYS_ADMIN</code>, etc.).</li>
+    <li>Mount <code>/tmp</code> as <code>noexec</code> if your workflow allows it.</li>
+  </ul>
+
+  <h2>Policy discipline</h2>
+  <ul>
+    <li>Sign policies and load only signed artifacts in CI/CD.</li>
+    <li>Default-deny network and filesystem; allowlist exact hosts and paths.</li>
+    <li>Keep per-tool budgets tight; fail closed on budget overflow.</li>
+  </ul>
+
+  <h2>Audit + observability</h2>
+  <ul>
+    <li>Ship audit logs to an immutable sink (append-only bucket or log service with retention).</li>
+    <li>Enable Merkle proofs export and validate in CI smoke tests.</li>
+    <li>Alert on sandbox escapes, policy denials, and kill-switch activations.</li>
+  </ul>
+
+  <h2>PII &amp; secrets</h2>
+  <ul>
+    <li>Keep PII redaction on for all agents; treat opt-outs as exceptions.</li>
+    <li>Store secrets in your vault; inject via env with least privilege; never in prompts.</li>
+  </ul>
+
+  <h2>CI/CD safety</h2>
+  <ul>
+    <li>Gate PRs on <code>akios lint</code> + <code>akios policy validate</code>.</li>
+    <li>Run sample workflows in a throwaway namespace/VM per PR.</li>
+    <li>Block merges if audit output deviates from expected hash chain.</li>
+  </ul>
+
+  <p>Ship with these basics and you’ll keep the cage tight while you iterate.</p>
+</div>

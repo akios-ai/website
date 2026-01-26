@@ -1,0 +1,46 @@
+# Fonctionnalités de sécurité (AKIOS V1.0)
+
+Défense en profondeur à chaque exécution : sandbox, rédaction PII, piste d’audit, coupe-circuits coût/boucle.
+
+## Versions supportées
+| Version | Support | Mises à jour sécu |
+|---------|---------|-------------------|
+| 1.0.x   | ✅ Actif | ✅ Oui |
+| <1.0    | ❌ Fin de vie | ❌ Non |
+
+## Signaler une vulnérabilité
+Canal privé uniquement : **hello@akios.ai**  
+Inclure : description, étapes de repro, version affectée, impact (contournement sandbox, fuite PII, dépassement budget), correctif suggéré, contact.  
+Cible de réponse : accusé ≤24h, triage ≤72h, correctif 2–4 semaines avec divulgation coordonnée.
+
+## Ce que la V1.0 applique
+- Isolation conteneur : listes blanches commandes/chemins, quotas cgroups, isolation de processus, réseau deny par défaut.
+- Protections IA : >50 motifs PII (entrées/sorties), détection de boucle, coupe-circuits budget/tokens, limites de taille et validation, retry/backoff.
+- Audit & conformité : logs inviolables type Merkle, PII-safe par défaut, export JSON pour revues.
+
+## Vérifier maintenant
+```bash
+akios status --security          # attendre Full/Strong, PII:on, audit:on, réseau:deny sauf activé
+akios audit verify               # attendre Integrity OK
+```
+Si différent, voir [Installation](installation.html) et [Référence de configuration](config-reference.html).
+
+
+## Spécificités plateforme
+- **Linux natif** : kernel-hard (cgroups v2 + seccomp-bpf), meilleure isolation/perf.
+- **Docker (macOS/Windows/Linux)** : isolation forte par politiques et rédaction; permissions FS hôte et strictesse seccomp dépendent de l’hôte — privilégier Linux natif pour le haut niveau d’assurance.
+
+## Vérifier votre posture
+```bash
+akios status --security          # tableau de bord
+akios status --security --json   # format machine
+```
+
+Affiche : niveau de sécurité (Full/Strong), protection PII, réseau autorisé/bloqué, statut audit, limites coût/token, indicateurs conformité.
+
+**Rappel :** aucun logiciel n’est sûr à 100 % ; exécutez AKIOS dans des environnements isolés et validez les sorties.
+
+## Related
+- [Référence de configuration](config-reference.html)
+- [Débogage](debugging.html)
+- [Schéma de politique](policy-schema.html)

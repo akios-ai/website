@@ -1,0 +1,79 @@
+# Documentation
+
+Welcome to the AKIOS documentation.
+
+## Getting Started
+
+<div class="features-grid docs-cards">
+  <a href="quickstart.html" class="docs-card">
+    <h3 class="docs-card-title">Quickstart →</h3>
+    <p class="docs-card-text">Run your first sandboxed agent in 2 minutes.</p>
+  </a>
+  <a href="installation.html" class="docs-card">
+    <h3 class="docs-card-title">Installation →</h3>
+    <p class="docs-card-text">Install AKIOS via pip on native Unix, or use the container image.</p>
+  </a>
+</div>
+
+## Core Concepts
+
+- **[Sandbox](concepts.html)**: How we use seccomp-bpf and user namespaces.
+- **[Policies](policy-schema.html)**: Defining explicit access rules for agents.
+- **[Audit](security.html)**: How to verify agent actions.
+
+## Reference
+
+<div class="features-grid docs-cards">
+  <a href="config-reference.html" class="docs-card">
+    <h3 class="docs-card-title">Config Reference →</h3>
+    <p class="docs-card-text">Learn which options you can configure in the AKIOS runtime.</p>
+  </a>
+  <a href="policy-schema.html" class="docs-card">
+    <h3 class="docs-card-title">Policy Schema →</h3>
+    <p class="docs-card-text">See the YAML structure for network, filesystem, and limits.</p>
+  </a>
+  <a href="debugging.html" class="docs-card">
+    <h3 class="docs-card-title">Debugging →</h3>
+    <p class="docs-card-text">Step through common failure modes and how to resolve them.</p>
+  </a>
+  <a href="best-practices.html" class="docs-card">
+    <h3 class="docs-card-title">Best Practices →</h3>
+    <p class="docs-card-text">Lean patterns for secure, performant workflows.</p>
+  </a>
+  <a href="cli-reference.html" class="docs-card">
+    <h3 class="docs-card-title">CLI Reference →</h3>
+    <p class="docs-card-text">Essential commands for running and auditing AKIOS.</p>
+  </a>
+  <a href="api-reference.html" class="docs-card">
+    <h3 class="docs-card-title">API Reference →</h3>
+    <p class="docs-card-text">Use AKIOS programmatically via Python.</p>
+  </a>
+  <a href="deployment.html" class="docs-card">
+    <h3 class="docs-card-title">Deployment →</h3>
+    <p class="docs-card-text">Minimal, security-first ways to ship the cage.</p>
+  </a>
+  <a href="integration-api.html" class="docs-card">
+    <h3 class="docs-card-title">API Integration →</h3>
+    <p class="docs-card-text">Secure HTTP/REST/GraphQL workflows.</p>
+  </a>
+  <a href="integration-document-processing.html" class="docs-card">
+    <h3 class="docs-card-title">Document Processing →</h3>
+    <p class="docs-card-text">Ingest, redact, and analyze documents.</p>
+  </a>
+  <a href="migration-guide.html" class="docs-card">
+    <h3 class="docs-card-title">Migration →</h3>
+    <p class="docs-card-text">Move to V1.0 pip/Docker safely.</p>
+  </a>
+  <a href="faq-glossary.html" class="docs-card">
+    <h3 class="docs-card-title">FAQ & Glossary →</h3>
+    <p class="docs-card-text">Key terms and quick answers.</p>
+  </a>
+</div>
+
+## Contributing
+This documentation is community-maintained. To edit any page:
+1. Find the `.mdx` file in `site/docs/`.
+2. Edit the content.
+3. Submit a PR!
+
+Want to help? Open a PR on GitHub (`/site/docs/*.mdx`) or file an issue with the page name and suggested change. Small fixes (typos, broken links, clearer steps) are welcome.

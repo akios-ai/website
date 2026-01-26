@@ -1,0 +1,117 @@
+---
+title: Guide du schéma de workflow
+description: Référence AKIOS V1.0 pour la structure, la validation et les agents.
+---
+
+# Guide du schéma de workflow (AKIOS V1.0)
+Version 1.0.0 | Dernière mise à jour : 9 janvier 2026
+
+La validation garantit des workflows sûrs et prévisibles avant exécution.
+
+## Structure requise
+```yaml
+name: "Votre workflow"
+description: "Ce qu’il fait"
+steps:
+  - step: 1          # numéro ou ID texte unique
+    agent: llm       # llm | http | filesystem | tool_executor
+    action: complete # action de l’agent
+    config: {}       # optionnel
+    parameters: {}   # requis
+```
+
+Agents autorisés
+| Agent | Rôle | Actions exemple |
+|-------|------|-----------------|
+| llm | Appels modèle IA | complete, chat |
+| http | Appels Web/API | get, post, put, delete |
+| filesystem | Fichiers | read, write, stat |
+| tool_executor | Commandes | run |
+
+## Erreurs courantes
+- Champs manquants (`action`, `parameters`, `agent`)
+- Agent inconnu (`gpt` → utiliser `llm`)
+- Action invalide pour l’agent (`execute` sur filesystem)
+- IDs de step invalides (doublons ou vides)
+
+## Comportement de validation
+- Succès : silencieux, sans coût.
+- Échec : arrêt avant exécution, message clair avec piste de correction.
+
+## Exemples
+LLM simple
+```yaml
+name: "AI Greeting"
+description: "Générer un salut"
+steps:
+  - step: 1
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Génère un salut créatif"
+      max_tokens: 50
+```
+
+Multi-étapes
+```yaml
+name: "Pipeline Données"
+description: "Lire -> résumer -> écrire"
+steps:
+  - step: read
+    agent: filesystem
+    action: read
+    parameters:
+      path: "./data/input.txt"
+
+  - step: summarize
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Résume : {{read.content}}"
+      max_tokens: 100
+
+  - step: write
+    agent: filesystem
+    action: write
+    parameters:
+      path: "./data/summary.txt"
+      content: "{{summarize.text}}"
+```
+
+## Personnalisations sûres
+- Modifier paramètres/config.
+- Ajouter des steps en gardant la même structure.
+- Rester dans le set agents/actions autorisés.
+
+Ce qui échoue
+- Agents inconnus.
+- Actions non supportées par l’agent.
+- Absence de `action` ou `parameters`.
+
+Astuce : `akios run <workflow>` valide avant exécution et pointe la step concernée.
+
+## Exemple minimal valide
+```yaml
+name: "Hello"
+description: "Démo"
+steps:
+  - step: 1
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Hi"
+```
+
+## Exemple invalide (courant)
+```yaml
+steps:
+  - step: 1
+    agent: filesystem
+    action: execute   # action non autorisée pour filesystem
+```
+Erreur attendue : `action 'execute' not allowed for agent 'filesystem'`.
+
+## Related
+- [Référence de configuration](config-reference.html)
+- [Débogage](debugging.html)
+- [Cas d’usage](use-cases.html)

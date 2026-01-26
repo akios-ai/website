@@ -1,0 +1,97 @@
+# AKIOS V1.0 – Référence de configuration
+
+`config.yaml` unique, chargé au démarrage (non modifiable ensuite). Valeurs par défaut orientées sécurité.
+
+## Où se trouve la config
+```
+project/
+├── config.yaml
+├── workflows/
+├── templates/
+├── data/
+└── audit/
+```
+
+Ordre de chargement (priorité décroissante) : variables d’environnement → `.env` → `config.yaml` → valeurs par défaut intégrées.
+
+## Mise en place & validation
+- Premier `akios run templates/hello-workflow.yml` lance l’assistant.
+- Manuel : `akios setup` (ou `--force` pour relancer).
+- `--real-api` bascule en appels réels (met `AKIOS_MOCK_LLM=0`, active le réseau, demande les clés).
+- Détection de corruption `.env` (noms concaténés, booléens invalides, formats de clés) avec suggestions.
+
+## Valeurs sensibles (.env)
+```bash
+AKIOS_LLM_PROVIDER=grok           # openai|anthropic|grok|mistral|gemini
+AKIOS_LLM_MODEL=grok-3
+AKIOS_MOCK_LLM=0                  # 0=réel,1=mock
+AKIOS_NETWORK_ACCESS_ALLOWED=1
+AKIOS_FORCE_PULL=1
+OPENAI_API_KEY=sk-...             # clés fournisseurs (une ou plusieurs)
+```
+
+## Overrides les plus utilisés
+```bash
+export AKIOS_LLM_PROVIDER=openai
+export AKIOS_NETWORK_ACCESS_ALLOWED=1
+export AKIOS_BUDGET_LIMIT_PER_RUN=1.0
+```
+
+## Champs clés (défauts sûrs)
+```yaml
+sandbox_enabled: true
+cpu_limit: 0.8
+memory_limit_mb: 256
+max_open_files: 100
+max_file_size_mb: 10
+network_access_allowed: false
+
+pii_redaction_enabled: true
+redaction_strategy: "mask"
+pii_redaction_outputs: true
+
+cost_kill_enabled: true
+max_tokens_per_call: 500
+budget_limit_per_run: 1.0
+
+audit_enabled: true
+audit_storage_path: "./audit/"
+audit_export_format: "json"
+
+environment: "development"
+log_level: "INFO"
+```
+
+## Overrides par variables d’env
+```bash
+export AKIOS_CPU_LIMIT=0.5
+export AKIOS_MEMORY_LIMIT_MB=128
+export AKIOS_BUDGET_LIMIT_PER_RUN=0.5
+export AKIOS_LOG_LEVEL=DEBUG
+```
+
+## Profils exemples
+**Production (sécurisé)**  
+```yaml
+sandbox_enabled: true
+cpu_limit: 0.5
+memory_limit_mb: 128
+network_access_allowed: false
+budget_limit_per_run: 1.0
+log_level: "WARNING"
+```
+**Développement (relax)**  
+```yaml
+network_access_allowed: true
+budget_limit_per_run: 5.0
+log_level: "DEBUG"
+```
+
+## Notes de sécurité
+- Considérez `config.yaml`/`.env` en lecture seule à l’exécution; permissions `600`.
+- Échec rapide : `akios status` surface les erreurs de config; aucune exécution avec une config invalide.
+
+## Related
+- [Sécurité](security.html)
+- [Schéma de politique](policy-schema.html)
+- [Débogage](debugging.html)

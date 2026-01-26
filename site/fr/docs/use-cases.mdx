@@ -1,0 +1,76 @@
+# Cas d’usage & motifs
+
+Applications concrètes de la cage de sécurité AKIOS en production.
+
+## Motifs clés
+- **Agents tiers non sûrs** : exécution avec réseau/fs en deny par défaut et audit signé.
+- **Pré-vol en CI/CD** : valider politiques et coûts avant déploiement.
+- **Données sensibles** : rédaction PII + journal inviolable à chaque étape.
+- **Outils restreints** : commandes sur liste blanche, pas de réseau implicite.
+
+## Exemples
+
+### 1) Traitement sécurisé de documents (secteur public)
+```yaml
+name: "Secure Document Summary"
+steps:
+  - step: read_pdf
+    agent: filesystem
+    action: read
+    parameters:
+      path: "/inputs/application.txt"
+  - step: analyze
+    agent: llm
+    action: complete
+    parameters:
+      model: "gpt-4"
+      prompt: "Résume cette demande : {{read_pdf.content}}"
+  - step: save
+    agent: filesystem
+    action: write
+    parameters:
+      path: "/outputs/summary.txt"
+      content: "{{analyze.text}}"
+```
+*Pourquoi ça colle* : rédaction PII automatique + audit signé.
+
+### 2) Enrichissement API avec garde-budget (finance)
+```yaml
+name: "KYC Enrichment"
+steps:
+  - step: fetch_data
+    agent: http
+    action: get
+    parameters:
+      url: "https://api.external-data.com/user/{{user_id}}"
+  - step: risk_analysis
+    agent: llm
+    action: complete
+    parameters:
+      model: "claude-3.5-sonnet"
+      prompt: "Analyse le risque pour ces données : {{fetch_data.body}}"
+  - step: save_report
+    agent: filesystem
+    action: write
+    parameters:
+      path: "/reports/{{user_id}}_risk.json"
+      content: "{{risk_analysis.text}}"
+```
+*Pourquoi ça colle* : limites budget/tokens appliquées + rédaction entrées/sorties.
+
+### 3) Exécution sûre d’outils (DevOps)
+```yaml
+name: "Log Analyzer"
+steps:
+  - step: run_script
+    agent: tool_executor
+    action: run
+    parameters:
+      command: "python3 /scripts/analyze_logs.py --input /logs/server.log"
+```
+*Pourquoi ça colle* : liste blanche de commandes, réseau deny, chemins bornés.
+
+## Related
+- [Bonnes pratiques](best-practices.html)
+- [Intégration API](integration-api.html)
+- [Intégration documents](integration-document-processing.html)

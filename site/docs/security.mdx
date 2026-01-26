@@ -1,0 +1,46 @@
+# Security Features (AKIOS V1.0)
+
+Defense-in-depth for every run: sandbox, PII redaction, audit trail, and cost/loop kills.
+
+## Supported versions
+| Version | Support | Security updates |
+|---------|---------|------------------|
+| 1.0.x   | ✅ Active | ✅ Yes |
+| <1.0    | ❌ EOL   | ❌ No |
+
+## Report vulnerabilities
+Private only: **hello@akios.ai**  
+Include: description, repro steps, affected version, impact (e.g., sandbox bypass, PII leak, cost overrun), suggested fix, contact.  
+Response target: ack ≤24h, triage ≤72h, fix 2–4 weeks with coordinated disclosure.
+
+## What V1.0 enforces
+- Container isolation: command/path allowlists, cgroups quotas, process isolation, default-deny network.
+- AI protections: 50+ PII patterns (inputs/outputs), loop detection, budget/token kill-switches, size limits and validation, retry/backoff.
+- Audit & compliance: Merkle-style tamper-evident logs, PII-safe by default, exportable JSON for reviews.
+
+## Verify now
+```bash
+akios status --security          # expect Full/Strong, PII:on, audit:on, network:deny unless enabled
+akios audit verify               # expect Integrity OK
+```
+If results differ, check [Installation](installation.html) and [Config Reference](config-reference.html).
+
+
+## Platform specifics
+- **Native Linux**: kernel-hard (cgroups v2 + seccomp-bpf), best isolation/perf.
+- **Docker (macOS/Windows/Linux)**: strong policy isolation and redaction; host FS perms and seccomp strictness depend on host—prefer native Linux for high-assurance.
+
+## Verify your posture
+```bash
+akios status --security          # dashboard
+akios status --security --json   # machine-readable
+```
+
+Shows: security level (Full/Strong), PII protection, network allow/deny, audit status, cost/token limits, compliance indicators.
+
+**Reminder:** No software is 100% secure; run AKIOS in isolated environments and validate outputs.
+
+## Related
+- [Config Reference](config-reference.html)
+- [Debugging](debugging.html)
+- [Policy Schema](policy-schema.html)

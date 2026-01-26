@@ -1,0 +1,54 @@
+# CLI Reference (AKIOS V1.0)
+
+Core commands for the security cage. Works with pip install, Docker wrapper, or direct Docker.
+
+## Global
+```bash
+akios --help            # commands & options
+akios --version         # version/build info
+akios --debug <cmd>     # verbose logs
+AKIOS_JSON_MODE=1 akios status  # machine-readable output
+```
+
+## Project lifecycle
+```bash
+akios init [path]           # create project skeleton
+akios setup [--force]       # guided provider/key/budget setup
+akios config validate       # check config
+akios status [--security]   # runtime + security status
+akios clean [--old-runs]    # remove old runs/cache
+```
+
+## Running workflows
+```bash
+akios run templates/hello-workflow.yml       # run sample
+akios run workflows/my.yml --real-api        # force real API mode
+akios run workflows/my.yml --context key=val # inject context vars
+```
+
+## Templates
+```bash
+akios templates list         # show available templates
+akios templates pull <name>  # fetch/update template
+```
+
+## Audit
+```bash
+akios audit view --limit 20
+akios audit export --since "7 days ago" --format json --output audit.json
+akios audit verify           # Merkle integrity check
+akios audit archive --older-than 90d --compress
+```
+
+## Debugging
+```bash
+akios --debug status
+akios --debug run workflows/my.yml
+```
+
+## Installation quick refs
+- Pip (Linux best security): `pip install akios`
+- Docker wrapper (all platforms): `curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios && chmod +x akios`
+- Direct Docker: `docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 ...`
+
+Use `--help` on any command for full flags and examples.

@@ -1,0 +1,26 @@
+# Concepts clés (AKIOS V1.0)
+
+Runtime sécurité‑d’abord : sandbox, rédaction PII, audit, coupe-circuits coût/boucle à chaque exécution.
+
+## Niveaux de sécurité par plateforme
+| Environnement | Niveau | Notes |
+|---------------|--------|-------|
+| Linux natif | Full (kernel-hard : cgroups v2 + seccomp-bpf) | Isolation et enforcement maximum |
+| Docker (macOS/Windows/Linux) | Fort (basé politiques) | Multi-plateforme ; permissions FS/seccomp dépendent de l’hôte |
+
+Docker est pratique et solide ; privilégiez Linux natif pour les garanties maximales.
+
+## Protections essentielles
+- **Sandbox & quotas** : filtrage syscalls, CPU/mémoire/fichiers, réseau deny par défaut.
+- **Rédaction PII** : >50 motifs sur entrées/sorties.
+- **Audit** : logs type Merkle, inviolables.
+- **Coupe-circuits** : budgets et tokens, détection de boucle.
+
+## Agents cœur (4)
+- **filesystem** — lire/écrire/stat dans des chemins autorisés.
+- **http** — appels Web/API limités et rédigés.
+- **llm** — appels suivis (coût/tokens) vers OpenAI, Anthropic, Grok, Mistral, Gemini.
+- **tool_executor** — commandes sur liste blanche dans un sous-processus sandboxé.
+
+## Architecture
+Mono-processus, sans sidecars. État éphémère par run; persistance fichier (data/, audit/). Déploiement via pip ou Docker (wrapper ou direct). Surface minimale = audit facile et utilisable en environnements isolés.

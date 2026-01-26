@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{i18n.home.title}}</title>
+  <meta name="description" content="{{i18n.home.description}}">
+  <link rel="stylesheet" href="{{root}}/assets/css/styles.css">
+  <link rel="icon" href="{{root}}/assets/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+
+  <!-- Header -->
+  <!-- {{header}} -->
+
+  <!-- Hero Section -->
+  <section class="section section-hero">
+    <div class="page hero-grid">
+      <div class="hero hero-left">
+        <h1>{{i18n.home.hero_heading}}</h1>
+        <p class="subtitle">
+          {{i18n.home.hero_subtitle}}
+        </p>
+        <div class="hero-actions">
+          <a href="docs/quickstart.html" class="btn btn-primary">{{i18n.home.hero_cta_primary}}</a>
+          <a href="https://github.com/akios-ai/akios" class="btn btn-outline">{{i18n.home.hero_cta_secondary}}</a>
+        </div>
+      </div>
+      <figure class="hero-figure">
+        <img src="{{root}}/assets/img/hero-arch.svg" alt="AKIOS control plane and data plane funneling clients, CI/CD and apps into sandboxed agents and policy-gated destinations" loading="lazy">
+      </figure>
+    </div>
+  </section>
+
+  <!-- Why AKIOS Section -->
+  <section class="section">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.home.why_heading}}</h2>
+      <div class="features-grid">
+        <div class="feature">
+          <h3>{{i18n.home.why_sandbox_title}}</h3>
+          <p>{{i18n.home.why_sandbox_body}}</p>
+        </div>
+        <div class="feature">
+          <h3>{{i18n.home.why_cost_title}}</h3>
+          <p>{{i18n.home.why_cost_body}}</p>
+        </div>
+        <div class="feature">
+          <h3>{{i18n.home.why_pii_title}}</h3>
+          <p>{{i18n.home.why_pii_body}}</p>
+        </div>
+        <div class="feature">
+          <h3>{{i18n.home.why_audit_title}}</h3>
+          <p>{{i18n.home.why_audit_body}}</p>
+        </div>
+        <div class="feature">
+          <h3>{{i18n.home.why_policies_title}}</h3>
+          <p>{{i18n.home.why_policies_body}}</p>
+        </div>
+        <div class="feature">
+          <h3>{{i18n.home.why_minimal_title}}</h3>
+          <p>{{i18n.home.why_minimal_body}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quickstart Section -->
+  <section class="section">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.home.quickstart_heading}}</h2>
+      <p>{{i18n.home.quickstart_intro}}</p>
+      
+      <pre><code># Install
+pip install akios
+
+# Initialize a project
+akios init my-project
+cd my-project
+
+# Run the sample workflow (kernel-hard on Linux)
+akios run templates/hello-workflow.yml</code></pre>
+
+      <p class="code-caption">{{i18n.home.quickstart_caption}}</p>
+      <pre><code>[akios] sandbox: seccomp-bpf, cgroups v2 (Linux) / policy container (Docker) 
+[akios] pii: redaction enabled 
+[akios] audit: Merkle trail initialized</code></pre>
+      
+      <div class="quickstart-link-row">
+        <a href="docs/quickstart.html" class="quickstart-link">{{i18n.home.quickstart_link}}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Section (Simple Diagram) -->
+  <section class="section section-last">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.home.arch_heading}}</h2>
+      <p>{{i18n.home.arch_body}}</p>
+
+      <img src="{{root}}/assets/img/arch.svg" alt="Client or CLI flows into AKIOS policies, sandbox, audit, then agents, then policy-gated tools/APIs" class="arch-svg" loading="lazy">
+    </div>
+  </section>
+
+  <!-- Security guarantees -->
+  <section class="section">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.home.security_heading}}</h2>
+      <p>{{i18n.home.security_intro}}</p>
+      <ul class="security-list">
+        <li class="security-item">{{i18n.home.security_item_1}}</li>
+        <li class="security-item">{{i18n.home.security_item_2}}</li>
+        <li class="security-item">{{i18n.home.security_item_3}}</li>
+        <li class="security-item">{{i18n.home.security_item_4}}</li>
+        <li class="security-item">{{i18n.home.security_item_5}}</li>
+        <li class="security-item">{{i18n.home.security_item_6}}</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Core agents -->
+  <section class="section">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.home.agents_heading}}</h2>
+      <p>{{i18n.home.agents_intro}}</p>
+      <div class="agents-grid">
+        <div class="agent-card">
+          <h3>{{i18n.home.agent_fs_title}}</h3>
+          <p>{{i18n.home.agent_fs_body}}</p>
+        </div>
+        <div class="agent-card">
+          <h3>{{i18n.home.agent_http_title}}</h3>
+          <p>{{i18n.home.agent_http_body}}</p>
+        </div>
+        <div class="agent-card">
+          <h3>{{i18n.home.agent_llm_title}}</h3>
+          <p>{{i18n.home.agent_llm_body}}</p>
+        </div>
+        <div class="agent-card">
+          <h3>{{i18n.home.agent_tool_title}}</h3>
+          <p>{{i18n.home.agent_tool_body}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  <section class="section section-cta">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.home.cta_title}}</h2>
+      <p>{{i18n.home.cta_body}}</p>
+      <div class="hero-actions" style="margin-top: var(--space-4);">
+        <a href="https://github.com/akios-ai/akios" class="btn btn-primary">{{i18n.home.cta_button}}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Support Section -->
+  <section class="section">
+    <div class="page">
+      <div class="callout">
+        <p>{{i18n.home.community_note}}</p>
+        <p class="subtitle">{{i18n.home.pro_pointer}}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <!-- {{footer}} -->
+
+</body>
+</html>

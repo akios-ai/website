@@ -1,0 +1,79 @@
+<header class="post-header">
+  <div class="post-meta">
+    February 1, 2026 &bull; <span>3 min read</span>
+  </div>
+  <h1>AKIOS v0.1.0 Released</h1>
+  <div class="post-author">
+    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
+    <span>AJ</span>
+  </div>
+</header>
+
+<div class="post-content">
+  <p class="lead">
+    We are thrilled to announce the first public preview of AKIOS v0.1.0. This release focuses on core stability and the fundamental sandboxing primitives.
+  </p>
+
+  <h2>Highlights</h2>
+  <ul>
+    <li><strong>Core Runtime:</strong> Stable release of the <code>akios-runtime</code> binary for macOS and Linux.</li>
+    <li><strong>Policy Engine:</strong> Flexible YAML-based policy definitions for network and file access.</li>
+    <li><strong>CLI Tools:</strong> New <code>akios</code> CLI for managing agent lifecycles.</li>
+  </ul>
+
+  <h2>Architecture at a glance</h2>
+  <p>
+    AKIOS splits control and data planes so policies stay signed and enforced before any effect. The control plane holds the policy repo and engine; the data plane chains sandbox → PII guard → budget/loop kills → audit. Agents then reach tools/APIs only through those gates.
+  </p>
+  <figure class="arch-figure">
+    <img src="../assets/img/hero-arch.svg" alt="Clients/CI/Apps flow into AKIOS control plane and data plane, then to destinations under policy">
+  </figure>
+
+  <h3>Flow</h3>
+  <ul>
+    <li><strong>Clients / CI / Apps → Control Plane:</strong> Policies are validated and signed.</li>
+    <li><strong>Control Plane → Data Plane:</strong> Runtime orchestrator sets sandbox constraints.</li>
+    <li><strong>Sandbox stack:</strong> seccomp/userns/cgroups → PII redaction → budget/loop guards → Merkle audit.</li>
+    <li><strong>Agents → Tools/APIs:</strong> Only allowed calls pass; everything is logged and attestable.</li>
+  </ul>
+
+  <h2>Installation</h2>
+  <p>
+    You can install the latest version via Homebrew or by downloading the binary directly.
+  </p>
+
+  <pre><code>brew tap akios-ai/tap
+brew install akios
+
+# Verify installation
+akios --version</code></pre>
+
+  <h2>Changelog</h2>
+  <h3>Added</h3>
+  <ul>
+    <li>Initial support for WASM-based agents.</li>
+    <li>Added <code>--strict</code> mode for paranoid security defaults.</li>
+    <li>Documentation site launch (you're looking at it!).</li>
+  </ul>
+
+  <h3>Fixed</h3>
+  <ul>
+    <li>Fixed a race condition in the logger that caused dropped logs under high load.</li>
+    <li>Corrected file permission handling for read-only mounts.</li>
+  </ul>
+
+  <h2>Contributors</h2>
+  <p>
+    A huge thank you to everyone who contributed to this release. We couldn't have done it without the community support.
+  </p>
+</div>
+
+<div class="post-footer">
+  <div class="share-links">
+    <span>Share this post:</span>
+    <a href="#" target="_blank">Twitter</a>
+    <a href="#" target="_blank">LinkedIn</a>
+    <a href="#" target="_blank">Hacker News</a>
+  </div>
+  <a href="index.html">← Back to Blog</a>
+</div>

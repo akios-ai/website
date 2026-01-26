@@ -1,0 +1,50 @@
+<header class="post-header">
+  <div class="post-meta">26 janvier 2026</div>
+  <h1>Checklist de durcissement pour AKIOS 1.0</h1>
+  <div class="post-author">
+    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
+    <span>AJ</span>
+  </div>
+</header>
+
+<div class="post-content">
+  <p class="lead">
+    AKIOS est minimal, mais quelques garde-fous sont nécessaires en conditions réelles. Utilisez cette checklist avant de déployer.
+  </p>
+
+  <h2>Durcissement hôte</h2>
+  <ul>
+    <li>Kernel Linux récent avec <code>seccomp</code>, <code>userns</code>, <code>cgroups v2</code> activés.</li>
+    <li>Supprimez les capacités inutiles pour le processus AKIOS (<code>NET_ADMIN</code>, <code>SYS_ADMIN</code>, etc.).</li>
+    <li>Montez <code>/tmp</code> en <code>noexec</code> si votre flux le permet.</li>
+  </ul>
+
+  <h2>Discipline des politiques</h2>
+  <ul>
+    <li>Signez les politiques et chargez uniquement des artefacts signés en CI/CD.</li>
+    <li>Réseau et filesystem en deny par défaut ; listez précisément hôtes et chemins.</li>
+    <li>Limitez les budgets par outil ; échec en mode fermé lors d’un dépassement.</li>
+  </ul>
+
+  <h2>Audit + observabilité</h2>
+  <ul>
+    <li>Envoyez les journaux d’audit vers un sink immuable (bucket append-only ou service log avec rétention).</li>
+    <li>Activez l’export des preuves Merkle et validez-les dans les tests CI.</li>
+    <li>Alertez sur les sorties de sandbox, refus de politique et activations de kill-switch.</li>
+  </ul>
+
+  <h2>PII &amp; secrets</h2>
+  <ul>
+    <li>Gardez la rédaction PII activée pour tous les agents ; les exceptions doivent être rares.</li>
+    <li>Stockez les secrets dans votre coffre ; injectez-les avec privilèges minimaux, jamais dans les prompts.</li>
+  </ul>
+
+  <h2>Sécurité CI/CD</h2>
+  <ul>
+    <li>Bloquez les PR sur <code>akios lint</code> + <code>akios policy validate</code>.</li>
+    <li>Exécutez les workflows d’exemple dans un namespace/VM jetable par PR.</li>
+    <li>Bloquez les merges si la chaîne de hachage d’audit diverge de l’attendu.</li>
+  </ul>
+
+  <p>Avec ces bases, la cage reste serrée tout en vous laissant itérer.</p>
+</div>

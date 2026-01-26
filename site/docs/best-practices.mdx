@@ -1,0 +1,37 @@
+# Best Practices (AKIOS V1.0)
+
+Short, security-first patterns to keep workflows robust and maintainable.
+
+## Project layout
+- Keep `data/` split into `input/`, `output/`, `audit/`; one run per `run_YYYY-MM-DD_HH-MM-SS/` folder.
+- Separate `workflows/production/` vs `workflows/development/`; keep reusable pieces in `templates/`.
+- `.env` is gitignored; never commit keys.
+
+## Config hygiene
+- Use env-specific files: `.env.development`, `.env.production`; load via `AKIOS_*` overrides.
+- Template configs with `${VAR:-default}` for portability.
+- Enforce least privilege: restrict `filesystem.allowed_paths`; deny network unless required.
+
+## Workflow design
+- Modularize with shared fragments and anchors; keep steps small.
+- Add retries/backoff on external calls; use `skip_if` to short-circuit on validation failures.
+- Validate inputs early (size, type) before LLM/HTTP steps.
+- Add `cache_key`/`cache_ttl` where repeatable work is expensive.
+
+## Security practices
+- Minimal allowed paths; never include `./config`, `./.env`, `/etc`.
+- Rotate API keys; different keys per env.
+- Keep audit enabled; export/verify regularly.
+
+## Performance
+- Batch where possible; limit concurrency (`parallel --max-procs 2`).
+- Use size checks to downgrade work on large files (summary-only paths).
+- Prefer cached reads/analyses for static inputs.
+
+## Monitoring & ops
+- Health checks: simple HTTP probe + disk space; alert via webhook on failures.
+- Audit maintenance: export weekly summaries, archive old logs, run `akios audit verify`.
+
+## Testing
+- Unit test workflow parsing; integration test sample runs with `AKIOS_MOCK_LLM=true`.
+- Generate mock data via workflows for repeatable tests.
