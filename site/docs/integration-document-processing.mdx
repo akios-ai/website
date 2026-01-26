@@ -1,0 +1,52 @@
+# Document Processing (AKIOS V1.0)
+
+Automate ingestion, extraction, and analysis with the cage.
+
+## Quick start
+```bash
+./akios init my-doc-project
+./akios run templates/document_ingestion.yml
+```
+
+## Supported inputs
+- PDF (native + OCR fallback)
+- DOCX
+- TXT (encoding detection)
+- Images (OCR)
+
+## Basic pipeline
+```yaml
+name: "Document Analysis"
+steps:
+  - step: read_doc
+    agent: filesystem
+    action: read
+    config: {allowed_paths: ["./data/input"]}
+    parameters: {path: "./data/input/contract.pdf"}
+
+  - step: analyze
+    agent: llm
+    action: complete
+    parameters:
+      prompt: |
+        Extract parties, dates, financial terms, risks:
+        {{read_doc.content}}
+
+  - step: save
+    agent: filesystem
+    action: write
+    config: {allowed_paths: ["./data/output"]}
+    parameters:
+      path: "./data/output/contract_analysis.txt"
+      content: "{{analyze.text}}"
+```
+
+## Patterns
+- **Batch**: list files then process with tool_executor/parallel (limit procs).
+- **Routing**: classify via LLM, then move to a category folder with tool_executor.
+- **PII**: redaction is automatic; keep audit enabled for evidentiary trails.
+
+## Tips
+- Keep inputs under `data/input/`; outputs under `data/output/`.
+- Use size checks to switch to summary-only processing on very large files.
+- Store OCR/parse failures separately for reprocessing. 

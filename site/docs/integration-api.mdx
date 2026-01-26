@@ -1,0 +1,52 @@
+# API Integration (AKIOS V1.0)
+
+Connect the cage to external APIs with the HTTP agent and safe workflows.
+
+## Quick start
+```bash
+./akios init api-integration
+./akios run templates/batch_processing.yml   # sample multi-file flow
+```
+
+## HTTP agent guardrails
+- PII redaction on requests/responses
+- Rate limiting (10 req/min), 30s timeout by default
+- TLS required; full audit of calls
+
+## REST example
+```yaml
+name: "API Data Enrichment"
+steps:
+  - step: get_raw_data
+    agent: http
+    action: get
+    parameters:
+      url: "https://api.company.com/customers"
+      params: {limit: 10, status: "active"}
+  - step: enrich_data
+    agent: llm
+    action: complete
+    parameters:
+      prompt: |
+        Analyze these records and return segments + retention ideas:
+        {{get_raw_data.content}}
+  - step: store
+    agent: filesystem
+    action: write
+    config: {allowed_paths: ["./data/output"]}
+    parameters:
+      path: "./data/output/customer_insights.txt"
+      content: "{{enrich_data.content}}"
+```
+
+## Webhooks
+- **Send**: HTTP `post` step on completion with JSON payload.
+- **Receive**: handle incoming data by passing it as `context` or a pre-step variable, then process with LLM/HTTP steps.
+
+## GraphQL
+Use `http` `post` with a `json.query` body; responses are redacted/audited just like REST.
+
+## Tips
+- Keep secrets in `.env`; reference as `{{API_TOKEN}}`.
+- Validate payload size before LLM steps; add `timeout` and `retry` on HTTP steps.
+- For batch jobs, throttle concurrency and cache repeated fetches. 

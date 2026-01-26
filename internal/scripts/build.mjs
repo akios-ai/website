@@ -1,0 +1,316 @@
+import fs from 'fs-extra';
+import path from 'path';
+import { marked } from 'marked';
+
+// Config
+const SRC_DIR = 'site';
+const DIST_DIR = 'dist';
+const PARTIALS_DIR = 'partials';
+const LOCALES_DIR = 'internal/i18n/modules';
+
+// Load Locales
+const locales = { en: {}, fr: {} };
+
+try {
+    if (fs.existsSync(LOCALES_DIR)) {
+        const localeFiles = fs.readdirSync(LOCALES_DIR).filter(file => file.endsWith('.json'));
+        for (const file of localeFiles) {
+            const filePath = path.join(LOCALES_DIR, file);
+            const fileContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+            if (fileContent.en) Object.assign(locales.en, fileContent.en);
+            if (fileContent.fr) Object.assign(locales.fr, fileContent.fr);
+        }
+    } else {
+        console.error(`Locales directory not found: ${LOCALES_DIR}`);
+        process.exit(1);
+    }
+} catch (error) {
+    console.error('Error loading locales:', error);
+    process.exit(1);
+}
+
+// Helper: Read file content
+const readFile = (filePath) => fs.readFileSync(filePath, 'utf-8');
+
+// Helper: Calculate relative prefix for assets (e.g. "../")
+const getRootPrefix = (filePath, baseDir) => {
+    const relPath = path.relative(baseDir, filePath);
+    const depth = relPath.split(path.sep).length - 1;
+    return depth === 0 ? '.' : '../'.repeat(depth);
+};
+
+// Helper: Get Locale from path
+const getLocale = (filePath) => {
+    const relPath = path.relative(SRC_DIR, filePath);
+    // If path starts with 'fr/' or is 'fr', it's French.
+    if (relPath.startsWith('fr/') || relPath === 'fr') return 'fr';
+    return 'en'; // Default
+};
+
+// Helper: Translate key
+const t = (key, locale) => {
+    const keys = key.split('.');
+    let val = locales[locale];
+    for (const k of keys) {
+        val = val?.[k];
+    }
+    return val !== undefined ? val : key;
+};
+
+// Helper: Inject i18n strings into content
+const injectI18n = (content, locale) => {
+    return content.replace(/{{i18n\.([\w\.]+)}}/g, (_, key) => t(key, locale));
+};
+
+// Build Function
+const build = async () => {
+    console.log('Building website...');
+
+    // Load partials
+    const headerTemplate = readFile(path.join(PARTIALS_DIR, 'header.html'));
+    const footerTemplate = readFile(path.join(PARTIALS_DIR, 'footer.html'));
+
+    // Clean dist
+    await fs.emptyDir(DIST_DIR);
+
+    const multiLocalePages = {
+        'index.html': ['index.html', path.join('fr', 'index.html')],
+        'community.html': ['community.html', path.join('fr', 'community.html')],
+        'legal.html': ['legal.html', path.join('fr', 'legal.html')],
+        'terms.html': ['terms.html', path.join('fr', 'terms.html')],
+        'privacy.html': ['privacy.html', path.join('fr', 'privacy.html')],
+        'cookies.html': ['cookies.html', path.join('fr', 'cookies.html')],
+        'disclosure.html': ['disclosure.html', path.join('fr', 'disclosure.html')],
+        [path.join('blog', 'index.html')]: [
+            path.join('blog', 'index.html'),
+            path.join('fr', 'blog', 'index.html')
+        ]
+    };
+
+    const skipHtml = new Set([
+        path.join('fr', 'index.html'),
+        path.join('fr', 'community.html'),
+        path.join('fr', 'legal.html'),
+        path.join('fr', 'terms.html'),
+        path.join('fr', 'privacy.html'),
+        path.join('fr', 'cookies.html'),
+        path.join('fr', 'disclosure.html'),
+        path.join('fr', 'blog', 'index.html')
+    ]);
+
+    // Helper to process a file
+    const processFile = async (filePath) => {
+        const relPath = path.relative(SRC_DIR, filePath);
+        const distPath = path.join(DIST_DIR, relPath);
+        const ext = path.extname(filePath);
+        const locale = getLocale(filePath);
+
+        if (ext === '.html' && skipHtml.has(relPath)) {
+            return;
+        }
+
+        if (ext === '.html' && multiLocalePages[relPath]) {
+            const rawContent = readFile(filePath);
+
+            for (const targetRel of multiLocalePages[relPath]) {
+                const targetLocale = targetRel.startsWith('fr/') ? 'fr' : 'en';
+                const header = injectI18n(headerTemplate, targetLocale);
+                const footer = injectI18n(footerTemplate, targetLocale);
+
+                const depth = targetRel.split(path.sep).length - 1;
+                const prefix = depth === 0 ? '.' : '../'.repeat(depth);
+                const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+
+                let content = rawContent
+                    .replace(/<html lang="[^"]+">/i, `<html lang="${targetLocale}">`)
+                    .replace('<!-- {{header}} -->', header)
+                    .replace('<!-- {{footer}} -->', footer)
+                    .replace(/{{root}}/g, rootReplacement);
+
+                content = injectI18n(content, targetLocale);
+
+                const targetDistPath = path.join(DIST_DIR, targetRel);
+                await fs.outputFile(targetDistPath, content);
+                console.log(`Built HTML (${targetLocale}): ${targetDistPath}`);
+            }
+
+        } else if (ext === '.html') {
+            const header = injectI18n(headerTemplate, locale);
+            const footer = injectI18n(footerTemplate, locale);
+
+            let content = readFile(filePath);
+            const prefix = getRootPrefix(filePath, SRC_DIR);
+            const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+
+            content = content
+                .replace(/<html lang="[^"]+">/i, `<html lang="${locale}">`)
+                .replace('<!-- {{header}} -->', header)
+                .replace('<!-- {{footer}} -->', footer)
+                .replace(/{{root}}/g, rootReplacement);
+            
+            content = injectI18n(content, locale);
+
+            await fs.outputFile(distPath, content);
+            console.log(`Built HTML (${locale}): ${distPath}`);
+
+        } else if (ext === '.md' || ext === '.mdx') {
+            const header = injectI18n(headerTemplate, locale);
+            const footer = injectI18n(footerTemplate, locale);
+
+            const rawContent = readFile(filePath);
+            const htmlBody = marked.parse(rawContent);
+
+            const prefix = getRootPrefix(filePath, SRC_DIR);
+            const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+
+            const isDocs = relPath.startsWith('docs/') || relPath.startsWith('fr/docs/');
+            const isBlog = relPath.startsWith('blog/') || relPath.startsWith('fr/blog/');
+
+            if (isDocs) {
+                const docsSidebar = `
+            <aside class="docs-sidebar">
+                <nav class="docs-nav">
+                    <div class="section-title">${t('sidebar.start_here', locale)}</div>
+                    <ul>
+                        <li><a href="index.html">${t('sidebar.overview', locale)}</a></li>
+                        <li><a href="installation.html">${t('sidebar.installation', locale)}</a></li>
+                        <li><a href="quickstart.html">${t('sidebar.quickstart', locale)}</a></li>
+                    </ul>
+
+                    <div class="section-title">${t('sidebar.core', locale)}</div>
+                    <ul>
+                        <li><a href="concepts.html">${t('sidebar.concepts', locale)}</a></li>
+                        <li><a href="security.html">${t('sidebar.security_model', locale)}</a></li>
+                        <li><a href="use-cases.html">${t('sidebar.use_cases', locale)}</a></li>
+                    </ul>
+
+                    <div class="section-title">${t('sidebar.reference', locale)}</div>
+                    <ul>
+                        <li><a href="config-reference.html">${t('sidebar.config_reference', locale)}</a></li>
+                        <li><a href="policy-schema.html">${t('sidebar.policy_schema', locale)}</a></li>
+                        <li><a href="debugging.html">${t('sidebar.debugging', locale)}</a></li>
+                    </ul>
+                </nav>
+            </aside>`;
+
+                let pageContent = `
+<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${t('nav.docs', locale)}</title>
+    <link rel="stylesheet" href="${rootReplacement}/assets/css/styles.css">
+</head>
+<body>
+    ${header.replace(/{{root}}/g, rootReplacement)}
+    
+    <div class="page">
+        <div class="docs-wrapper">
+            ${docsSidebar}
+            
+            <main class="docs-content">
+                ${htmlBody}
+            </main>
+        </div>
+    </div>
+
+    ${footer.replace(/{{root}}/g, rootReplacement)}
+
+    <script>
+        (function() {
+            const path = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.docs-nav a');
+            
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (path.endsWith(href)) {
+                    link.classList.add('active');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>`;
+
+                const htmlDistPath = distPath.replace(ext, '.html');
+                await fs.outputFile(htmlDistPath, pageContent);
+                console.log(`Built MDX docs -> HTML (${locale}): ${htmlDistPath}`);
+            } else if (isBlog) {
+                let pageContent = `
+<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKIOS — ${t('nav.blog', locale)}</title>
+    <link rel="stylesheet" href="${rootReplacement}/assets/css/styles.css">
+    <link rel="icon" href="${rootReplacement}/assets/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    ${header.replace(/{{root}}/g, rootReplacement)}
+    
+    <article class="section">
+        <div class="page">
+            ${htmlBody}
+        </div>
+    </article>
+
+    ${footer.replace(/{{root}}/g, rootReplacement)}
+</body>
+</html>`;
+
+                const htmlDistPath = distPath.replace(ext, '.html');
+                await fs.outputFile(htmlDistPath, pageContent);
+                console.log(`Built MDX blog -> HTML (${locale}): ${htmlDistPath}`);
+            } else {
+                let pageContent = `
+<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${t('nav.docs', locale)}</title>
+    <link rel="stylesheet" href="${rootReplacement}/assets/css/styles.css">
+</head>
+<body>
+    ${header.replace(/{{root}}/g, rootReplacement)}
+    
+    <div class="page">
+        ${htmlBody}
+    </div>
+
+    ${footer.replace(/{{root}}/g, rootReplacement)}
+</body>
+</html>`;
+
+                const htmlDistPath = distPath.replace(ext, '.html');
+                await fs.outputFile(htmlDistPath, pageContent);
+                console.log(`Built MDX page -> HTML (${locale}): ${htmlDistPath}`);
+            }
+
+        } else {
+            // Copy assets
+            await fs.copy(filePath, distPath);
+        }
+    };
+
+    // Walk directory
+    const walk = async (dir) => {
+        const files = await fs.readdir(dir);
+        for (const file of files) {
+            const filePath = path.join(dir, file);
+            const stat = await fs.stat(filePath);
+            if (stat.isDirectory()) {
+                await walk(filePath);
+            } else {
+                await processFile(filePath);
+            }
+        }
+    };
+
+    await walk(SRC_DIR);
+    console.log('Done.');
+};
+
+build().catch(err => console.error(err));

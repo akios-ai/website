@@ -1,0 +1,38 @@
+# Guide de migration (vers AKIOS V1.0)
+
+Passez aux distributions V1.0 (pip ou Docker) depuis les versions antérieures.
+
+## Check-list rapide
+- Sauvegarder `.env` et `config.yaml`.
+- Choisir pip (Linux sécu max) ou wrapper Docker (multi-OS).
+- Mettre à jour scripts/playbooks.
+- Vérifier : `akios status`, run sample, `akios audit verify`.
+
+## Voie pip (recommandée)
+```bash
+pip install --upgrade akios
+akios --version
+akios run templates/hello-workflow.yml
+```
+
+## Voie wrapper Docker
+```bash
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+chmod +x akios
+./akios run templates/hello-workflow.yml
+```
+
+## Docker direct (secours/CI)
+```bash
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+```
+
+## Vérifications post-migration
+- `akios status --security`
+- `akios audit verify`
+- Un run en mock puis `--real-api` pour valider clés et budgets.
+
+## Notes de compatibilité
+- Workflows compatibles; validation plus stricte (messages clairs).
+- Docker macOS/Windows reste basé politiques; pip Linux = kernel-hard complet.
+- Configs immuables à l’exécution; garder l’audit activé.

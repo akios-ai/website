@@ -1,0 +1,37 @@
+# Bonnes pratiques (AKIOS V1.0)
+
+Raccourcis sécurité pour des workflows robustes et maintenables.
+
+## Organisation
+- `data/` scindé en `input/`, `output/`, `audit/`; un dossier par run `run_YYYY-MM-DD_HH-MM-SS/`.
+- `workflows/production/` vs `workflows/development/`; fragments réutilisables dans `templates/`.
+- `.env` ignoré git ; clés jamais commitées.
+
+## Hygiène de config
+- Fichiers par env (`.env.development`, `.env.production`) + overrides `AKIOS_*`.
+- Gabarits avec `${VAR:-default}`.
+- Moindre privilège : `allowed_paths` minimal, réseau désactivé sauf besoin.
+
+## Conception de workflow
+- Modules courts avec ancres; étapes petites.
+- Retries/backoff sur appels externes; `skip_if` après validations.
+- Valider tôt (taille/type) avant LLM/HTTP.
+- `cache_key`/`cache_ttl` pour le travail répétitif coûteux.
+
+## Sécurité
+- Chemins autorisés stricts; jamais `./config`, `./.env`, `/etc`.
+- Rotation des clés API, clés distinctes par env.
+- Audit activé; exporter/vérifier régulièrement.
+
+## Performance
+- Traitement par lots; limiter la concurrence (`parallel --max-procs 2`).
+- Downgrade pour gros fichiers (mode résumé).
+- Préférer les lectures/analyses mises en cache pour les entrées statiques.
+
+## Monitoring & ops
+- Checks santé simples (HTTP + disque) ; alerte webhook en cas d’échec.
+- Audit : export hebdo, archivage, `akios audit verify`.
+
+## Tests
+- Tests unitaires de parsing; tests d’intégration avec `AKIOS_MOCK_LLM=true`.
+- Générer des données mock via workflows pour des tests reproductibles.

@@ -1,0 +1,19 @@
+# FAQ & Glossaire (AKIOS V1.0)
+
+## FAQ express
+- **AKIOS est-il un framework d’agents ?** Non. C’est une cage de sécurité qui exécute des agents/workflows avec politiques, sandbox, rédaction et audit.
+- **Setup le plus robuste ?** Pip sur Linux natif (cgroups v2 + seccomp-bpf). Le wrapper Docker est fort/policy sur macOS/Win/Linux.
+- **Où sont mes outputs ?** `data/output/run_*` par exécution ; logs d’audit dans `audit/audit_events.jsonl`.
+- **Passer en API réelles ?** `--real-api` ou `AKIOS_MOCK_LLM=0` + clé API + `network_access_allowed=true`.
+- **Vérifier la sécurité ?** `akios status --security` et `akios audit verify`.
+- **Validation échouée ?** Chaque step doit avoir `agent`, `action`, `parameters` et utiliser un agent autorisé ; voir Schéma de politique.
+
+## Glossaire
+- **Cage de sécurité** : Sandbox + politiques + rédaction + audit appliqués à chaque workflow.
+- **Policy-based vs kernel-hard** : Policy (Docker, macOS/Win) via conteneur ; kernel-hard (Linux pip) ajoute seccomp-bpf + cgroups v2 sur l’hôte.
+- **allowed_paths** : Liste blanche FS pour l’agent filesystem ; le reste est refusé.
+- **Rédaction PII** : Masquage/hachage/retrait en temps réel des données sensibles en entrée/sortie.
+- **Audit Merkle** : Chaîne de logs inviolable ; `akios audit verify` vérifie l’intégrité.
+- **mock_llm / --real-api** : Mode mock = sorties synthétiques ; mode réel = appels fournisseur avec budgets/rédaction actifs.
+- **Coupe-circuits coût/boucle** : Limites coût/tokens et détection de boucle pour arrêter un run incontrôlé.
+- **Agents** : Quatre primitives — filesystem, http, llm, tool_executor ; pas d’exécution de code arbitraire hors de ces agents.

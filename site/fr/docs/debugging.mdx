@@ -1,0 +1,48 @@
+# Guide de dépannage (AKIOS V1.0)
+
+Corriger les problèmes d’installation, de config et d’exécution. Utilisez `--debug` ou le mode JSON quand il faut du détail.
+
+## Diagnostic rapide
+```bash
+akios status                     # état global
+akios --debug status             # verbeux
+akios audit view --limit 10      # derniers événements
+a k i o s config validate        # validation config
+AKIOS_JSON_MODE=1 akios status   # erreurs lisibles machine
+```
+
+## Problèmes d’installation
+- **Binaire/wrapper :** `chmod +x akios`; dans le répertoire ou PATH; `AKIOS_FORCE_PULL=1 ./akios status` si l’image semble vieille.
+- **Pip :** `pip show akios`; Python ≥3.8; `pip uninstall akios && pip install akios` (idéalement venv).
+- **Docker :** `docker run hello-world`; ajouter l’utilisateur au groupe docker (Linux) ou lancer Docker Desktop; vérifier les permissions de volume.
+
+## Problèmes de configuration
+- **.env :** ouvrir `.env`; corriger les fournisseurs concaténés (`grokopenai` → `grok`); format `CLE=valeur`; relancer `akios setup --force`.
+- **Validation fournisseur/modèle :** utiliser des paires supportées (openai:gpt-4/4o, anthropic:claude-3.5 haiku/sonnet, grok:grok-3, mistral:mistral-large, gemini:gemini-1.5-pro); insensible à la casse.
+- **Erreurs YAML :** `python3 -c "import yaml; yaml.safe_load(open('config.yaml'))"`; vérifier champs requis et indentation.
+
+## Problèmes d’exécution de workflow
+- **Template introuvable :** `./akios templates list`; vérifier le fichier.
+- **Validation échouée :** chaque step doit avoir `agent`, `action`, `parameters`; agents autorisés : llm, http, filesystem, tool_executor.
+- **Filesystem :** "Path not allowed" → ajouter dans `allowed_paths`; vérifier permissions fichiers.
+- **LLM :** clé API manquante/invalide ou modèle non supporté → corriger `.env`; tester le quota.
+- **HTTP :** activer `network_access_allowed`; vérifier URL/SSL; augmenter `timeout` si besoin.
+
+## Spécifique Docker
+- Blocages fichiers sur macOS/Windows VM : mettre à jour Docker Desktop; si besoin `sandbox_enabled: false` (on garde l’isolation conteneur).
+- Image obsolète : `docker pull akiosai/akios:v1.0.0` ou `AKIOS_FORCE_PULL=1`.
+
+## Validation sécurité
+- "SECURITY VALIDATION FAILED" : sous Linux, kernel ≥5.4 et seccomp actifs; sous macOS/Windows, utiliser le mode Docker.
+- PII dans les logs : vérifier `pii_redaction_enabled: true` et `audit_enabled: true`.
+
+## Récupération d’urgence
+1) Stopper : `pkill -f akios`  
+2) Sauvegarder : `cp -r data/ data.backup`  
+3) Réinitialiser : `./akios setup --force`  
+4) Nettoyer : `./akios clean all`
+
+## Related
+- [Sécurité](security.html)
+- [Référence de configuration](config-reference.html)
+- [Schéma de politique](policy-schema.html)

@@ -1,0 +1,27 @@
+flowchart LR
+  %% Palette tuned to site theme (Zinc + Cyan)
+  classDef core fill:#06b6d4,stroke:#06b6d4,stroke-width:3,color:#18181b,font-weight:700
+  classDef layer fill:#ffffff,stroke:#06b6d4,stroke-width:2.25,color:#18181b,font-weight:650
+  classDef aux fill:#fafafa,stroke:#e4e4e7,stroke-width:2,color:#52525b,font-weight:550
+
+  %% Dark arrows for contrast
+  linkStyle default stroke:#18181b,stroke-width:2.25,color:#18181b
+
+  C[Client / CLI\nAPI / SDK]:::layer
+  C --> AK
+
+  subgraph AK[AKIOS Runtime]
+    direction TB
+    style AK fill:#ecfeff,stroke:#06b6d4,stroke-width:2.5,color:#18181b,font-weight:750
+    P[Policy Engine\nexplicit allowlists]:::layer
+    S[Sandbox\nseccomp-bpf · cgroups · userns]:::layer
+    R[PII Redaction\ninputs + outputs]:::layer
+    B[Budget & Loop Kills\ncost + token limits]:::layer
+    A[Audit Ledger\nMerkle, signed logs]:::layer
+    P --> S --> R --> B --> A
+  end
+
+  AK --> G[Agents\nfilesystem / http / llm / tool]:::layer
+  G --> T[Tools / APIs\npolicy-gated effects]:::layer
+
+  class C,AK,G,T core

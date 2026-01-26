@@ -1,0 +1,118 @@
+---
+title: Workflow Schema Guide
+description: Complete reference for AKIOS V1.0 workflow structure, validation, and agents.
+---
+
+# Workflow Schema Guide (AKIOS V1.0)
+Version 1.0.0 | Last updated: Jan 9, 2026
+
+Validation keeps workflows safe and predictable before execution.
+
+## Required structure
+```yaml
+name: "Your Workflow"
+description: "What it does"
+steps:
+  - step: 1          # number or unique string
+    agent: llm       # one of: llm | http | filesystem | tool_executor
+    action: complete # agent action
+    config: {}       # optional agent config
+    parameters: {}   # required
+```
+
+Allowed agents
+| Agent | Purpose | Example actions |
+|-------|---------|-----------------|
+| llm | AI model calls | complete, chat |
+| http | Web/API calls | get, post, put, delete |
+| filesystem | File ops | read, write, stat |
+| tool_executor | Commands | run |
+
+## Common validation failures
+- Missing fields (`action`, `parameters`, `agent`)
+- Unknown agent (`gpt` → use `llm`)
+- Invalid action for agent (`execute` on filesystem)
+- Bad step IDs (duplicates or empty)
+
+## Validation behavior
+- Pass: silent, zero overhead.
+- Fail: execution stops with clear error and hints; compare against template.
+
+## Examples
+Simple LLM
+```yaml
+name: "AI Greeting"
+description: "Generate a greeting"
+steps:
+  - step: 1
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Generate a creative greeting"
+      max_tokens: 50
+```
+
+Multi-step
+```yaml
+name: "Data Pipeline"
+description: "Read -> summarize -> write"
+steps:
+  - step: read
+    agent: filesystem
+    action: read
+    parameters:
+      path: "./data/input.txt"
+
+  - step: summarize
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Summarize: {{read.content}}"
+      max_tokens: 100
+
+  - step: write
+    agent: filesystem
+    action: write
+    parameters:
+      path: "./data/summary.txt"
+      content: "{{summarize.text}}"
+```
+
+## Safe customizations
+- Change parameters/config values.
+- Add steps following the same structure.
+- Keep agents/actions within the allowed set.
+
+What will fail
+- Unknown agent names.
+- Actions not supported by the agent.
+- Missing `action` or `parameters`.
+
+Tip: run `akios run <workflow>` to validate before execution; errors cite the offending step.
+```
+
+## Minimal valid example
+```yaml
+name: "Hello"
+description: "Demo"
+steps:
+  - step: 1
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Hi"
+```
+
+## Invalid example (common)
+```yaml
+steps:
+  - step: 1
+    agent: filesystem
+    action: execute   # invalid for filesystem
+```
+Expected error: `action 'execute' not allowed for agent 'filesystem'`.
+
+## Related
+- [Config Reference](config-reference.html)
+- [Debugging](debugging.html)
+- [Use Cases](use-cases.html)

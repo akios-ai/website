@@ -1,0 +1,26 @@
+# Core Concepts (AKIOS V1.0)
+
+Security-first runtime for AI agents: sandbox, PII redaction, audit, and cost/loop kills on every run.
+
+## Platform security levels
+| Environment | Security level | Notes |
+|-------------|----------------|-------|
+| Native Linux | Full (kernel-hard: cgroups v2 + seccomp-bpf) | Maximum isolation and enforcement |
+| Docker (macOS/Windows/Linux) | Strong (policy-based) | Cross-platform; host FS perms/seccomp depend on host |
+
+Docker is convenient and strong; use native Linux for the strictest guarantees (filesystem perms + seccomp on host).
+
+## Core protections
+- **Sandbox & quotas**: syscall filtering, CPU/memory/file limits, default-deny network.
+- **PII redaction**: >50 patterns on inputs/outputs.
+- **Audit**: Merkle-style, tamper-evident logs.
+- **Cost/loop kills**: budgets and token caps, loop detection.
+
+## Core agents (4)
+- **filesystem** — read/write/stat within allowed paths.
+- **http** — rate-limited web/API calls with redaction.
+- **llm** — token/cost-tracked calls to OpenAI, Anthropic, Grok, Mistral, Gemini.
+- **tool_executor** — allowlisted commands in a sandboxed subprocess.
+
+## Architecture
+Single-process runtime, no sidecars. State is ephemeral per run; persistence is file-based (data/, audit/). Deployable as pip package or Docker (wrapper or direct). Minimal surface = easy to audit and operate in air‑gapped or high-assurance environments.

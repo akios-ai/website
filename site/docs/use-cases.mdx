@@ -1,0 +1,76 @@
+# Use Cases & Patterns
+
+Practical ways to apply the AKIOS security cage in production.
+
+## Core patterns
+- **Run untrusted/3rd-party agents** safely with default-deny network/fs and audit.
+- **Pre-flight in CI/CD**: validate policies and costs before deploy.
+- **Handle sensitive data**: PII redaction + tamper-evident audit on every step.
+- **Guarded tool execution**: allowlist commands and paths, no ambient network.
+
+## Examples
+
+### 1) Secure document processing (public sector)
+```yaml
+name: "Secure Document Summary"
+steps:
+  - step: read_pdf
+    agent: filesystem
+    action: read
+    parameters:
+      path: "/inputs/application.txt"
+  - step: analyze
+    agent: llm
+    action: complete
+    parameters:
+      model: "gpt-4"
+      prompt: "Summarize this application: {{read_pdf.content}}"
+  - step: save
+    agent: filesystem
+    action: write
+    parameters:
+      path: "/outputs/summary.txt"
+      content: "{{analyze.text}}"
+```
+*Why it fits*: automatic PII redaction + signed audit trail.
+
+### 2) API enrichment with budget guard (finance)
+```yaml
+name: "KYC Enrichment"
+steps:
+  - step: fetch_data
+    agent: http
+    action: get
+    parameters:
+      url: "https://api.external-data.com/user/{{user_id}}"
+  - step: risk_analysis
+    agent: llm
+    action: complete
+    parameters:
+      model: "claude-3.5-sonnet"
+      prompt: "Analyze risk for this user data: {{fetch_data.body}}"
+  - step: save_report
+    agent: filesystem
+    action: write
+    parameters:
+      path: "/reports/{{user_id}}_risk.json"
+      content: "{{risk_analysis.text}}"
+```
+*Why it fits*: enforced budget/token limits + redaction on inputs/outputs.
+
+### 3) Safe tool execution (DevOps)
+```yaml
+name: "Log Analyzer"
+steps:
+  - step: run_script
+    agent: tool_executor
+    action: run
+    parameters:
+      command: "python3 /scripts/analyze_logs.py --input /logs/server.log"
+```
+*Why it fits*: command allowlist, default-deny network, bounded paths.
+
+## Related
+- [Best Practices](best-practices.html)
+- [Integration – API](integration-api.html)
+- [Integration – Documents](integration-document-processing.html)

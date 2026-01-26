@@ -1,0 +1,54 @@
+# Référence CLI (AKIOS V1.0)
+
+Commandes essentielles de la cage de sécurité (pip, wrapper Docker ou Docker direct).
+
+## Global
+```bash
+akios --help            # commandes & options
+akios --version         # version/build
+akios --debug <cmd>     # logs verbeux
+AKIOS_JSON_MODE=1 akios status  # sortie JSON
+```
+
+## Cycle projet
+```bash
+akios init [chemin]         # créer le squelette
+akios setup [--force]       # assistant clés/fournisseur/budget
+akios config validate       # valider la config
+akios status [--security]   # état + sécurité
+akios clean [--old-runs]    # nettoyer anciens runs/cache
+```
+
+## Exécuter des workflows
+```bash
+akios run templates/hello-workflow.yml
+akios run workflows/mon.yml --real-api
+akios run workflows/mon.yml --context cle=valeur
+```
+
+## Templates
+```bash
+akios templates list
+akios templates pull <nom>
+```
+
+## Audit
+```bash
+akios audit view --limit 20
+akios audit export --since "7 days ago" --format json --output audit.json
+akios audit verify
+akios audit archive --older-than 90d --compress
+```
+
+## Débogage
+```bash
+akios --debug status
+akios --debug run workflows/mon.yml
+```
+
+## Rappels installation
+- Pip (Linux sécu max) : `pip install akios`
+- Wrapper Docker (toutes plateformes) : `curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios && chmod +x akios`
+- Docker direct : `docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 ...`
+
+`--help` sur chaque commande pour les options détaillées.

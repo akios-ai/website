@@ -1,0 +1,74 @@
+{
+  "en": {
+    "nav": {
+      "docs": "Docs",
+      "blog": "Blog",
+      "community": "Community",
+      "start": "Start Here"
+    },
+    "footer": {
+      "copyright": "© 2026 AKIOS",
+      "tagline": "Secure runtime for untrusted AI agents. Open source (GPL-3), native Unix first.",
+      "legal": "Legal"
+    },
+    "sidebar": {
+      "start_here": "Start Here",
+      "overview": "Overview",
+      "installation": "Installation",
+      "quickstart": "Quickstart",
+      "core": "Core",
+      "concepts": "Concepts",
+      "security_model": "Security Model",
+      "use_cases": "Use Cases",
+      "reference": "Reference",
+      "config_reference": "Config Reference",
+      "policy_schema": "Policy Schema",
+      "debugging": "Debugging"
+    },
+    "meta": {
+      "lang_label": "Language",
+      "lang_switch_label": "FR",
+      "lang_switch_url": "/fr/index.html",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "error": "Error",
+      "copy_label": "Copy code to clipboard"
+    }
+  },
+  "fr": {
+    "nav": {
+      "docs": "Docs",
+      "blog": "Blog",
+      "community": "Communauté",
+      "start": "Démarrage"
+    },
+    "footer": {
+      "copyright": "© 2026 AKIOS",
+      "tagline": "Runtime sécurisé pour agents IA non fiables. Open source (GPL-3), natif Unix.",
+      "legal": "Mentions légales"
+    },
+    "sidebar": {
+      "start_here": "Commencer ici",
+      "overview": "Vue d'ensemble",
+      "installation": "Installation",
+      "quickstart": "Démarrage rapide",
+      "core": "Cœur",
+      "concepts": "Concepts",
+      "security_model": "Modèle de sécurité",
+      "use_cases": "Cas d'usage",
+      "reference": "Référence",
+      "config_reference": "Référence Config",
+      "policy_schema": "Schéma de politique",
+      "debugging": "Débogage"
+    },
+    "meta": {
+      "lang_label": "Langue",
+      "lang_switch_label": "EN",
+      "lang_switch_url": "/index.html",
+      "copy": "Copier",
+      "copied": "Copié !",
+      "error": "Erreur",
+      "copy_label": "Copier le code"
+    }
+  }
+}

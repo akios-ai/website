@@ -1,0 +1,150 @@
+# AKIOS V1.0 – Configuration Reference
+
+Single `config.yaml` governs the runtime. Loaded at startup; immutable during execution. Defaults are security-first.
+
+## Where config lives
+```
+project/
+├── config.yaml      # main config
+├── workflows/       # your workflows
+├── templates/       # examples
+├── data/            # input/output
+└── audit/           # tamper-evident logs
+```
+
+Load order (highest first): environment variables → `.env` → `config.yaml` → built-in defaults.
+
+## Setup & validation
+- First run of `akios run templates/hello-workflow.yml` launches the setup wizard.
+- Manual: `akios setup` (or `--force` to rerun).
+- `--real-api` flips to real calls (sets `AKIOS_MOCK_LLM=0`, enables network, prompts for keys).
+- Corruption guard flags bad provider names, malformed booleans, invalid key formats with suggested fixes.
+
+## Sensitive values (.env)
+```bash
+AKIOS_LLM_PROVIDER=grok            # openai|anthropic|grok|mistral|gemini
+AKIOS_LLM_MODEL=grok-3             # provider-specific
+AKIOS_MOCK_LLM=0                   # 0=real,1=mock
+AKIOS_NETWORK_ACCESS_ALLOWED=1     # allow HTTP agent
+AKIOS_FORCE_PULL=1                 # wrapper always pulls latest image
+OPENAI_API_KEY=sk-...              # provider keys (one or more)
+```
+
+## Most-used overrides
+```bash
+export AKIOS_LLM_PROVIDER=openai
+export AKIOS_NETWORK_ACCESS_ALLOWED=1
+export AKIOS_BUDGET_LIMIT_PER_RUN=1.0
+```
+
+## Key config fields (security-first defaults)
+```yaml
+sandbox_enabled: true          # isolation (kernel-hard on Linux, policy in Docker)
+cpu_limit: 0.8                 # fraction of CPU
+memory_limit_mb: 256
+max_open_files: 100
+max_file_size_mb: 10
+network_access_allowed: false
+
+pii_redaction_enabled: true
+redaction_strategy: "mask"     # mask|hash|remove
+pii_redaction_outputs: true
+
+cost_kill_enabled: true
+max_tokens_per_call: 500
+budget_limit_per_run: 1.0
+
+audit_enabled: true
+audit_storage_path: "./audit/"
+audit_export_format: "json"
+
+environment: "development"
+log_level: "INFO"
+```
+
+## Environment overrides
+```bash
+export AKIOS_CPU_LIMIT=0.5
+export AKIOS_MEMORY_LIMIT_MB=128
+export AKIOS_BUDGET_LIMIT_PER_RUN=0.5
+export AKIOS_LOG_LEVEL=DEBUG
+```
+
+## Example profiles
+**Production (secure)**  
+```yaml
+sandbox_enabled: true
+cpu_limit: 0.5
+memory_limit_mb: 128
+network_access_allowed: false
+budget_limit_per_run: 1.0
+log_level: "WARNING"
+```
+**Development (relaxed)**  
+```yaml
+network_access_allowed: true
+budget_limit_per_run: 5.0
+log_level: "DEBUG"
+```
+
+## Security notes
+- Treat `config.yaml`/`.env` as read-only at runtime; set file perms to `600`.
+- Fail fast: `akios status` surfaces config validation; invalid configs stop before execution.
+**Security Level:** Strong policy-based security
+**Configuration Notes:**
+- Consistent behavior across platforms
+- Container isolation instead of kernel sandboxing
+- Network controls via container policies
+- Memory and CPU limits via Docker
+
+### Choosing the Right Installation
+
+| Use Case | Recommended Method | Why |
+|----------|-------------------|-----|
+| **Maximum security, Linux production** | Pip Package | Kernel-hard security features |
+| **Cross-platform development team** | Docker | Consistent environment everywhere |
+| **Python ecosystem integration** | Pip Package | Full Python compatibility |
+
+### Platform-Specific Configuration
+
+#### Linux (All Methods)
+```yaml
+# Maximum security available
+sandbox_enabled: true  # seccomp-bpf + cgroups
+environment: "production"
+```
+
+#### macOS/Windows (Docker)
+```yaml
+# Strong policy-based security
+sandbox_enabled: true  # Container policies + allowlisting
+environment: "production"
+# Note: No kernel-hard seccomp-bpf available
+```
+
+#### Docker (All Platforms)
+```yaml
+# Container-aware settings
+sandbox_enabled: true
+network_access_allowed: true  # For HTTP agent
+# Docker handles resource isolation
+```
+
+### Configuration Validation by Method
+
+AKIOS validates configuration compatibility with your deployment method:
+
+```bash
+# Pip package - validates Linux kernel features
+akios status  # Shows kernel-hard security status
+
+# Docker - validates container environment
+akios status  # Shows policy-based security status
+```
+
+**Tip:** Run `akios status` after installation to see your security capabilities and configuration status.
+
+## Related
+- [Security](security.html)
+- [Policy Schema](policy-schema.html)
+- [Debugging](debugging.html)

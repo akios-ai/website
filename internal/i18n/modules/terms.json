@@ -1,0 +1,58 @@
+{
+  "en": {
+    "terms_page": {
+      "title": "Terms of Use — AKIOS",
+      "description": "Terms of Use for akios.ai website and AKIOS software.",
+      "heading": "Terms of Use – akios.ai",
+      "last_updated": "Last updated: 2026-01-26",
+      "operator": "Operator: AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – privacy@akioud.ai — SIREN: 924 929 730",
+      "scope_heading": "Scope",
+      "scope_content": "These terms govern use of the akios.ai website (content, docs, downloads). Software is licensed under GPL-3.0 as AKIOS Open Runtime.",
+      "acceptable_use_heading": "Acceptable Use",
+      "acceptable_use_1": "Do not disrupt the site, attempt unauthorized access, or abuse the brand.",
+      "acceptable_use_2": "Do not submit illegal, infringing, or harmful content.",
+      "ip_heading": "Intellectual Property",
+      "ip_content": "Site content, logos, and trademarks belong to AKIOUD AI, SAS. Use of the AKIOS mark is governed by TRADEMARKS.md.",
+      "warranty_heading": "No Warranty",
+      "warranty_content": "Site information is provided “as is” without warranty of accuracy, availability, or fitness for purpose.",
+      "links_heading": "Links / Third Party",
+      "links_content": "External links are for convenience; we are not responsible for their content or services.",
+      "liability_heading": "Liability",
+      "liability_content": "To the extent permitted by law, AKIOUD AI, SAS is not liable for damages arising from site use. Mandatory legal rights (e.g., bodily injury, gross negligence) are not excluded.",
+      "privacy_heading": "Privacy & Cookies",
+      "privacy_content": "See Privacy Policy and Cookie Policy for data handling and consent.",
+      "law_heading": "Governing Law",
+      "law_content": "French law; exclusive jurisdiction: Paris courts.",
+      "security_heading": "Security / Vulnerability Disclosure",
+      "security_content": "Report vulnerabilities to security@akioud.ai with details and reproduction steps. Acknowledgment within 5 business days."
+    }
+  },
+  "fr": {
+    "terms_page": {
+      "title": "Conditions d’utilisation — AKIOS",
+      "description": "Conditions d’utilisation du site akios.ai et du logiciel AKIOS.",
+      "heading": "Conditions d’utilisation – akios.ai",
+      "last_updated": "Dernière mise à jour : 2026-01-26",
+      "operator": "Exploitant : AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – privacy@akioud.ai — SIREN : 924 929 730",
+      "scope_heading": "Champ d’application",
+      "scope_content": "Ces conditions régissent l’usage du site akios.ai (contenu, documentation, téléchargements). Le logiciel est régi par la GPL-3.0 en tant qu'AKIOS Open Runtime.",
+      "acceptable_use_heading": "Usage acceptable",
+      "acceptable_use_1": "Ne pas perturber le site, tenter d’accès non autorisé ou abuser de la marque.",
+      "acceptable_use_2": "Ne pas soumettre de contenu illicite, contrefaisant ou nuisible.",
+      "ip_heading": "Propriété intellectuelle",
+      "ip_content": "Le contenu du site, les logos et marques appartiennent à AKIOUD AI, SAS. L’usage de la marque AKIOS est régi par TRADEMARKS.md.",
+      "warranty_heading": "Absence de garantie",
+      "warranty_content": "Les informations du site sont fournies « en l’état », sans garantie d’exactitude, de disponibilité ou d’adéquation à un usage particulier.",
+      "links_heading": "Liens / tiers",
+      "links_content": "Les liens externes sont fournis pour convenance ; nous ne sommes pas responsables de leur contenu ou services.",
+      "liability_heading": "Responsabilité",
+      "liability_content": "Dans la limite permise par la loi, AKIOUD AI, SAS décline toute responsabilité pour les dommages liés à l’usage du site. Les droits légaux impératifs (ex. atteinte corporelle, faute lourde) ne sont pas exclus.",
+      "privacy_heading": "Confidentialité & cookies",
+      "privacy_content": "Voir la Politique de confidentialité et la Politique Cookies pour le traitement des données et le consentement.",
+      "law_heading": "Droit applicable",
+      "law_content": "Droit français ; juridiction exclusive : tribunaux de Paris.",
+      "security_heading": "Sécurité / divulgation de vulnérabilités",
+      "security_content": "Signalez toute vulnérabilité à security@akioud.ai avec détails et reproduction. Accusé de réception visé sous 5 jours ouvrés."
+    }
+  }
+}

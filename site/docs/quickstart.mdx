@@ -1,0 +1,115 @@
+# Quick Start Guide (AKIOS V1.0)
+
+**Who:** New users. **What:** Run first secure workflow. **Time:** 15–30 min.
+
+**Prereqs:** Python 3.8+, Docker (optional), one API key (OpenAI/Anthropic/Grok/Mistral/Gemini), internet for first pull.
+
+
+---
+
+## What is AKIOS?
+
+AKIOS is a **security-first runtime** for AI agent workflows:
+- Kernel sandbox + syscall filtering
+- PII redaction on I/O
+- Cryptographic audit trail
+- Budget / loop kill-switches
+- Works with OpenAI, Anthropic, Grok, Mistral, Gemini
+
+---
+
+## 1) Installation & setup
+
+Choose the install that matches your platform. For most users, start with **Pip** (native Linux) or the **Docker wrapper** (cross‑platform).
+
+### Pip (recommended on native Linux)
+```bash
+pip install akios
+akios --version
+akios init my-project
+cd my-project
+akios run templates/hello-workflow.yml
+```
+
+### Docker wrapper (macOS/Windows/Linux)
+```bash
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+chmod +x akios
+./akios --help
+./akios init my-project
+cd my-project
+./akios run templates/hello-workflow.yml
+```
+
+### Direct Docker fallback
+```bash
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 init my-project
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+```
+
+Prereqs: Docker Desktop/Engine; one API key (OpenAI, Anthropic, Grok, Mistral, or Gemini).
+
+---
+
+## 2) Project structure (after `init`)
+```
+my-project/
+├── config.yaml        # Runtime config (policies, budgets)
+├── templates/         # Starter workflows
+├── workflows/         # Your custom workflows
+├── data/input|output/ # Sample data in/out
+└── audit/             # Tamper-evident logs
+```
+
+---
+
+## 3) First run + setup wizard
+
+The first `run` triggers an interactive wizard:
+- Pick provider + model (gpt-4o, claude-3.5, grok-3, mistral-medium, gemini-1.5)
+- Enter API key (stored in `.env`)
+- Set budget/token limits
+- Test connectivity and sandbox
+
+Manual rerun anytime:
+```bash
+akios setup        # or ./akios setup
+akios setup --force
+```
+
+---
+
+## Expected output
+- Files: `data/output/run_*/` contains run artifacts.
+- Audit: `audit/audit_events.jsonl` with Merkle-proof chain.
+- Success log: `status: completed`, budget within limits.
+
+If it fails: run `akios status --security` then see [Debugging](debugging.html) and [Config Reference](config-reference.html).
+## 4) Verify the “Security Cage”
+
+Status + controls:
+```bash
+akios status --security
+```
+
+Audit trail (redacted, signed):
+```bash
+cat audit/audit_events.jsonl
+```
+
+Clean old runs:
+```bash
+akios clean --old-runs
+```
+
+---
+
+## 5) Next steps
+- **[Configuration](config-reference)** — tune policies, budgets, network/fs rules.
+- **[Security](security)** — sandbox model, PII redaction, audit chain.
+- **[Concepts](concepts)** — architecture and core agents.
+
+## Related
+- [Installation](installation.html)
+- [Debugging](debugging.html)
+- [Security](security.html)

@@ -1,0 +1,39 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Node / PNPM / Astro
+node_modules/
+.pnpm-store/
+.pnp/
+.vite/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / tooling
+.vscode/
+.idea/
+
+# Build outputs
+dist/
+
+# Internal-only docs (keep out of public repo)
+todo/
+tracking-issues.md
+checklist-issues.md
+.github/INTERNAL/
+
+# Archives and legacy dumps
+.archive/
+archive/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local

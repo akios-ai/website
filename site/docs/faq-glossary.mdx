@@ -1,0 +1,19 @@
+# FAQ & Glossary (AKIOS V1.0)
+
+## Quick FAQ
+- **Is AKIOS an agent framework?** No. It’s a security cage that runs agents/workflows with strict policies, sandboxing, redaction, and audit.
+- **What’s the strongest setup?** Pip on native Linux (cgroups v2 + seccomp-bpf). Docker wrapper is strong/policy-based across macOS/Win/Linux.
+- **Where are my outputs?** `data/output/run_*` per execution; audit logs in `audit/audit_events.jsonl`.
+- **How do I switch to real APIs?** `--real-api` or set `AKIOS_MOCK_LLM=0` and ensure API key + `network_access_allowed=true`.
+- **How do I check security status?** `akios status --security` and `akios audit verify`.
+- **What if a workflow fails validation?** Ensure each step has `agent`, `action`, `parameters`; use allowed agents only; see Policy Schema.
+
+## Glossary
+- **Security cage**: The enforced sandbox + policies + redaction + audit layer AKIOS wraps around every workflow.
+- **Policy-based vs kernel-hard**: Policy-based (Docker, macOS/Win) uses container isolation; kernel-hard (Linux pip) adds seccomp-bpf + cgroups v2 on host.
+- **allowed_paths**: Explicit filesystem allowlist for the filesystem agent; anything else is denied.
+- **PII redaction**: Real-time masking/hashing/removal of sensitive patterns on inputs/outputs.
+- **Merkle audit**: Tamper-evident log chain; `akios audit verify` checks integrity.
+- **mock_llm / --real-api**: Mock mode returns synthetic outputs; real API mode uses provider endpoints with budgets/redaction intact.
+- **Budget/loop kill-switch**: Hard limits on cost/tokens and loop detection to stop runaway workflows.
+- **Agents**: Four primitives—filesystem, http, llm, tool_executor—used to compose workflows; no arbitrary code execution outside them.

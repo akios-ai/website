@@ -1,0 +1,40 @@
+# API Reference (Python, AKIOS V1.0)
+
+Programmatic access to the security cage.
+
+## Install
+```bash
+pip install akios
+```
+
+## Core
+```python
+from akios.core.runtime.engine import WorkflowEngine
+engine = WorkflowEngine()
+result = engine.run("workflows/example.yml", context={"user_id": 123})
+print(result["status"], result["execution_time"])
+```
+- `run(workflow_path_or_workflow, context=None)` → dict with status, execution_time, output_directory.
+
+## Agents (programmatic)
+- **FilesystemAgent**: `read`, `write`, `list`, `stat`, `exists` (respecting `allowed_paths`).
+- **HttpAgent**: `get/post/put/delete` with redaction and rate limits.
+- **LlmAgent**: `complete`, `chat` with token/budget tracking.
+- **ToolExecutorAgent**: `run` allowlisted commands in sandboxed subprocess.
+
+Example:
+```python
+from akios.core.runtime.agents.filesystem import FilesystemAgent
+fs = FilesystemAgent({"allowed_paths": ["./data/input", "./data/output"]})
+content = fs.read("./data/input/doc.txt")
+fs.write("./data/output/result.txt", "done")
+```
+
+## Validation helpers
+- Workflows are validated before run; use `akios config validate` / `akios run` for CLI validation.
+- API errors surface as exceptions with clear messages (invalid agent/action, missing parameters, disallowed path, unsupported model).
+
+## Legacy alias
+- `RuntimeEngine` maps to `WorkflowEngine` (backward compatibility).
+
+Keep audit enabled when calling programmatically; logs and redaction rules apply the same as CLI runs.

@@ -1,0 +1,59 @@
+# Installation (AKIOS V1.0)
+
+Choisissez la méthode adaptée à votre plateforme et à votre niveau de sécurité.
+
+## Paquet Pip (recommandé sur Linux natif)
+Sécurité maximale (kernel-hard : cgroups + seccomp). Fonctionne sur macOS/Windows avec isolation standard.
+```bash
+pip install akios
+akios --version
+akios init mon-projet
+cd mon-projet
+akios run templates/hello-workflow.yml
+```
+
+## Wrapper Docker (multi-plateforme)
+Un script shell gère l’image Docker et offre le même CLI partout.
+```bash
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+ls -la akios && file akios   # vérifier
+tchmod +x akios
+./akios init mon-projet
+cd mon-projet
+./akios run templates/hello-workflow.yml
+# Rafraîchir l’image si besoin :
+AKIOS_FORCE_PULL=1 ./akios status
+```
+
+## Docker direct (secours/CI)
+À utiliser si le wrapper est indisponible ou pour les scripts CI.
+```bash
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 init mon-projet
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+```
+
+## Arbre de décision
+- **Linux + sécu max** → Pip (kernel-hard).
+- **Équipe multi-OS** → Wrapper Docker.
+- **CI / secours** → Docker direct.
+
+
+## Que choisir
+| Option | Idéal pour | Niveau de sécurité |
+|--------|------------|--------------------|
+| Pip (Linux) | Sécu max, workflows Python | Kernel-hard complet |
+| Wrapper Docker | Équipes multi-OS | Isolation conteneur forte |
+| Docker direct | CI / secours | Isolation conteneur forte |
+
+## Prochaines étapes
+Lancer l’assistant et le premier workflow :
+```bash
+akios setup            # assistant clés/fournisseur/budget
+akios run templates/hello-workflow.yml
+akios status           # vérification
+```
+
+## Related
+- [Démarrage rapide](quickstart.html)
+- [Sécurité](security.html)
+- [Déploiement](deployment.html)

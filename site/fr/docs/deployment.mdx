@@ -1,0 +1,31 @@
+# Déploiement (AKIOS V1.0)
+
+Déploiement minimal et sécurité d’abord : cage mono-processus via pip ou Docker. Pas de sidecars, pas de proxy, pas de stack multi-services.
+
+## Périmètre supporté
+- **Paquet pip** (Linux : sécurité kernel-hard ; macOS/Windows : isolation standard).
+- **Conteneur Docker** (multi-plateforme, sécurité basée sur politiques).
+- Option Dockerfile minimal + exemple 1 service uniquement.
+
+## Hors périmètre (V1.0)
+Aucun compose, db/redis, proxy, monitoring, systemd, scaling, scripts de hardening. Restez en mono-conteneur/binaire.
+
+## Docker minimal
+```dockerfile
+FROM python:3.12-slim
+RUN pip install akios
+CMD ["akios", "run", "/app/templates/hello-workflow.yml"]
+```
+```bash
+docker run --rm -v $(pwd)/templates:/app/templates akios:latest
+```
+
+## Garde-fous
+- Utilisable hors ligne après installation.
+- Aucun port ouvert par défaut; exécuter en non-root (`--user` recommandé).
+- Audit toujours actif; config/workflow invalide échoue immédiatement.
+
+## Dépannage
+- Kernel/seccomp (Linux) : kernel ≥5.4 avec seccomp + cgroups v2 requis.
+- Image obsolète : `AKIOS_FORCE_PULL=1 ./akios status`.
+- Non supporté : toute stack multi-services — voir les versions futures si besoin.

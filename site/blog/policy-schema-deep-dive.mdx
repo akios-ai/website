@@ -1,0 +1,84 @@
+<header class="post-header">
+  <div class="post-meta">January 22, 2026</div>
+  <h1>Policy Schema Deep Dive (v1)</h1>
+  <div class="post-author">
+    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
+    <span>AJ</span>
+  </div>
+</header>
+
+<div class="post-content">
+  <p class="lead">
+    The v1 policy schema is intentionally small. This post shows the key blocks with copy‑paste examples you can adapt.
+  </p>
+
+  <h2>Filesystem</h2>
+  ```yaml
+  filesystem:
+    allow:
+      - path: "/srv/akios/readme.md"
+        mode: "r"
+    deny_writes: true
+  ```
+
+  <h2>HTTP</h2>
+  ```yaml
+  http:
+    allow:
+      - host: "api.example.com"
+        methods: ["GET"]
+        rate_limit_per_min: 30
+    redact_headers: ["authorization", "cookie"]
+  ```
+
+  <h2>LLM</h2>
+  ```yaml
+  llm:
+    provider: "openai"
+    model: "gpt-4.1"
+    max_tokens: 1200
+    budget_usd: 0.25
+    redact_prompts: true
+    redact_responses: true
+  ```
+
+  <h2>Tools (commands)</h2>
+  ```yaml
+  tools:
+    allow:
+      - name: "jq"
+        args: ["." ]
+      - name: "grep"
+        args: ["-n", "ERROR"]
+    working_dir: "/workspace"
+    timeout_sec: 20
+  ```
+
+  <h2>Putting it together</h2>
+  ```yaml
+  version: 1
+  name: "doc-summary"
+  filesystem:
+    allow:
+      - path: "/workspace/docs"
+        mode: "r"
+  http:
+    allow:
+      - host: "docs.example.com"
+        methods: ["GET"]
+  llm:
+    provider: "openai"
+    model: "gpt-4.1"
+    max_tokens: 1500
+    budget_usd: 0.30
+  tools:
+    allow:
+      - name: "jq"
+      - name: "grep"
+  audit:
+    merkle: true
+    pii_redaction: true
+  ```
+
+  <p>Keep policies small, explicit, and signed. That’s how the cage stays predictable.</p>
+</div>

@@ -1,0 +1,42 @@
+{
+  "en": {
+    "disclosure_page": {
+      "title": "Vulnerability Disclosure — AKIOS",
+      "description": "Vulnerability Disclosure Policy for reporting security issues to AKIOS.",
+      "heading": "Vulnerability Disclosure Policy – akios.ai",
+      "last_updated": "Last updated: 2026-01-26",
+      "contact_intro": "Email: security@akioud.ai",
+      "report_details": "Please include: component/URL, reproduction steps, impact, logs or PoC, and secure contact method.",
+      "commitments_heading": "Our Commitments",
+      "commitment_1": "Acknowledgment within 5 business days.",
+      "commitment_2": "Confidentiality; disclosure timeline coordination.",
+      "commitment_3": "Good faith remediation effort and status updates.",
+      "safe_harbor_heading": "Safe Harbor",
+      "safe_harbor_content": "If you test and report in good faith without exploiting data or disrupting service, we will not pursue legal action.",
+      "out_of_scope_heading": "Out of Scope",
+      "out_of_scope_1": "Physical attacks, social engineering, spam.",
+      "out_of_scope_2": "DoS by massive or automated traffic.",
+      "footer": "Thank you for contributing to AKIOS user security."
+    }
+  },
+  "fr": {
+    "disclosure_page": {
+      "title": "Divulgation de vulnérabilités — AKIOS",
+      "description": "Politique de divulgation de vulnérabilités pour signaler des problèmes de sécurité à AKIOS.",
+      "heading": "Politique de divulgation de vulnérabilités – akios.ai",
+      "last_updated": "Dernière mise à jour : 2026-01-26",
+      "contact_intro": "Email : security@akioud.ai",
+      "report_details": "Merci d’inclure : composant/URL concerné, étapes de reproduction, impact, journaux ou PoC, et un moyen de contact sécurisé.",
+      "commitments_heading": "Nos engagements",
+      "commitment_1": "Accusé de réception sous 5 jours ouvrés.",
+      "commitment_2": "Confidentialité des échanges ; coordination du calendrier de divulgation.",
+      "commitment_3": "Effort de remédiation de bonne foi et information sur l’avancement.",
+      "safe_harbor_heading": "Safe harbor (bonne foi)",
+      "safe_harbor_content": "Si vous testez et signalez de bonne foi sans exploiter les données ni perturber le service, nous n’engagerons pas d’action juridique.",
+      "out_of_scope_heading": "Hors périmètre",
+      "out_of_scope_1": "Attaques physiques, ingénierie sociale, spam.",
+      "out_of_scope_2": "Déni de service par trafic massif ou automatisé.",
+      "footer": "Merci de contribuer à la sécurité des utilisateurs d’AKIOS."
+    }
+  }
+}
