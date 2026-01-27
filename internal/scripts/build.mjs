@@ -33,10 +33,19 @@ try {
 const readFile = (filePath) => fs.readFileSync(filePath, 'utf-8');
 
 // Helper: Calculate relative prefix for assets (e.g. "../")
-const getRootPrefix = (filePath, baseDir) => {
-    const relPath = path.relative(baseDir, filePath);
-    const depth = relPath.split(path.sep).length - 1;
+const getRootPrefixFromTarget = (targetRelPath) => {
+    const depth = targetRelPath.split(path.sep).length - 1;
     return depth === 0 ? '.' : '../'.repeat(depth);
+};
+
+// Helper: pretty path (adds folder/index.html) in addition to original
+const prettyPaths = (relPath) => {
+    if (!relPath.endsWith('.html')) return [];
+    const base = path.basename(relPath, '.html');
+    if (base === 'index') return [];
+    const dir = path.dirname(relPath);
+    const pretty = path.join(dir === '.' ? '' : dir, base, 'index.html');
+    return [pretty];
 };
 
 // Helper: Get Locale from path
@@ -117,41 +126,48 @@ const build = async () => {
                 const header = injectI18n(headerTemplate, targetLocale);
                 const footer = injectI18n(footerTemplate, targetLocale);
 
-                const depth = targetRel.split(path.sep).length - 1;
-                const prefix = depth === 0 ? '.' : '../'.repeat(depth);
-                const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+                const targets = [targetRel, ...prettyPaths(targetRel)];
+                for (const finalRel of targets) {
+                    const prefix = getRootPrefixFromTarget(finalRel);
+                    const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
 
-                let content = rawContent
-                    .replace(/<html lang="[^"]+">/i, `<html lang="${targetLocale}">`)
-                    .replace('<!-- {{header}} -->', header)
-                    .replace('<!-- {{footer}} -->', footer)
-                    .replace(/{{root}}/g, rootReplacement);
+                    let content = rawContent
+                        .replace(/<html lang="[^"]+">/i, `<html lang="${targetLocale}">`)
+                        .replace('<!-- {{header}} -->', header)
+                        .replace('<!-- {{footer}} -->', footer)
+                        .replace(/{{root}}/g, rootReplacement);
 
-                content = injectI18n(content, targetLocale);
+                    content = injectI18n(content, targetLocale);
 
-                const targetDistPath = path.join(DIST_DIR, targetRel);
-                await fs.outputFile(targetDistPath, content);
-                console.log(`Built HTML (${targetLocale}): ${targetDistPath}`);
+                    const targetDistPath = path.join(DIST_DIR, finalRel);
+                    await fs.outputFile(targetDistPath, content);
+                    console.log(`Built HTML (${targetLocale}): ${targetDistPath}`);
+                }
             }
 
         } else if (ext === '.html') {
             const header = injectI18n(headerTemplate, locale);
             const footer = injectI18n(footerTemplate, locale);
 
-            let content = readFile(filePath);
-            const prefix = getRootPrefix(filePath, SRC_DIR);
-            const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
+            const targets = [relPath, ...prettyPaths(relPath)];
+            const rawContent = readFile(filePath);
 
-            content = content
-                .replace(/<html lang="[^"]+">/i, `<html lang="${locale}">`)
-                .replace('<!-- {{header}} -->', header)
-                .replace('<!-- {{footer}} -->', footer)
-                .replace(/{{root}}/g, rootReplacement);
-            
-            content = injectI18n(content, locale);
+            for (const finalRel of targets) {
+                const prefix = getRootPrefixFromTarget(finalRel);
+                const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
 
-            await fs.outputFile(distPath, content);
-            console.log(`Built HTML (${locale}): ${distPath}`);
+                let content = rawContent
+                    .replace(/<html lang="[^"]+">/i, `<html lang="${locale}">`)
+                    .replace('<!-- {{header}} -->', header)
+                    .replace('<!-- {{footer}} -->', footer)
+                    .replace(/{{root}}/g, rootReplacement);
+                
+                content = injectI18n(content, locale);
+
+                const targetDistPath = path.join(DIST_DIR, finalRel);
+                await fs.outputFile(targetDistPath, content);
+                console.log(`Built HTML (${locale}): ${targetDistPath}`);
+            }
 
         } else if (ext === '.md' || ext === '.mdx') {
             const header = injectI18n(headerTemplate, locale);
@@ -159,9 +175,6 @@ const build = async () => {
 
             const rawContent = readFile(filePath);
             const htmlBody = marked.parse(rawContent);
-
-            const prefix = getRootPrefix(filePath, SRC_DIR);
-            const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
 
             const isDocs = relPath.startsWith('docs/') || relPath.startsWith('fr/docs/');
             const isBlog = relPath.startsWith('blog/') || relPath.startsWith('fr/blog/');
@@ -200,10 +213,10 @@ const build = async () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${t('nav.docs', locale)}</title>
-    <link rel="stylesheet" href="${rootReplacement}/assets/css/styles.css">
+    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
 </head>
 <body>
-    ${header.replace(/{{root}}/g, rootReplacement)}
+    ${header.replace(/{{root}}/g, '{{ROOT}}')}
     
     <div class="page">
         <div class="docs-wrapper">
@@ -215,7 +228,7 @@ const build = async () => {
         </div>
     </div>
 
-    ${footer.replace(/{{root}}/g, rootReplacement)}
+    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
 
     <script>
         (function() {
@@ -233,9 +246,16 @@ const build = async () => {
 </body>
 </html>`;
 
-                const htmlDistPath = distPath.replace(ext, '.html');
-                await fs.outputFile(htmlDistPath, pageContent);
-                console.log(`Built MDX docs -> HTML (${locale}): ${htmlDistPath}`);
+                const baseRel = relPath.replace(ext, '.html');
+                const targets = [baseRel, ...prettyPaths(baseRel)];
+                for (const finalRel of targets) {
+                    const prefix = getRootPrefixFromTarget(finalRel);
+                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
+                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl);
+                    const htmlDistPath = path.join(DIST_DIR, finalRel);
+                    await fs.outputFile(htmlDistPath, adjusted);
+                    console.log(`Built MDX docs -> HTML (${locale}): ${htmlDistPath}`);
+                }
             } else if (isBlog) {
                 let pageContent = `
 <!DOCTYPE html>
@@ -244,11 +264,11 @@ const build = async () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AKIOS — ${t('nav.blog', locale)}</title>
-    <link rel="stylesheet" href="${rootReplacement}/assets/css/styles.css">
-    <link rel="icon" href="${rootReplacement}/assets/img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
+    <link rel="icon" href="{{ROOT}}/assets/img/favicon.svg" type="image/svg+xml">
 </head>
 <body>
-    ${header.replace(/{{root}}/g, rootReplacement)}
+    ${header.replace(/{{root}}/g, '{{ROOT}}')}
     
     <article class="section">
         <div class="page">
@@ -256,13 +276,20 @@ const build = async () => {
         </div>
     </article>
 
-    ${footer.replace(/{{root}}/g, rootReplacement)}
+    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
 </body>
 </html>`;
 
-                const htmlDistPath = distPath.replace(ext, '.html');
-                await fs.outputFile(htmlDistPath, pageContent);
-                console.log(`Built MDX blog -> HTML (${locale}): ${htmlDistPath}`);
+                const baseRel = relPath.replace(ext, '.html');
+                const targets = [baseRel, ...prettyPaths(baseRel)];
+                for (const finalRel of targets) {
+                    const prefix = getRootPrefixFromTarget(finalRel);
+                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
+                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl);
+                    const htmlDistPath = path.join(DIST_DIR, finalRel);
+                    await fs.outputFile(htmlDistPath, adjusted);
+                    console.log(`Built MDX blog -> HTML (${locale}): ${htmlDistPath}`);
+                }
             } else {
                 let pageContent = `
 <!DOCTYPE html>
@@ -271,22 +298,29 @@ const build = async () => {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${t('nav.docs', locale)}</title>
-    <link rel="stylesheet" href="${rootReplacement}/assets/css/styles.css">
+    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
 </head>
 <body>
-    ${header.replace(/{{root}}/g, rootReplacement)}
+    ${header.replace(/{{root}}/g, '{{ROOT}}')}
     
     <div class="page">
         ${htmlBody}
     </div>
 
-    ${footer.replace(/{{root}}/g, rootReplacement)}
+    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
 </body>
 </html>`;
 
-                const htmlDistPath = distPath.replace(ext, '.html');
-                await fs.outputFile(htmlDistPath, pageContent);
-                console.log(`Built MDX page -> HTML (${locale}): ${htmlDistPath}`);
+                const baseRel = relPath.replace(ext, '.html');
+                const targets = [baseRel, ...prettyPaths(baseRel)];
+                for (const finalRel of targets) {
+                    const prefix = getRootPrefixFromTarget(finalRel);
+                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
+                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl);
+                    const htmlDistPath = path.join(DIST_DIR, finalRel);
+                    await fs.outputFile(htmlDistPath, adjusted);
+                    console.log(`Built MDX page -> HTML (${locale}): ${htmlDistPath}`);
+                }
             }
 
         } else {
