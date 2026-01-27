@@ -1,34 +1,13 @@
 flowchart LR
-  %% Macro, value-focused view for hero
-  classDef core fill:#06b6d4,stroke:#06b6d4,stroke-width:3,color:#18181b,font-weight:700
-  classDef layer fill:#ffffff,stroke:#06b6d4,stroke-width:2.25,color:#18181b,font-weight:650
-  classDef aux fill:#fafafa,stroke:#e4e4e7,stroke-width:2,color:#52525b,font-weight:550
-  linkStyle default stroke:#0f172a,stroke-width:2.25,color:#0f172a
+  %% Compact macro view for hero (single row, brand palette)
+  classDef node fill:#ecfeff,stroke:#06b6d4,stroke-width:2.25,color:#0f172a,font-weight:700
+  classDef accent fill:#06b6d4,stroke:#06b6d4,stroke-width:2.25,color:#0f172a,font-weight:750
+  linkStyle default stroke:#0f172a,stroke-width:2,color:#0f172a
 
-  USERS[Teams & Workflows\nCLI · CI/CD · SDK]:::layer
+  TEAMS[Teams & CI/CD\nCLI · SDK]:::node
+  POLICY[Policies & Signing\nallowlists · budgets · attestation]:::accent
+  RUNTIME[Runtime Cage\nsandbox · PII scrub · cost guard]:::node
+  AUDIT[Audit Trail\nMerkle + signatures]:::node
+  TOOLS[Tools / APIs / Data\npolicy-gated actions]:::node
 
-  subgraph AK[AKIOS Control Plane]
-    direction TB
-    POL[Explicit Policies\nallowlists + budgets]:::layer
-    SIG[Signed Config + Attest]:::layer
-    POL --> SIG
-  end
-
-  subgraph RT[AKIOS Runtime Cage]
-    direction TB
-    SB[Kernel Sandbox\nseccomp · userns · cgroups]:::layer
-    PII[PII Redaction\ninputs/outputs scrubbed]:::layer
-    KILL[Budget & Loop Kills\nstop runaway agents]:::layer
-    AUD[Audit Trail\nMerkle + signatures]:::layer
-    SB --> PII --> KILL --> AUD
-  end
-
-  DEST[Tools / APIs / Data\npolicy-gated actions]:::layer
-
-  USERS --> AK --> RT --> DEST
-
-  V1[Policy-as-code\nsigned & enforced]:::aux
-  V2[Every action attested\nMerkle audit trail]:::aux
-
-  POL -.-> V1
-  AUD -.-> V2
+  TEAMS --> POLICY --> RUNTIME --> AUDIT --> TOOLS
