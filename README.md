@@ -33,3 +33,4 @@ To contribute changes:
 - The **AKIOS Open Runtime** code (in the separate `akios` repository) is licensed under **GPL‑3** or later.
 - The **website source code** in this repository is licensed under the **MIT License** (see `LICENSE`).
 - **AKIOS PRO** is a separate commercial product with proprietary licensing.
+- **Brand**: AKIOS and the AKIOS logo are trademarks of AKIOUD AI, SAS. They are not licensed for third‑party use. Forks/derivatives must remove AKIOS marks and update contact details.
