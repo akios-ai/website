@@ -1,37 +1,34 @@
 flowchart LR
-  %% Palette tuned to hero section; darker arrows for contrast
+  %% Macro, value-focused view for hero
   classDef core fill:#06b6d4,stroke:#06b6d4,stroke-width:3,color:#18181b,font-weight:700
   classDef layer fill:#ffffff,stroke:#06b6d4,stroke-width:2.25,color:#18181b,font-weight:650
   classDef aux fill:#fafafa,stroke:#e4e4e7,stroke-width:2,color:#52525b,font-weight:550
-  linkStyle default stroke:#18181b,stroke-width:2.25,color:#18181b
+  linkStyle default stroke:#0f172a,stroke-width:2.25,color:#0f172a
 
-  U[Clients / CLI / SDK]:::layer
-  CI[CI/CD & Automation]:::layer
-  APP[AI Apps & Agents]:::layer
+  USERS[Teams & Workflows\nCLI · CI/CD · SDK]:::layer
 
-  subgraph CP[Control Plane]
+  subgraph AK[AKIOS Control Plane]
     direction TB
-    PR[Policy Repo + Signer]:::layer
-    PE[Policy Engine]:::layer
-    PR --> PE
+    POL[Explicit Policies\nallowlists + budgets]:::layer
+    SIG[Signed Config + Attest]:::layer
+    POL --> SIG
   end
 
-  subgraph DP[Data Plane]
+  subgraph RT[AKIOS Runtime Cage]
     direction TB
-    OR[Runtime Orchestrator]:::layer
-    SB[Sandbox Kernel\nseccomp · cgroups · userns]:::layer
-    PII[PII Guard\nredaction + filtering]:::layer
-    BGT[Cost & Loop Guard\nbudget / stalls]:::layer
-    AUD[Audit & Attestation\nMerkle + signatures]:::layer
-    OR --> SB --> PII --> BGT --> AUD
+    SB[Kernel Sandbox\nseccomp · userns · cgroups]:::layer
+    PII[PII Redaction\ninputs/outputs scrubbed]:::layer
+    KILL[Budget & Loop Kills\nstop runaway agents]:::layer
+    AUD[Audit Trail\nMerkle + signatures]:::layer
+    SB --> PII --> KILL --> AUD
   end
 
-  DEST[Destinations\nAPIs · DBs · Cloud · Tools]:::layer
+  DEST[Tools / APIs / Data\npolicy-gated actions]:::layer
 
-  U --> CP
-  CI --> CP
-  APP --> DP
-  CP --> DP
-  DP --> DEST
+  USERS --> AK --> RT --> DEST
 
-  class U,CI,APP,CP,DP,DEST core
+  V1[Policy-as-code\nsigned & enforced]:::aux
+  V2[Every action attested\nMerkle audit trail]:::aux
+
+  POL -.-> V1
+  AUD -.-> V2
