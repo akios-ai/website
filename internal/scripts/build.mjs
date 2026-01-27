@@ -137,6 +137,9 @@ const build = async () => {
                         .replace('<!-- {{footer}} -->', footer)
                         .replace(/{{root}}/g, rootReplacement);
 
+                    const canonical = targetLocale === 'fr' ? 'https://akios.ai/fr/' : 'https://akios.ai/';
+                    content = content.replace(/{{canonical}}/g, canonical);
+
                     content = injectI18n(content, targetLocale);
 
                     const targetDistPath = path.join(DIST_DIR, finalRel);
