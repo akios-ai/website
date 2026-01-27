@@ -39,6 +39,7 @@ rsync -av --delete --delete-excluded \
   --filter='P .git/' \
   --filter='P .git/***' \
   --include='LICENSE' \
+  --include='NOTICE' \
   --include='README.md' \
   --include='package.json' \
   --include='package-lock.json' \
