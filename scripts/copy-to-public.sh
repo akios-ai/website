@@ -42,6 +42,7 @@ rsync -av --delete --delete-excluded \
   --include='README.md' \
   --include='package.json' \
   --include='package-lock.json' \
+  --include='CNAME' \
   --include='.gitignore' \
   --include='.github/' \
   --include='.github/workflows/' \

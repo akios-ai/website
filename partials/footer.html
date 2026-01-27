@@ -6,11 +6,11 @@
       </div>
       <div class="footer-links footer-links-fixed">
         <div class="footer-row">
-          <a href="{{root}}/docs/index.html">Docs</a>
-          <a href="{{root}}/blog/index.html">Blog</a>
-          <a href="{{root}}/community.html">Community</a>
-          <a href="{{root}}/docs/faq-glossary.html">FAQ</a>
-          <a href="{{root}}/legal.html">Legal</a>
+          <a href="{{root}}/docs/">Docs</a>
+          <a href="{{root}}/blog/">Blog</a>
+          <a href="{{root}}/community/">Community</a>
+          <a href="{{root}}/docs/faq-glossary/">FAQ</a>
+          <a href="{{root}}/legal/">Legal</a>
         </div>
         <div class="footer-row footer-social">
           <a href="https://github.com/akios-ai/akios" aria-label="GitHub">
@@ -31,7 +31,13 @@
       const path = window.location.pathname;
       const links = document.querySelectorAll('.nav-links a, .footer-links a');
 
-      const normalize = (p) => p.replace(/^(\.\.\/|\.\/)+/, '').replace(/^\//, '');
+      const normalize = (p) => {
+        let v = p.replace(/^(\.\.\/|\.\/)+/, '').replace(/^\//, '');
+        v = v.replace(/\/index\.html$/i, '');
+        v = v.replace(/index\.html$/i, '');
+        if (v.endsWith('/')) v = v.slice(0, -1);
+        return v;
+      };
       const normPath = normalize(path);
 
       links.forEach(link => {
@@ -40,25 +46,23 @@
 
         const normHref = normalize(href);
 
-        if (normPath === normHref || 
-            (normPath === '' && normHref === 'index.html') ||
-            (normPath.endsWith('/') && normHref === 'index.html')) {
+        if (normPath === normHref || (normPath === '' && normHref === '')) {
           link.classList.add('active');
           return;
         }
 
-        if (normPath.startsWith('docs/') && normHref === 'docs/index.html') {
+        if (normPath.startsWith('docs') && normHref === 'docs') {
           link.classList.add('active');
           return;
         }
 
-        if (normPath.startsWith('blog/') && normHref === 'blog/index.html') {
+        if (normPath.startsWith('blog') && normHref === 'blog') {
           link.classList.add('active');
           return;
         }
 
-        const legalPages = ['terms.html', 'privacy.html', 'cookies.html', 'disclosure.html'];
-        if (legalPages.some(page => normPath.endsWith(page)) && normHref.endsWith('legal.html')) {
+        const legalPages = ['terms', 'privacy', 'cookies', 'disclosure'];
+        if (legalPages.some(page => normPath.endsWith(page)) && normHref === 'legal') {
           link.classList.add('active');
           return;
         }
@@ -106,12 +110,12 @@
                 url.pathname = '/fr' + url.pathname;
               } else if (url.pathname.startsWith('/blog/')) {
                 url.pathname = '/fr' + url.pathname;
-              } else if (url.pathname === '/community.html') {
-                url.pathname = '/fr/community.html';
-              } else if (url.pathname === '/legal.html') {
-                url.pathname = '/fr/legal.html';
+              } else if (url.pathname === '/community.html' || url.pathname === '/community/') {
+                url.pathname = '/fr/community/';
+              } else if (url.pathname === '/legal.html' || url.pathname === '/legal/') {
+                url.pathname = '/fr/legal/';
               } else if (url.pathname === '/' || url.pathname === '/index.html') {
-                url.pathname = '/fr/index.html';
+                url.pathname = '/fr/';
               }
 
               link.setAttribute('href', url.pathname + url.search + url.hash);
@@ -135,28 +139,28 @@
               targetPath = '/fr' + currentPath;
             } else if (currentPath.startsWith('/blog/')) {
               targetPath = '/fr' + currentPath;
-            } else if (currentPath === '/community.html') {
-              targetPath = '/fr/community.html';
-            } else if (['/legal.html', '/terms.html', '/privacy.html', '/cookies.html', '/disclosure.html'].includes(currentPath)) {
+            } else if (currentPath === '/community.html' || currentPath === '/community/') {
+              targetPath = '/fr/community/';
+            } else if (['/legal.html', '/legal/', '/terms.html', '/privacy.html', '/cookies.html', '/disclosure.html'].includes(currentPath)) {
               targetPath = '/fr' + currentPath;
             } else if (currentPath === '/' || currentPath === '/index.html') {
-              targetPath = '/fr/index.html';
+              targetPath = '/fr/';
             } else {
-              targetPath = '/fr/index.html';
+              targetPath = '/fr/';
             }
           } else {
             if (currentPath.startsWith('/fr/docs/')) {
               targetPath = currentPath.replace(/^\/fr/, '');
             } else if (currentPath.startsWith('/fr/blog/')) {
               targetPath = currentPath.replace(/^\/fr/, '');
-            } else if (currentPath === '/fr/community.html') {
-              targetPath = '/community.html';
-            } else if (['/fr/legal.html', '/fr/terms.html', '/fr/privacy.html', '/fr/cookies.html', '/fr/disclosure.html'].includes(currentPath)) {
+            } else if (currentPath === '/fr/community.html' || currentPath === '/fr/community/') {
+              targetPath = '/community/';
+            } else if (['/fr/legal.html', '/fr/legal/', '/fr/terms.html', '/fr/privacy.html', '/fr/cookies.html', '/fr/disclosure.html'].includes(currentPath)) {
               targetPath = currentPath.replace(/^\/fr/, '');
             } else if (currentPath === '/fr/' || currentPath === '/fr/index.html') {
-              targetPath = '/index.html';
+              targetPath = '/';
             } else {
-              targetPath = '/index.html';
+              targetPath = '/';
             }
           }
 
