@@ -1,48 +1,340 @@
-# Troubleshooting Guide (AKIOS V1.0)
+# Debugging & Troubleshooting
 
-Fix common install, config, and runtime issues. Use `--debug` or JSON mode when you need detail.
+Quick solutions to common AKIOS issues. Most problems are configuration-related and easy to fix.
 
-## Quick diagnosis
+## Quick Diagnosis
+
+Start here when something's wrong:
+
 ```bash
-akios status                     # overall health
-akios --debug status             # verbose
-akios audit view --limit 10      # recent events
-akios config validate            # config sanity
-AKIOS_JSON_MODE=1 akios status   # machine-readable errors
+# Check overall status
+akios status
+
+# View recent logs
+akios logs --limit 10
+
+# Run diagnostics
+akios doctor
+
+# Enable debug mode
+akios --debug status
 ```
 
-## Installation issues
-- **Binary/wrapper:** `chmod +x akios`; ensure cwd or PATH; `AKIOS_FORCE_PULL=1 ./akios status` if image seems stale.
-- **Pip:** `pip show akios`; Python ≥3.8; `pip uninstall akios && pip install akios` (use venv).
-- **Docker:** `docker run hello-world`; add user to `docker` group (Linux) or start Docker Desktop; check volume perms.
+## Installation Issues
 
-## Configuration issues
-- **.env problems:** open `.env`; fix concatenated providers (`grokopenai` → `grok`); ensure `KEY=value`; rerun `akios setup --force`.
-- **Provider/model validation:** use supported pairs (openai:gpt-4/4o, anthropic:claude-3.5-haiku/sonnet, grok:grok-3, mistral:mistral-large, gemini:gemini-1.5-pro); names are case-insensitive.
-- **Config YAML errors:** validate via `python3 -c "import yaml; yaml.safe_load(open('config.yaml'))"`; check required fields and indentation.
+### "akios: command not found"
 
-## Workflow execution issues
-- **Template not found:** `./akios templates list`; verify file exists.
-- **Validation failed:** ensure each step has `agent`, `action`, `parameters`; allowed agents: llm, http, filesystem, tool_executor.
-- **Filesystem agent:** "Path not allowed" → add to `allowed_paths`; check file perms.
-- **LLM agent:** missing/invalid API key or unsupported model → fix `.env`; test quota.
-- **HTTP agent:** enable `network_access_allowed`; verify URL/SSL; increase `timeout` if needed.
+**Pip installation:**
+```bash
+# Check if installed
+pip show akios
 
-## Docker-specific
-- File ops hang on macOS/Windows VMs: update Docker Desktop; if needed set `sandbox_enabled: false` (uses container isolation only).
-- Image outdated: `docker pull akiosai/akios:v1.0.0` or set `AKIOS_FORCE_PULL=1`.
+# Reinstall if needed
+pip uninstall akios
+pip install akios>=1.0.3
 
-## Security validation
-- "SECURITY VALIDATION FAILED": on native Linux ensure kernel ≥5.4 and seccomp; on macOS/Windows use Docker mode.
-- PII in logs: confirm `pii_redaction_enabled: true` and `audit_enabled: true`.
+# Check PATH
+which akios
+```
 
-## Emergency recovery
-1) Stop runs: `pkill -f akios`  
-2) Backup: `cp -r data/ data.backup`  
-3) Reset config: `./akios setup --force`  
-4) Clean caches: `./akios clean all`
+**Docker wrapper:**
+```bash
+# Make executable
+chmod +x akios
 
-## Related
-- [Security](security.html)
-- [Config Reference](config-reference.html)
-- [Policy Schema](policy-schema.html)
+# Use from current directory
+./akios --version
+```
+
+### "Docker daemon not running"
+
+```bash
+# Start Docker Desktop (macOS/Windows)
+
+# Or on Linux
+sudo systemctl start docker
+
+# Test Docker
+docker run hello-world
+```
+
+### "Permission denied" (Docker)
+
+```bash
+# Add user to docker group (Linux)
+sudo usermod -aG docker $USER
+
+# Logout and login again
+
+# Or use sudo (less secure)
+sudo docker run...
+```
+
+## Configuration Issues
+
+### "API key not found" or "Invalid API key"
+
+```bash
+# Run setup wizard to fix
+akios setup --force
+
+# Or manually edit .env
+nano .env
+
+# Check what AKIOS sees
+akios status --verbose
+```
+
+### "Invalid provider/model combination"
+
+**Supported combinations:**
+- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4o`
+- Anthropic: `claude-3.5-haiku`, `claude-3.5-sonnet`
+- Grok: `grok-3`
+- Mistral: `mistral-large`
+- Gemini: `gemini-1.5-pro`
+
+```bash
+# Fix in .env
+AKIOS_LLM_PROVIDER=grok
+AKIOS_LLM_MODEL=grok-3
+```
+
+### "Configuration validation failed"
+
+```bash
+# Check config syntax
+python3 -c "import yaml; yaml.safe_load(open('config.yaml'))"
+
+# Or just reset
+akios setup --force
+```
+
+### ".env file corrupted"
+
+Common issues the wizard detects:
+- `grokopenai` → Should be `grok`
+- `tru` → Should be `true`
+- Missing API keys
+
+```bash
+# Let wizard fix it
+akios setup --force
+```
+
+## Workflow Execution Issues
+
+### "Template not found"
+
+```bash
+# List available templates
+akios templates list
+
+# Check file exists
+ls templates/
+
+# Use correct path
+akios run templates/hello-workflow.yml
+```
+
+### "Workflow validation failed"
+
+Each step needs:
+- `agent` - Which agent to use
+- `action` - What action to perform
+- `parameters` - Action-specific settings
+
+**Allowed agents:** `llm`, `http`, `filesystem`, `tool_executor`
+
+### "Path not allowed" (Filesystem Agent)
+
+Only these directories are accessible:
+- `./workflows/`
+- `./templates/`
+- `./data/input/`
+- `./data/output/`
+
+```bash
+# Move file to allowed location
+mv myfile.txt data/input/
+```
+
+### "Network access blocked" (HTTP Agent)
+
+```bash
+# Enable network in config.yaml
+network_access_allowed: true
+
+# Or use environment variable
+export AKIOS_NETWORK_ACCESS_ALLOWED=1
+```
+
+### "Budget exceeded"
+
+```bash
+# Check current usage
+akios status --budget
+
+# Increase limit
+export AKIOS_BUDGET_LIMIT_PER_RUN=5.0
+
+# Or edit config.yaml
+# budget_limit_per_run: 5.0
+```
+
+## Docker-Specific Issues
+
+### "Docker image outdated"
+
+```bash
+# Pull latest image
+docker pull akiosai/akios:v1.0.3
+
+# Or force pull with wrapper
+AKIOS_FORCE_PULL=1 ./akios status
+```
+
+### "Container exits immediately"
+
+```bash
+# Check logs
+akios logs --limit 10
+
+# Run with debug
+akios --debug run workflow.yml
+```
+
+### "File operations slow" (macOS/Windows)
+
+- Update Docker Desktop to latest version
+- Check Docker resource settings
+- Consider native Linux for maximum performance
+
+## Security Issues
+
+### "Security validation failed"
+
+**On Linux:**
+- Ensure kernel >= 5.4
+- Check seccomp support
+- Install `libseccomp-dev`
+
+**On macOS/Windows:**
+- Use Docker (provides strong security)
+- Install Docker Desktop
+
+```bash
+# Check your security status
+akios status --security
+```
+
+### "PII detected in logs"
+
+This shouldn't happen! Check:
+
+```bash
+# Verify PII redaction is on
+akios status --security
+# Should show: PII Protection: Active
+```
+
+If PII is leaking, report to **hello@akios.ai**
+
+## Performance Issues
+
+### "Workflow running slow"
+
+```bash
+# Check resource usage
+akios status --verbose
+
+# Increase limits in config.yaml
+cpu_limit: 0.9
+memory_limit_mb: 512
+```
+
+### "High memory usage"
+
+```bash
+# Reduce memory limit
+memory_limit_mb: 128
+
+# Process smaller files
+# Clean old runs
+akios clean --old-runs 7
+```
+
+## Emergency Recovery
+
+If everything is broken:
+
+```bash
+# 1. Stop any running workflows
+pkill -f akios
+
+# 2. Backup your data
+cp -r data/ data.backup
+
+# 3. Reset configuration
+akios setup --force
+
+# 4. Clean old runs
+akios clean --old-runs 1
+
+# 5. Test with simple workflow
+akios run templates/hello-workflow.yml
+```
+
+## Getting More Help
+
+### Enable Debug Mode
+
+```bash
+# Debug flag
+akios --debug run workflow.yml
+
+# Or environment variable
+export AKIOS_DEBUG=1
+akios run workflow.yml
+```
+
+### Check Logs
+
+```bash
+# Recent logs
+akios logs --limit 20
+
+# Error logs only
+akios logs --level ERROR
+
+# Audit trail
+tail -20 audit/audit_events.jsonl
+```
+
+### Run Diagnostics
+
+```bash
+# Full diagnostics
+akios doctor
+
+# JSON output for bug reports
+akios doctor --json > diagnostics.json
+```
+
+### Still Stuck?
+
+- Check [GitHub Issues](https://github.com/akios-ai/akios/issues)
+- Ask in [GitHub Discussions](https://github.com/akios-ai/akios/discussions)
+- Email: **hello@akios.ai**
+
+**Include in bug reports:**
+- `akios --version`
+- `akios doctor --json`
+- Steps to reproduce
+- Expected vs actual behavior
+
+## Related Docs
+
+- **[Configuration](config-reference.html)** - All config options
+- **[Security](security.html)** - Security features
+- **[CLI Reference](cli-reference.html)** - All commands

@@ -177,7 +177,17 @@ const build = async () => {
             const footer = injectI18n(footerTemplate, locale);
 
             const rawContent = readFile(filePath);
-            const htmlBody = marked.parse(rawContent);
+            
+            // Strip YAML frontmatter
+            let contentWithoutFrontmatter = rawContent;
+            if (rawContent.startsWith('---')) {
+                const endIndex = rawContent.indexOf('---', 3);
+                if (endIndex !== -1) {
+                    contentWithoutFrontmatter = rawContent.substring(endIndex + 3).trim();
+                }
+            }
+            
+            const htmlBody = marked.parse(contentWithoutFrontmatter);
 
             const isDocs = relPath.startsWith('docs/') || relPath.startsWith('fr/docs/');
             const isBlog = relPath.startsWith('blog/') || relPath.startsWith('fr/blog/');
@@ -188,23 +198,39 @@ const build = async () => {
                 <nav class="docs-nav">
                     <div class="section-title">${t('sidebar.start_here', locale)}</div>
                     <ul>
-                        <li><a href="index.html">${t('sidebar.overview', locale)}</a></li>
-                        <li><a href="installation.html">${t('sidebar.installation', locale)}</a></li>
-                        <li><a href="quickstart.html">${t('sidebar.quickstart', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/index.html">${t('sidebar.overview', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/installation.html">${t('sidebar.installation', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/quickstart.html">${t('sidebar.quickstart', locale)}</a></li>
                     </ul>
 
                     <div class="section-title">${t('sidebar.core', locale)}</div>
                     <ul>
-                        <li><a href="concepts.html">${t('sidebar.concepts', locale)}</a></li>
-                        <li><a href="security.html">${t('sidebar.security_model', locale)}</a></li>
-                        <li><a href="use-cases.html">${t('sidebar.use_cases', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/concepts.html">${t('sidebar.concepts', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/security.html">${t('sidebar.security_model', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/use-cases.html">${t('sidebar.use_cases', locale)}</a></li>
                     </ul>
 
                     <div class="section-title">${t('sidebar.reference', locale)}</div>
                     <ul>
-                        <li><a href="config-reference.html">${t('sidebar.config_reference', locale)}</a></li>
-                        <li><a href="policy-schema.html">${t('sidebar.policy_schema', locale)}</a></li>
-                        <li><a href="debugging.html">${t('sidebar.debugging', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/config-reference.html">${t('sidebar.config_reference', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/policy-schema.html">${t('sidebar.policy_schema', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/cli-reference.html">CLI Reference</a></li>
+                        <li><a href="{{ROOT}}/docs/debugging.html">${t('sidebar.debugging', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/api-reference.html">API Reference</a></li>
+                        <li><a href="{{ROOT}}/docs/faq-glossary.html">FAQ & Glossary</a></li>
+                    </ul>
+
+                    <div class="section-title">Integration</div>
+                    <ul>
+                        <li><a href="{{ROOT}}/docs/integration-api.html">API Integration</a></li>
+                        <li><a href="{{ROOT}}/docs/integration-document-processing.html">Document Processing</a></li>
+                    </ul>
+
+                    <div class="section-title">Advanced</div>
+                    <ul>
+                        <li><a href="{{ROOT}}/docs/best-practices.html">Best Practices</a></li>
+                        <li><a href="{{ROOT}}/docs/deployment.html">Deployment</a></li>
+                        <li><a href="{{ROOT}}/docs/migration-guide.html">Migration Guide</a></li>
                     </ul>
                 </nav>
             </aside>`;

@@ -1,13 +1,36 @@
-flowchart LR
-  %% Compact macro view for hero (single row, brand palette)
-  classDef node fill:#ecfeff,stroke:#06b6d4,stroke-width:2.25,color:#0f172a,font-weight:700
-  classDef accent fill:#06b6d4,stroke:#06b6d4,stroke-width:2.25,color:#0f172a,font-weight:750
-  linkStyle default stroke:#0f172a,stroke-width:2,color:#0f172a
+flowchart TB
+  classDef core fill:#06b6d4,stroke:#06b6d4,stroke-width:3,color:#18181b,font-weight:700
+  classDef layer fill:#ffffff,stroke:#06b6d4,stroke-width:2.25,color:#18181b,font-weight:650
+  classDef input fill:#f4f4f5,stroke:#a1a1aa,stroke-width:2,stroke-dasharray: 5 5,color:#52525b
+  classDef badge fill:#06b6d4,stroke:#06b6d4,stroke-width:2,color:#ffffff,font-weight:700,rx:5,ry:5
+  
+  linkStyle default stroke:#18181b,stroke-width:2.25,color:#18181b
 
-  TEAMS[Teams & CI/CD\nCLI · SDK]:::node
-  POLICY[Policies & Signing\nallowlists · budgets · attestation]:::accent
-  RUNTIME[Runtime Cage\nsandbox · PII scrub · cost guard]:::node
-  AUDIT[Audit Trail\nMerkle + signatures]:::node
-  TOOLS[Tools / APIs / Data\npolicy-gated actions]:::node
+  Src[Untrusted Agents
+LLMs & Code]:::input
 
-  TEAMS --> POLICY --> RUNTIME --> AUDIT --> TOOLS
+  subgraph AKIOS [AKIOS Secure Runtime]
+    direction TB
+    style AKIOS fill:#ecfeff,stroke:#06b6d4,stroke-width:3,color:#0e7490,font-weight:700,rx:10,ry:10
+    
+    Guard[Policy Guard
+Allowlist Only]:::layer
+    Sandbox[Sandbox Kernel
+Complete Isolation]:::layer
+    Audit[Audit Ledger
+Immutable Log]:::layer
+    
+    Guard --> Sandbox --> Audit
+
+    Badge1[Policy-as-code]:::badge
+    Badge2[Attested actions]:::badge
+
+    Guard -.-> Badge1
+    Audit -.-> Badge2
+  end
+
+  Dest[Your Infrastructure
+APIs · DBs · Cloud]:::core
+
+  Src --> Guard
+  Audit --> Dest

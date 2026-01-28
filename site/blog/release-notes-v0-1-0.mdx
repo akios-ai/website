@@ -1,8 +1,8 @@
 <header class="post-header">
   <div class="post-meta">
-    February 1, 2026 &bull; <span>3 min read</span>
+    January 25, 2026 &bull; <span>5 min read</span>
   </div>
-  <h1>AKIOS v0.1.0 Released</h1>
+  <h1>AKIOS v1.0: The Security Cage is Here</h1>
   <div class="post-author">
     <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
     <span>AJ</span>
@@ -11,60 +11,167 @@
 
 <div class="post-content">
   <p class="lead">
-    We are thrilled to announce the first public preview of AKIOS v0.1.0. This release focuses on core stability and the fundamental sandboxing primitives.
+    AKIOS v1.0 is the security cage you've been waiting for. Run AI agents with confidence — they can't leak data, burn budgets, or escape their sandbox. Everything is auditable, provable, and production-ready.
   </p>
 
-  <h2>Highlights</h2>
-  <ul>
-    <li><strong>Core Runtime:</strong> Stable release of the <code>akios-runtime</code> binary for macOS and Linux.</li>
-    <li><strong>Policy Engine:</strong> Flexible YAML-based policy definitions for network and file access.</li>
-    <li><strong>CLI Tools:</strong> New <code>akios</code> CLI for managing agent lifecycles.</li>
-  </ul>
-
-  <h2>Architecture at a glance</h2>
   <p>
-    AKIOS splits control and data planes so policies stay signed and enforced before any effect. The control plane holds the policy repo and engine; the data plane chains sandbox → PII guard → budget/loop kills → audit. Agents then reach tools/APIs only through those gates.
+    This isn't a general-purpose AI framework. It's <strong>the unbreakable cage</strong>: kernel-level isolation, real-time PII redaction, tamper-proof audit trails, and enforced budget controls.
   </p>
+
+  <h2>What's New in v1.0</h2>
+
+  <h3>🔒 Hard Kernel Isolation</h3>
+  <p>
+    AI agents run in a locked-down sandbox. On Linux, this uses kernel-level controls (cgroups + seccomp-bpf) to enforce hard limits on CPU, memory, disk, and network. On other platforms, Docker provides strong container isolation. Either way: default-deny access control means agents can only touch what you explicitly allow.
+  </p>
+
+  <h3>🛡️ Real-time PII Redaction</h3>
+  <p>
+    Over 95% accuracy detecting and redacting sensitive data in under 50ms — <strong>before</strong> it reaches agents. Built-in rule packs for EU AI Act basics and French GDPR presets.
+  </p>
+
+  <h3>📊 Tamper-Evident Merkle Audit</h3>
+  <p>
+    Every action is cryptographically proven with a Merkle ledger. Complete execution traces with clean PDF and JSON export. Full integrity verification built-in.
+  </p>
+
+  <h3>💰 Enforced Cost & Loop Kills</h3>
+  <p>
+    Hard termination on budget exceed or infinite loops. Token monitoring, per-workflow budget enforcement, and automatic kill-switches that actually work.
+  </p>
+
+  <h3>🎯 Perfect User Experience</h3>
+  <p>
+    Terminal width awareness, file discovery commands, enhanced guidance. The CLI just works — no cryptic errors, no hunting through logs.
+  </p>
+
+  <h2>Architecture</h2>
+  <p>
+    AKIOS splits control and data planes so policies stay signed and enforced before any effect takes place.
+  </p>
+
   <figure class="arch-figure">
     <img src="../assets/img/hero-arch.svg" alt="Clients/CI/Apps flow into AKIOS control plane and data plane, then to destinations under policy">
   </figure>
 
-  <h3>Flow</h3>
+  <h3>How It Works</h3>
+  <ol>
+    <li><strong>Policies Validated:</strong> Your workflow config is checked and cryptographically signed before execution.</li>
+    <li><strong>Security Layers Applied:</strong> Linux kernel sandbox (on native) or container isolation (Docker) → PII redaction → budget controls → audit logging.</li>
+    <li><strong>Agent Execution:</strong> Only explicitly allowed operations pass through. Everything else is blocked and logged.</li>
+  </ol>
+
+  <h2>What's Included</h2>
+
+  <h3>Core Security Features</h3>
   <ul>
-    <li><strong>Clients / CI / Apps → Control Plane:</strong> Policies are validated and signed.</li>
-    <li><strong>Control Plane → Data Plane:</strong> Runtime orchestrator sets sandbox constraints.</li>
-    <li><strong>Sandbox stack:</strong> seccomp/userns/cgroups → PII redaction → budget/loop guards → Merkle audit.</li>
-    <li><strong>Agents → Tools/APIs:</strong> Only allowed calls pass; everything is logged and attestable.</li>
+    <li>Process isolation with cgroups v2 + seccomp-bpf (Linux native)</li>
+    <li>Strong container-based isolation (Docker on all platforms)</li>
+    <li>Real-time PII detection and redaction</li>
+    <li>Merkle tamper-evident audit logging</li>
+    <li>Hard cost and loop kill-switches</li>
+    <li>Default-deny network and filesystem access</li>
   </ul>
 
-  <h2>Installation</h2>
+  <h3>Four Core Agents</h3>
+  <ul>
+    <li><strong>LLM Agent:</strong> Token and cost tracking with budget kills</li>
+    <li><strong>HTTP Agent:</strong> Rate-limited requests with PII-redacted payloads</li>
+    <li><strong>Filesystem Agent:</strong> Allowlisted reads, optional writes with path constraints</li>
+    <li><strong>Tool Executor:</strong> Whitelisted commands in sandboxed subprocess</li>
+  </ul>
+
+  <h3>Enhanced CLI (7 Commands)</h3>
+  <pre><code>akios init        # Initialize new project
+akios run         # Execute workflow
+akios files       # Discover project files
+akios audit       # Export audit reports
+akios logs        # View execution logs
+akios status      # Check system status
+akios templates   # List available templates</code></pre>
+
+  <h2>Choose Your Installation Method</h2>
   <p>
-    You can install the latest version via Homebrew or by downloading the binary directly.
+    Pick the option that best fits your workflow:
   </p>
 
-  <pre><code>brew tap akios-ai/tap
-brew install akios
+  <h3>🐍 Pip Package (Recommended for Most Users)</h3>
+  <p><strong>Best for:</strong> Python developers, CI/CD pipelines, quick testing</p>
+  <pre><code>pip install akios
+akios init my-project
+cd my-project
+akios run templates/hello-workflow.yml</code></pre>
 
-# Verify installation
-akios --version</code></pre>
+  <h3>📦 Standalone Binary (No Python Required)</h3>
+  <p><strong>Best for:</strong> Production servers, air-gapped environments, maximum control</p>
+  <pre><code># Download from github.com/akios-ai/akios/releases
+chmod +x akios-linux-x64
+./akios-linux-x64 init my-project</code></pre>
 
-  <h2>Changelog</h2>
-  <h3>Added</h3>
+  <h3>🐳 Docker (Cross-Platform Teams)</h3>
+  <p><strong>Best for:</strong> macOS/Windows development, consistent environments</p>
+  <pre><code>curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+chmod +x akios
+./akios init my-project</code></pre>
+
+  <h3>Platform Security Levels</h3>
+  <p>AKIOS provides strong security on all platforms. Choose based on your environment:</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Platform</th>
+        <th>Security Level</th>
+        <th>When to Use</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Native Linux</td>
+        <td><strong>Maximum:</strong> Kernel-hard (seccomp-bpf + cgroups)</td>
+        <td>Production servers, regulated environments</td>
+      </tr>
+      <tr>
+        <td>Docker (any OS)</td>
+        <td><strong>Strong:</strong> Container isolation + policy enforcement</td>
+        <td>Development, macOS/Windows, CI/CD</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>Try It Now (30 Seconds)</h2>
+  <p>Get your first sandboxed AI agent running:</p>
+  <pre><code>pip install akios
+akios init my-project
+cd my-project
+akios run templates/hello-workflow.yml</code></pre>
+
+  <h3>What You'll See</h3>
+  <p>AKIOS confirms each security layer as it starts:</p>
+  <pre><code>[akios] sandbox: seccomp-bpf, cgroups v2 (Linux)
+[akios] pii: redaction enabled
+[akios] audit: Merkle trail initialized
+[akios] workflow: completed successfully in 1.2s</code></pre>
+
+  <h2>What's Coming Next</h2>
+  <p>Future versions of AKIOS will add:</p>
   <ul>
-    <li>Initial support for WASM-based agents.</li>
-    <li>Added <code>--strict</code> mode for paranoid security defaults.</li>
-    <li>Documentation site launch (you're looking at it!).</li>
+    <li>Advanced workflow patterns (parallel execution, conditionals, loops)</li>
+    <li>More agents (Database, Email, Slack integrations)</li>
+    <li>REST API for remote control</li>
+    <li>Observability integrations (Prometheus, Jaeger)</li>
   </ul>
 
-  <h3>Fixed</h3>
-  <ul>
-    <li>Fixed a race condition in the logger that caused dropped logs under high load.</li>
-    <li>Corrected file permission handling for read-only mounts.</li>
-  </ul>
-
-  <h2>Contributors</h2>
+  <h2>Ready to Start?</h2>
   <p>
-    A huge thank you to everyone who contributed to this release. We couldn't have done it without the community support.
+    <strong>AKIOS v1.0 is production-ready.</strong> Install it now and secure your AI agents in minutes:
+  </p>
+  <ul>
+    <li><strong>Quick Start:</strong> <a href="/docs/quickstart/">Get running in 2 minutes</a></li>
+    <li><strong>Source Code:</strong> <a href="https://github.com/akios-ai/akios">github.com/akios-ai/akios</a></li>
+    <li><strong>Get Help:</strong> Join GitHub Discussions for community support</li>
+  </ul>
+  <p>
+    Questions? Found a bug? <a href="https://github.com/akios-ai/akios/issues">Open an issue</a> or reach out in <a href="https://github.com/akios-ai/akios/discussions">Discussions</a>.
   </p>
 </div>
 

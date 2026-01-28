@@ -20,12 +20,178 @@ CMD ["akios", "run", "/app/templates/hello-workflow.yml"]
 docker run --rm -v $(pwd)/templates:/app/templates akios:latest
 ```
 
-## Safety boundaries
-- Air-gapped capable after install.
-- No ports open by default; run as non-root (`--user` recommended).
-- Audit always on; invalid config/workflow fails fast.
+## Security Hardening
 
-## Troubleshooting
-- Kernel/seccomp issues (Linux): require kernel ≥5.4 with seccomp + cgroups v2.
-- Docker pulls outdated: `AKIOS_FORCE_PULL=1 ./akios status`.
-- Unsupported: any multi-container/service setup—consider future versions if needed.
+### Run as Non-Root
+
+Always run in Docker as non-root:
+
+```bash
+# Create user in Dockerfile
+RUN useradd -m -u 1000 akios
+USER akios
+
+# Or use --user flag
+docker run --user 1000:1000 my-akios-app
+```
+
+### File Permissions
+
+Secure your configuration:
+
+```bash
+# Restrict .env access
+chmod 600 .env
+
+# Read-only config
+chmod 644 config.yaml
+
+# Protect audit logs
+chmod 700 audit/
+```
+
+### Network Isolation
+
+No ports open by default (AKIOS doesn't listen):
+
+```bash
+# AKIOS runs as isolated process
+# No need for --network host
+docker run --rm my-akios-app
+```
+
+### API Key Management
+
+Keep keys secure:
+
+**✓ Do:**
+- Use different keys per environment
+- Rotate keys regularly
+- Use Docker secrets or cloud key management
+- Never commit `.env` to git
+
+**× Don't:**
+- Share keys between dev/prod
+- Hardcode keys in Dockerfile
+- Use the same key for multiple projects
+
+## Monitoring & Health Checks
+
+### Basic Health Check
+
+```bash
+# Check if AKIOS is healthy
+akios status
+
+# Exit code 0 = healthy, non-zero = unhealthy
+```
+
+### Monitoring Audit Logs
+
+```bash
+# Watch audit events
+tail -f audit/audit_events.jsonl
+
+# Export for analysis
+akios audit export --format json > audit-report.json
+```
+
+### Disk Space Monitoring
+
+AKIOS writes to:
+- `./data/` - Workflow inputs/outputs
+- `./audit/` - Audit trail
+
+```bash
+# Monitor disk usage
+df -h .
+
+# Clean old runs
+akios clean --old-runs 7
+```
+
+## Troubleshooting Production Issues
+
+### Docker Image Stale
+
+```bash
+# Force pull latest
+AKIOS_FORCE_PULL=1 ./akios status
+
+# Or manually
+docker pull akiosai/akios:v1.0.3
+```
+
+### Linux Kernel Requirements
+
+For maximum security on Linux:
+- Kernel >= 5.4
+- seccomp-bpf support
+- cgroups v2 enabled
+
+```bash
+# Check kernel version
+uname -r
+
+# Check seccomp
+grep SECCOMP /boot/config-$(uname -r)
+```
+
+### Configuration Validation
+
+```bash
+# Validate before deploying
+akios status --verbose
+
+# Check configuration
+cat config.yaml
+```
+
+## What V1.0 Doesn't Include
+
+AKIOS V1.0 focuses on single-process security:
+
+**Not included:**
+- Docker Compose stacks
+- Database/Redis integration
+- Reverse proxies
+- systemd services
+- Auto-scaling
+- Built-in monitoring dashboards
+
+**Future versions** will add enterprise deployment features. For now, keep it simple: one container, one workflow, maximum security.
+
+## Production Checklist
+
+Before deploying to production:
+
+**✓ Security**
+- [ ] Run as non-root user
+- [ ] `.env` file permissions set to 600
+- [ ] Different API keys for prod/dev
+- [ ] Audit logging enabled
+- [ ] PII redaction enabled
+
+**✓ Configuration**
+- [ ] Production config tested
+- [ ] Budget limits set appropriately
+- [ ] Network access restricted (unless needed)
+- [ ] Resource limits configured
+
+**✓ Monitoring**
+- [ ] Health check configured
+- [ ] Disk space monitoring
+- [ ] Audit log rotation
+- [ ] Alert webhooks configured
+
+**✓ Testing**
+- [ ] Workflow tested in staging
+- [ ] Error handling verified
+- [ ] Mock mode tests pass
+- [ ] Real API tests pass
+
+## Related Docs
+
+- **[Configuration](config-reference.html)** - All config options
+- **[Security](security.html)** - Security features
+- **[Best Practices](best-practices.html)** - Production patterns

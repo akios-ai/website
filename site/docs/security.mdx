@@ -1,46 +1,186 @@
-# Security Features (AKIOS V1.0)
+# Security Features
 
-Defense-in-depth for every run: sandbox, PII redaction, audit trail, and cost/loop kills.
+AKIOS protects your AI workflows with multiple layers of defense. This guide explains what security you get and how to verify it's working.
 
-## Supported versions
-| Version | Support | Security updates |
-|---------|---------|------------------|
-| 1.0.x   | ✅ Active | ✅ Yes |
-| <1.0    | ❌ EOL   | ❌ No |
+## What AKIOS Protects Against
 
-## Report vulnerabilities
-Private only: **hello@akios.ai**  
-Include: description, repro steps, affected version, impact (e.g., sandbox bypass, PII leak, cost overrun), suggested fix, contact.  
-Response target: ack ≤24h, triage ≤72h, fix 2–4 weeks with coordinated disclosure.
+**Data Leaks** → Automatic PII redaction before data reaches AI providers  
+**Cost Overruns** → Hard budget limits with automatic termination  
+**Resource Abuse** → CPU, memory, and disk quotas  
+**Unauthorized Access** → Sandbox isolation and path restrictions  
+**Audit Gaps** → Complete tamper-evident logging of all actions
 
-## What V1.0 enforces
-- Container isolation: command/path allowlists, cgroups quotas, process isolation, default-deny network.
-- AI protections: 50+ PII patterns (inputs/outputs), loop detection, budget/token kill-switches, size limits and validation, retry/backoff.
-- Audit & compliance: Merkle-style tamper-evident logs, PII-safe by default, exportable JSON for reviews.
+## Security By Platform
 
-## Verify now
+| Platform | Security Level | What You Get |
+|----------|---------------|--------------|
+| **Native Linux** | Full (kernel-hard) | cgroups v2 + seccomp-bpf syscall filtering = maximum isolation |
+| **Docker** (all platforms) | Strong (policy-based) | Container isolation + command allowlisting = excellent cross-platform security |
+
+**Both are production-ready.** Use native Linux for absolute maximum, Docker for excellent security everywhere.
+
+## The Four Security Layers
+
+### 1. Sandbox & Isolation
+
+**What it does:** Keeps AI agents in a controlled environment
+
+- **Process isolation** - Agents can't access the host system
+- **Syscall filtering** - Dangerous system calls are blocked (Linux)
+- **Resource limits** - CPU/memory quotas prevent exhaustion
+- **Path restrictions** - Only allowed directories accessible
+- **Network control** - Default deny, explicit allow only
+
+**Verify it's working:**
 ```bash
-akios status --security          # expect Full/Strong, PII:on, audit:on, network:deny unless enabled
-akios audit verify               # expect Integrity OK
+akios status --security
+# Look for: Security Level: Full (Linux) or Strong (Docker)
 ```
-If results differ, check [Installation](installation.html) and [Config Reference](config-reference.html).
 
+### 2. PII Redaction
 
-## Platform specifics
-- **Native Linux**: kernel-hard (cgroups v2 + seccomp-bpf), best isolation/perf.
-- **Docker (macOS/Windows/Linux)**: strong policy isolation and redaction; host FS perms and seccomp strictness depend on host—prefer native Linux for high-assurance.
+**What it does:** Automatically removes sensitive data
 
-## Verify your posture
+**Protected data types (50+ patterns):**
+- Email addresses, phone numbers
+- Social Security numbers, credit cards
+- API keys, passwords, tokens
+- IP addresses, MAC addresses
+- Medical records, health data
+- Financial account numbers
+
+**Applied twice:**
+- Before sending to AI providers (inputs)
+- After receiving from AI providers (outputs)
+
+**Verify it's working:**
 ```bash
-akios status --security          # dashboard
-akios status --security --json   # machine-readable
+akios status --security
+# Look for: PII Protection: Active (inputs + outputs)
 ```
 
-Shows: security level (Full/Strong), PII protection, network allow/deny, audit status, cost/token limits, compliance indicators.
+### 3. Cost Kill-Switches
 
-**Reminder:** No software is 100% secure; run AKIOS in isolated environments and validate outputs.
+**What it does:** Prevents surprise AI bills
 
-## Related
-- [Config Reference](config-reference.html)
-- [Debugging](debugging.html)
-- [Policy Schema](policy-schema.html)
+- **Default budget:** $1.00 per workflow
+- **Token limits:** 1000 tokens per API call (default)
+- **Automatic termination:** Workflow stops if budget exceeded
+- **Loop detection:** Catches infinite loops before costs spiral
+
+**Verify it's working:**
+```bash
+akios status
+# Look for: Budget: $0.12 / $1.00 remaining
+```
+
+### 4. Audit Trail
+
+**What it does:** Creates tamper-evident logs
+
+- **Cryptographic integrity** - Merkle-style hash chains
+- **Complete coverage** - Every action logged
+- **PII-safe** - Sensitive data redacted in logs
+- **Compliance ready** - Export for SOX/HIPAA/GDPR
+
+**Verify it's working:**
+```bash
+akios logs --limit 5
+# You should see recent actions with timestamps
+```
+
+## Check Your Security Status
+
+**Quick check:**
+```bash
+akios status
+```
+
+Shows: Security level, PII protection, budget remaining, audit status
+
+**Detailed security dashboard:**
+```bash
+akios status --security
+```
+
+Shows: All security features, active protections, compliance indicators, resource limits
+
+**Machine-readable (for scripts):**
+```bash
+akios status --security --json
+```
+
+## What to Expect
+
+### On Native Linux
+```
+🛡️ Security Level: Full (kernel-hard)
+✓ Sandbox: cgroups v2 + seccomp-bpf active
+✓ PII Redaction: Active (inputs + outputs)
+✓ Audit Logging: Cryptographic integrity verified
+✓ Network: Denied (unless explicitly enabled)
+✓ Cost Controls: $1.00 budget limit active
+```
+
+### On Docker (any platform)
+```
+🛡️ Security Level: Strong (policy-based)
+✓ Sandbox: Container isolation active
+✓ PII Redaction: Active (inputs + outputs)
+✓ Audit Logging: Cryptographic integrity verified
+✓ Network: Denied (unless explicitly enabled)
+✓ Cost Controls: $1.00 budget limit active
+```
+
+## Security Best Practices
+
+**√ Do:**
+- Run `akios status --security` regularly
+- Keep AKIOS updated to latest version
+- Review audit logs periodically
+- Set appropriate budget limits
+- Use environment variables for API keys
+- Run in isolated environments for sensitive work
+
+**× Don't:**
+- Commit `.env` files to version control
+- Disable PII redaction in production
+- Run with unlimited budgets
+- Ignore security warnings
+- Share API keys in logs or outputs
+
+## Report Security Issues
+
+**Found a vulnerability?** Email **hello@akios.ai** (private only)
+
+**Include:**
+- Clear description of the issue
+- Steps to reproduce
+- Affected versions
+- Potential impact (sandbox bypass, PII leak, cost overrun)
+- Your contact info
+
+**Our response:**
+- Acknowledgment within 24 hours
+- Triage within 72 hours
+- Fix in 2-4 weeks (depending on severity)
+- Coordinated disclosure
+- Public credit (Hall of Fame)
+
+## Supported Versions
+
+| Version | Supported | Security Updates |
+|---------|-----------|------------------|
+| 1.0.x | ✅ Active | ✅ Full support |
+| <1.0 | ❌ End of Life | ❌ No support |
+
+Always use the latest 1.0.x version for best security.
+
+## Learn More
+
+- **[Concepts](concepts.html)** - Understand how security layers work
+- **[Configuration](config-reference.html)** - Customize security settings
+- **[Best Practices](best-practices.html)** - Patterns for secure workflows
+- **[Debugging](debugging.html)** - Troubleshoot security issues
+
+**Remember:** No software is 100% secure. Always validate outputs and run AKIOS in appropriate environments for your security needs.

@@ -1,40 +1,392 @@
-# API Reference (Python, AKIOS V1.0)
+# Python API Reference
 
-Programmatic access to the security cage.
+Use AKIOS programmatically from your Python code. This is useful for integrating AKIOS workflows into larger applications.
 
-## Install
+## Installation
+
 ```bash
-pip install akios
+pip install akios>=1.0.3
 ```
 
-## Core
+## Quick Example
+
 ```python
 from akios.core.runtime.engine import WorkflowEngine
+
+# Create engine
 engine = WorkflowEngine()
-result = engine.run("workflows/example.yml", context={"user_id": 123})
-print(result["status"], result["execution_time"])
+
+# Run workflow
+result = engine.run(
+    "workflows/process-document.yml",
+    context={"user_id": 123, "priority": "high"}
+)
+
+# Check results
+print(f"Status: {result['status']}")
+print(f"Time: {result['execution_time']}s")
+print(f"Output: {result['output_directory']}")
 ```
-- `run(workflow_path_or_workflow, context=None)` → dict with status, execution_time, output_directory.
 
-## Agents (programmatic)
-- **FilesystemAgent**: `read`, `write`, `list`, `stat`, `exists` (respecting `allowed_paths`).
-- **HttpAgent**: `get/post/put/delete` with redaction and rate limits.
-- **LlmAgent**: `complete`, `chat` with token/budget tracking.
-- **ToolExecutorAgent**: `run` allowlisted commands in sandboxed subprocess.
+## Core API
 
-Example:
+### WorkflowEngine
+
+The main engine for running workflows.
+
+**Import:**
+```python
+from akios.core.runtime.engine import WorkflowEngine
+```
+
+**Create engine:**
+```python
+engine = WorkflowEngine()
+
+# Or with custom config path
+engine = WorkflowEngine(config_path="./custom-config.yaml")
+```
+
+**Run workflow:**
+```python
+result = engine.run(
+    workflow="workflows/my-workflow.yml",
+    context={"key": "value"}  # Optional context variables
+)
+```
+
+**Return value:**
+```python
+{
+    "status": "success",         # or "failed"
+    "execution_time": 12.5,       # seconds
+    "output_directory": "data/output/run_2024-01-15_10-30-45/",
+    "error": None                 # or error message if failed
+}
+```
+
+## Agent APIs
+
+Use individual agents directly in your code.
+
+### FilesystemAgent
+
+Safe file operations with path restrictions.
+
 ```python
 from akios.core.runtime.agents.filesystem import FilesystemAgent
-fs = FilesystemAgent({"allowed_paths": ["./data/input", "./data/output"]})
-content = fs.read("./data/input/doc.txt")
-fs.write("./data/output/result.txt", "done")
+
+# Create agent with allowed paths
+fs = FilesystemAgent({
+    "allowed_paths": [
+        "./data/input",
+        "./data/output"
+    ]
+})
+
+# Read file
+content = fs.read("./data/input/document.txt")
+
+# Write file
+fs.write("./data/output/result.txt", "Processed content")
+
+# List directory
+files = fs.list("./data/input")
+
+# Check if file exists
+if fs.exists("./data/input/doc.txt"):
+    print("File exists")
+
+# Get file stats
+stats = fs.stat("./data/input/doc.txt")
+print(f"Size: {stats['size']} bytes")
 ```
 
-## Validation helpers
-- Workflows are validated before run; use `akios config validate` / `akios run` for CLI validation.
-- API errors surface as exceptions with clear messages (invalid agent/action, missing parameters, disallowed path, unsupported model).
+**Available methods:**
+- `read(path)` → str
+- `write(path, content)` → None
+- `list(path)` → List[str]
+- `exists(path)` → bool
+- `stat(path)` → dict
 
-## Legacy alias
-- `RuntimeEngine` maps to `WorkflowEngine` (backward compatibility).
+### HttpAgent
 
-Keep audit enabled when calling programmatically; logs and redaction rules apply the same as CLI runs.
+HTTP requests with rate limiting and redaction.
+
+```python
+from akios.core.runtime.agents.http import HttpAgent
+
+# Create agent
+http = HttpAgent({
+    "network_access_allowed": True,
+    "rate_limit": 10  # requests per minute
+})
+
+# GET request
+response = http.get("https://api.example.com/data")
+print(response["status"], response["body"])
+
+# POST request
+response = http.post(
+    "https://api.example.com/submit",
+    json={"key": "value"},
+    headers={"Authorization": "Bearer token"}
+)
+
+# Other methods
+response = http.put(url, json=data)
+response = http.delete(url)
+```
+
+**Available methods:**
+- `get(url, params=None, headers=None)` → dict
+- `post(url, json=None, data=None, headers=None)` → dict
+- `put(url, json=None, headers=None)` → dict
+- `delete(url, headers=None)` → dict
+
+### LlmAgent
+
+AI model calls with budget tracking.
+
+```python
+from akios.core.runtime.agents.llm import LlmAgent
+
+# Create agent
+llm = LlmAgent({
+    "provider": "grok",
+    "model": "grok-3",
+    "api_key": "your-key",
+    "budget_limit": 1.0  # USD
+})
+
+# Generate completion
+response = llm.complete(
+    prompt="Summarize this document",
+    max_tokens=500
+)
+print(response["text"])
+print(f"Cost: ${response['cost']}")
+
+# Chat-style
+response = llm.chat(
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ]
+)
+```
+
+**Available methods:**
+- `complete(prompt, max_tokens=500)` → dict
+- `chat(messages, max_tokens=500)` → dict
+
+### ToolExecutorAgent
+
+Safe command execution.
+
+```python
+from akios.core.runtime.agents.tool_executor import ToolExecutorAgent
+
+# Create agent
+tool = ToolExecutorAgent({
+    "allowed_commands": ["echo", "date", "ls"]
+})
+
+# Run command
+result = tool.run(
+    command=["echo", "Hello"],
+    timeout=10
+)
+print(result["stdout"])
+```
+
+**Available methods:**
+- `run(command, timeout=30)` → dict
+
+## Error Handling
+
+AKIOS raises clear exceptions when something goes wrong.
+
+```python
+from akios.core.runtime.engine import WorkflowEngine
+from akios.exceptions import (
+    WorkflowValidationError,
+    AgentError,
+    SecurityError,
+    BudgetExceededError
+)
+
+engine = WorkflowEngine()
+
+try:
+    result = engine.run("workflows/my-workflow.yml")
+except WorkflowValidationError as e:
+    print(f"Invalid workflow: {e}")
+except SecurityError as e:
+    print(f"Security violation: {e}")
+except BudgetExceededError as e:
+    print(f"Budget exceeded: {e}")
+except AgentError as e:
+    print(f"Agent error: {e}")
+```
+
+**Common errors:**
+- `WorkflowValidationError` - Invalid workflow structure
+- `AgentError` - Agent action failed
+- `SecurityError` - Disallowed path, network blocked
+- `BudgetExceededError` - Cost limit reached
+- `ConfigurationError` - Invalid configuration
+
+## Validation
+
+**Validate workflow before running:**
+
+```python
+from akios.core.validation import validate_workflow
+
+try:
+    validate_workflow("workflows/my-workflow.yml")
+    print("Workflow is valid")
+except WorkflowValidationError as e:
+    print(f"Validation failed: {e}")
+```
+
+## Audit Access
+
+Access audit logs programmatically:
+
+```python
+from akios.core.audit import AuditLog
+
+audit = AuditLog("./audit/")
+
+# Get recent events
+events = audit.get_events(limit=10)
+for event in events:
+    print(f"{event['timestamp']}: {event['action']}")
+
+# Verify integrity
+if audit.verify():
+    print("Audit log integrity verified")
+else:
+    print("Audit log tampered!")
+
+# Export events
+audit.export("audit-report.json", format="json")
+```
+
+## Configuration Override
+
+Override config programmatically:
+
+```python
+from akios.core.runtime.engine import WorkflowEngine
+
+engine = WorkflowEngine()
+
+result = engine.run(
+    "workflows/my-workflow.yml",
+    config_overrides={
+        "budget_limit_per_run": 5.0,
+        "network_access_allowed": True,
+        "log_level": "DEBUG"
+    }
+)
+```
+
+## Legacy Compatibility
+
+For backward compatibility:
+
+```python
+# Old name (deprecated)
+from akios.core.runtime.engine import RuntimeEngine
+
+# New name (preferred)
+from akios.core.runtime.engine import WorkflowEngine
+
+# Both work the same way
+engine = RuntimeEngine()  # Works but deprecated
+engine = WorkflowEngine()  # Preferred
+```
+
+## Security Notes
+
+**✓ Always:**
+- Keep audit logging enabled
+- Use path restrictions for filesystem access
+- Set budget limits for LLM calls
+- Enable PII redaction
+- Validate workflows before running
+
+**× Never:**
+- Disable sandbox in production
+- Allow unrestricted filesystem access
+- Use unlimited budgets
+- Disable audit logging
+
+## Example: Building a Document Processor
+
+Complete example integrating AKIOS into an application:
+
+```python
+import os
+from akios.core.runtime.engine import WorkflowEngine
+from akios.exceptions import WorkflowValidationError, BudgetExceededError
+
+class DocumentProcessor:
+    def __init__(self):
+        self.engine = WorkflowEngine()
+        
+    def process_document(self, input_file, user_id):
+        """Process a document using AKIOS workflow"""
+        try:
+            # Run workflow
+            result = self.engine.run(
+                "workflows/process-document.yml",
+                context={
+                    "input_file": input_file,
+                    "user_id": user_id
+                },
+                config_overrides={
+                    "budget_limit_per_run": 2.0
+                }
+            )
+            
+            # Check success
+            if result["status"] == "success":
+                return {
+                    "success": True,
+                    "output_dir": result["output_directory"],
+                    "time": result["execution_time"]
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": result.get("error", "Unknown error")
+                }
+                
+        except BudgetExceededError:
+            return {"success": False, "error": "Budget exceeded"}
+        except WorkflowValidationError as e:
+            return {"success": False, "error": f"Invalid workflow: {e}"}
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+# Usage
+processor = DocumentProcessor()
+result = processor.process_document(
+    "data/input/document.pdf",
+    user_id="user123"
+)
+
+if result["success"]:
+    print(f"Success! Output in {result['output_dir']}")
+else:
+    print(f"Failed: {result['error']}")
+```
+
+## Related Docs
+
+- **[Configuration](config-reference.html)** - Config options
+- **[Concepts](concepts.html)** - Understanding agents
+- **[Security](security.html)** - Security features

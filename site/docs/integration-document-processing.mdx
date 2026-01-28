@@ -1,52 +1,432 @@
-# Document Processing (AKIOS V1.0)
+# Document Processing Guide
 
-Automate ingestion, extraction, and analysis with the cage.
+Automate document ingestion, extraction, and analysis with AKIOS. This guide shows you how to process PDFs, Word documents, images, and text files securely.
 
-## Quick start
+## Quick Start
+
+Get started with document processing:
+
 ```bash
-./akios init my-doc-project
-./akios run templates/document_ingestion.yml
+# Initialize document processing project
+akios init my-doc-project
+
+# Run example workflow
+akios run templates/document-analysis.yml
 ```
 
-## Supported inputs
-- PDF (native + OCR fallback)
-- DOCX
-- TXT (encoding detection)
-- Images (OCR)
+## Supported Document Types
 
-## Basic pipeline
+AKIOS can process:
+
+**📝 Text Documents:**
+- `.txt` - Plain text (auto-detects encoding)
+- `.md` - Markdown
+- `.csv` - Comma-separated values
+- `.json` - JSON data
+
+**📜 Office Documents:**
+- `.pdf` - PDF documents (with OCR fallback)
+- `.docx` - Microsoft Word
+- `.xlsx` - Microsoft Excel (planned)
+- `.pptx` - PowerPoint (planned)
+
+**🖼️ Images (OCR):**
+- `.png` - PNG images
+- `.jpg` / `.jpeg` - JPEG images
+- `.tiff` - TIFF images
+- `.bmp` - Bitmap images
+
+## Basic Document Analysis
+
+Read a document, analyze with AI, save results:
+
 ```yaml
-name: "Document Analysis"
+name: "Contract Analysis"
+description: "Analyze legal contract and extract key terms"
+
 steps:
-  - step: read_doc
+  - name: "Read contract"
     agent: filesystem
     action: read
-    config: {allowed_paths: ["./data/input"]}
-    parameters: {path: "./data/input/contract.pdf"}
-
-  - step: analyze
-    agent: llm
-    action: complete
     parameters:
+      path: "data/input/contract.pdf"
+      
+  - name: "Extract key information"
+    agent: llm
+    action: generate
+    parameters:
+      model: "gpt-4o"
       prompt: |
-        Extract parties, dates, financial terms, risks:
-        {{read_doc.content}}
-
-  - step: save
+        Analyze this contract and extract:
+        
+        1. Parties involved
+        2. Effective dates
+        3. Financial terms
+        4. Key obligations
+        5. Termination clauses
+        6. Risk factors
+        
+        Contract:
+        {{previous_output}}
+      max_tokens: 2000
+      
+  - name: "Save analysis"
     agent: filesystem
     action: write
-    config: {allowed_paths: ["./data/output"]}
     parameters:
-      path: "./data/output/contract_analysis.txt"
-      content: "{{analyze.text}}"
+      path: "data/output/contract_analysis.txt"
+      content: "{{analysis}}"
 ```
 
-## Patterns
-- **Batch**: list files then process with tool_executor/parallel (limit procs).
-- **Routing**: classify via LLM, then move to a category folder with tool_executor.
-- **PII**: redaction is automatic; keep audit enabled for evidentiary trails.
+**Run it:**
+```bash
+# Place your PDF in data/input/
+cp contract.pdf data/input/
 
-## Tips
-- Keep inputs under `data/input/`; outputs under `data/output/`.
-- Use size checks to switch to summary-only processing on very large files.
-- Store OCR/parse failures separately for reprocessing. 
+# Run analysis
+akios run workflows/contract-analysis.yml
+
+# Check results
+cat data/output/contract_analysis.txt
+```
+
+## Common Processing Patterns
+
+### Pattern 1: Batch Processing
+
+Process multiple documents:
+
+```yaml
+name: "Batch Document Processor"
+description: "Process all documents in a directory"
+
+steps:
+  - name: "List documents"
+    agent: filesystem
+    action: list
+    parameters:
+      path: "data/input/"
+      pattern: "*.pdf"
+      
+  - name: "Process each document"
+    agent: llm
+    action: generate
+    parameters:
+      prompt: "Summarize this document: {{file_content}}"
+    for_each: "{{files}}"
+```
+
+**Alternative using shell:**
+```yaml
+steps:
+  - name: "Find PDFs"
+    agent: tool_executor
+    action: run
+    parameters:
+      command: ["find", "data/input", "-name", "*.pdf"]
+      
+  - name: "Process list"
+    # Process each file from the list
+```
+
+### Pattern 2: Document Classification
+
+Classify documents and route to folders:
+
+```yaml
+name: "Document Classifier"
+description: "Classify and organize documents"
+
+steps:
+  - name: "Read document"
+    agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/{{filename}}"
+      
+  - name: "Classify"
+    agent: llm
+    action: generate
+    parameters:
+      model: "gpt-4o"
+      prompt: |
+        Classify this document into one category:
+        - invoice
+        - contract
+        - receipt
+        - letter
+        - other
+        
+        Document: {{document}}
+        
+        Return only the category name.
+      
+  - name: "Move to category folder"
+    agent: tool_executor
+    action: run
+    parameters:
+      command: ["mv", "{{filename}}", "data/output/{{category}}/"]
+```
+
+### Pattern 3: PII Redaction
+
+Process documents with automatic PII removal:
+
+```yaml
+name: "Redact Sensitive Data"
+description: "Process document with PII protection"
+
+steps:
+  - name: "Read document"
+    agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/customer_data.txt"
+    # PII automatically redacted on read
+    
+  - name: "Analyze redacted version"
+    agent: llm
+    action: generate
+    parameters:
+      prompt: "Analyze: {{previous_output}}"
+    # AI sees redacted version
+    
+  - name: "Save analysis"
+    agent: filesystem
+    action: write
+    parameters:
+      path: "data/output/analysis.txt"
+      content: "{{analysis}}"
+    # Output also redacted
+```
+
+**What gets redacted:**
+- Email addresses → `[REDACTED_EMAIL]`
+- Phone numbers → `[REDACTED_PHONE]`
+- SSN → `[REDACTED_SSN]`
+- Credit cards → `[REDACTED_CC]`
+- 50+ other patterns
+
+### Pattern 4: Multi-Step Analysis
+
+Complex document processing pipeline:
+
+```yaml
+name: "Deep Document Analysis"
+description: "Multi-stage document processing"
+
+steps:
+  - name: "Read document"
+    agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/report.pdf"
+      
+  - name: "Extract entities"
+    agent: llm
+    action: generate
+    parameters:
+      prompt: "Extract all people, companies, dates: {{document}}"
+      
+  - name: "Summarize"
+    agent: llm
+    action: generate
+    parameters:
+      prompt: "Summarize main points: {{document}}"
+      
+  - name: "Sentiment analysis"
+    agent: llm
+    action: generate
+    parameters:
+      prompt: "Analyze sentiment (positive/negative/neutral): {{document}}"
+      
+  - name: "Generate report"
+    agent: llm
+    action: generate
+    parameters:
+      prompt: |
+        Create final report:
+        
+        Entities: {{entities}}
+        Summary: {{summary}}
+        Sentiment: {{sentiment}}
+      
+  - name: "Save report"
+    agent: filesystem
+    action: write
+    parameters:
+      path: "data/output/complete_analysis.md"
+      content: "{{report}}"
+```
+
+## Handling Large Documents
+
+### Check Size Before Processing
+
+```yaml
+steps:
+  - name: "Check file size"
+    agent: filesystem
+    action: stat
+    parameters:
+      path: "data/input/large-doc.pdf"
+      
+  - name: "Process if small"
+    agent: llm
+    action: generate
+    skip_if: "$(.size > 1048576)"  # Skip if > 1MB
+    parameters:
+      prompt: "Full analysis: {{document}}"
+      
+  - name: "Summarize if large"
+    agent: llm
+    action: generate
+    skip_if: "$(.size <= 1048576)"  # Only if > 1MB
+    parameters:
+      prompt: "Brief summary only: {{document}}"
+      max_tokens: 500  # Limit output
+```
+
+### Chunk Large Documents
+
+```yaml
+steps:
+  - name: "Split document"
+    agent: tool_executor
+    action: run
+    parameters:
+      command: ["split", "-l", "1000", "data/input/large.txt", "chunks/"]
+      
+  - name: "Process chunks"
+    # Process each chunk
+    
+  - name: "Combine results"
+    agent: llm
+    action: generate
+    parameters:
+      prompt: "Combine these analyses: {{chunk_results}}"
+```
+
+## Error Handling
+
+### OCR Failures
+
+```yaml
+steps:
+  - name: "Try to read PDF"
+    agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/scanned.pdf"
+    # Falls back to OCR automatically
+    
+  - name: "Handle if OCR fails"
+    # Check if content is empty
+    skip_if: "$(.content != '')"
+    agent: filesystem
+    action: write
+    parameters:
+      path: "data/failed/{{filename}}"
+      content: "OCR failed"
+```
+
+### File Not Found
+
+```yaml
+steps:
+  - name: "Check file exists"
+    agent: filesystem
+    action: exists
+    parameters:
+      path: "data/input/{{filename}}"
+      
+  - name: "Read if exists"
+    skip_if: "$(.exists != true)"
+    agent: filesystem
+    action: read
+```
+
+## Best Practices
+
+**✓ Do:**
+- Keep inputs in `data/input/`
+- Save outputs to `data/output/`
+- Enable PII redaction for sensitive documents
+- Check file size before processing
+- Use audit logging for compliance
+- Handle OCR failures gracefully
+- Set max_tokens limits for large docs
+
+**× Don't:**
+- Process files outside allowed_paths
+- Disable PII redaction without good reason
+- Process unlimited file sizes
+- Ignore encoding issues
+- Skip error handling
+
+## Configuration
+
+**Configure filesystem access:**
+```yaml
+# config.yaml
+filesystem:
+  allowed_paths:
+    - "./data/input"
+    - "./data/output"
+  max_file_size_mb: 10
+```
+
+**Enable PII protection:**
+```yaml
+# config.yaml
+pii_redaction_enabled: true
+pii_redaction_outputs: true
+redaction_strategy: "mask"
+```
+
+## Tips & Tricks
+
+**Store failure separately:**
+```bash
+# Create failed directory
+mkdir -p data/failed
+
+# Move failed documents
+mv data/input/bad.pdf data/failed/
+```
+
+**Use size checks:**
+```yaml
+# Summary for large files, full analysis for small
+skip_if: "$(.size > 1048576)"
+```
+
+**Organize by type:**
+```bash
+data/
+├── input/
+│   ├── pdfs/
+│   ├── docx/
+│   └── images/
+└── output/
+    ├── analyzed/
+    └── extracted/
+```
+
+**Log processing failures:**
+```yaml
+steps:
+  - name: "Log failure"
+    agent: filesystem
+    action: write
+    parameters:
+      path: "data/logs/failed.txt"
+      content: "Failed: {{filename}} - {{error}}"
+```
+
+## Related Docs
+
+- **[Concepts](concepts.html)** - Understanding filesystem agent
+- **[Security](security.html)** - PII redaction features
+- **[Use Cases](use-cases.html)** - Real-world examples
+- **[Best Practices](best-practices.html)** - Production patterns 
