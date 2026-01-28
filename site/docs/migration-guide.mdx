@@ -1,38 +1,338 @@
-# Migration Guide (to AKIOS V1.0)
+# Migration Guide
 
-Move from earlier releases to the V1.0 hybrid distribution (pip or Docker).
+Upgrade to AKIOS V1.0 from earlier versions. This guide walks you through the process step-by-step.
 
-## Quick checklist
-- Back up `.env` and `config.yaml`.
-- Choose pip (Linux security-max) or Docker wrapper (cross-platform).
-- Update scripts to use the chosen installer.
-- Run `akios status` and a sample workflow; verify audit output.
+## Before You Start
 
-## Pip path (recommended)
+**✓ Checklist:**
+- [ ] Back up `.env` file
+- [ ] Back up `config.yaml`
+- [ ] Back up `workflows/` directory
+- [ ] Export audit logs: `akios audit export`
+- [ ] Note your current version: `akios --version`
+
+**Estimated time:** 10-15 minutes
+
+## Choose Your Installation Method
+
+### Option 1: Pip Installation (Recommended for Linux)
+
+**Maximum security** with kernel-hard isolation.
+
 ```bash
+# Upgrade AKIOS
 pip install --upgrade akios
+
+# Verify version
 akios --version
-akios run templates/hello-workflow.yml
+# Should show: akios 1.0.3 or later
+
+# Test installation
+akios status
 ```
 
-## Docker wrapper path
+**When to use:**
+- Running on Linux
+- Need maximum security (cgroups v2 + seccomp-bpf)
+- Prefer native installation
+
+### Option 2: Docker Wrapper (Cross-Platform)
+
+**Strong security** that works everywhere.
+
 ```bash
+# Download latest wrapper
 curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
 chmod +x akios
-./akios run templates/hello-workflow.yml
+
+# Force pull latest image
+AKIOS_FORCE_PULL=1 ./akios --version
+
+# Test installation
+./akios status
 ```
 
-## Direct Docker (fallback/CI)
+**When to use:**
+- Running on macOS or Windows
+- Want simple cross-platform solution
+- Already using Docker
+
+### Option 3: Direct Docker (For CI/CD)
+
+**Container-based** for automation.
+
 ```bash
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+# Pull latest image
+docker pull akiosai/akios:v1.0.3
+
+# Test run
+docker run --rm akiosai/akios:v1.0.3 --version
 ```
 
-## Verify after migrating
-- `akios status --security`
-- `akios audit verify`
-- Run a workflow with mock and with `--real-api` to confirm keys and budgets.
+**When to use:**
+- CI/CD pipelines
+- Automated environments
+- Custom Docker orchestration
 
-## Compatibility notes
-- Workflows remain compatible; validation is stricter (clear errors).
-- Docker on macOS/Windows stays policy-based; Linux pip gives full kernel-hard mode.
-- Keep audit enabled; configs are immutable at runtime. 
+## Migration Steps
+
+### Step 1: Verify Installation
+
+```bash
+# Check version
+akios --version
+
+# Check overall status
+akios status
+
+# Check security features
+akios status --security
+```
+
+**Expected output:**
+```
+AKIOS v1.0.3
+Security Level: Kernel-hard (Linux) or Policy-based (Docker)
+Audit: Active
+PII Protection: Active
+Sandbox: Enabled
+```
+
+### Step 2: Test Configuration
+
+```bash
+# Validate existing config
+akios config validate
+
+# Or run setup wizard to reconfigure
+akios setup --force
+```
+
+**Check for warnings:**
+- Invalid provider/model combinations
+- Deprecated config fields
+- Missing required settings
+
+### Step 3: Test Workflows
+
+**Start with mock mode (free):**
+```bash
+# Set mock mode
+export AKIOS_MOCK_LLM=1
+
+# Test template
+akios run templates/hello-workflow.yml
+
+# Test your workflows
+akios run workflows/my-workflow.yml
+```
+
+**Then test with real APIs:**
+```bash
+# Switch to real APIs
+akios run templates/hello-workflow.yml --real-api
+
+# Test your production workflow
+akios run workflows/production/my-workflow.yml --real-api
+```
+
+### Step 4: Verify Audit Trail
+
+```bash
+# Check audit logs work
+akios audit view --limit 10
+
+# Verify log integrity
+akios audit verify
+
+# Export audit logs
+akios audit export --format json > audit-report.json
+```
+
+**Expected:** All audit features working, logs verifiable.
+
+### Step 5: Update Scripts & Automation
+
+If you have scripts calling AKIOS:
+
+**Before (old):**
+```bash
+#!/bin/bash
+akios-old run workflow.yml
+```
+
+**After (new):**
+```bash
+#!/bin/bash
+akios run workflow.yml
+```
+
+**CI/CD pipelines:**
+```yaml
+# .github/workflows/akios.yml
+steps:
+  - name: Install AKIOS
+    run: pip install akios>=1.0.3
+    
+  - name: Run workflow
+    run: akios run workflows/production/*.yml
+```
+
+## Breaking Changes
+
+### Configuration Format
+
+**Old config (pre-1.0):**
+```yaml
+security:
+  sandbox: true
+  pii_filter: true
+```
+
+**New config (1.0+):**
+```yaml
+sandbox_enabled: true
+pii_redaction_enabled: true
+```
+
+**Fix:** Run `akios setup --force` to create new config.
+
+### Environment Variables
+
+**Old:**
+```bash
+AKIOS_PROVIDER=openai
+```
+
+**New:**
+```bash
+AKIOS_LLM_PROVIDER=openai
+```
+
+**Fix:** Update `.env` file with new variable names.
+
+### CLI Commands
+
+**Old:**
+```bash
+akios validate workflow.yml
+```
+
+**New:**
+```bash
+akios config validate
+```
+
+**Fix:** Update scripts to use new command names.
+
+## Compatibility Notes
+
+### Workflows
+
+✅ **Compatible:** All workflow YAML files work in V1.0
+
+**Note:** Validation is stricter - workflows must have:
+- Valid `agent` name
+- Valid `action` for that agent
+- Required `parameters`
+
+### Audit Logs
+
+✅ **Compatible:** Old audit logs can be read by V1.0
+
+```bash
+# Verify old logs
+akios audit verify --path ./audit-old/
+```
+
+### Python API
+
+✅ **Compatible:** Old API calls still work
+
+```python
+# Old name (deprecated but works)
+from akios.core.runtime.engine import RuntimeEngine
+
+# New name (preferred)
+from akios.core.runtime.engine import WorkflowEngine
+```
+
+### Platform-Specific
+
+**Linux:**
+- Pip installation now provides kernel-hard security
+- cgroups v2 + seccomp-bpf automatically enabled
+- No action needed
+
+**macOS/Windows:**
+- Docker wrapper recommended (unchanged)
+- Policy-based security (unchanged)
+- No action needed
+
+## Rollback Instructions
+
+If you need to rollback:
+
+**Pip installation:**
+```bash
+# Uninstall V1.0
+pip uninstall akios
+
+# Install previous version
+pip install akios==0.9.5
+
+# Restore backups
+cp .env.backup .env
+cp config.yaml.backup config.yaml
+```
+
+**Docker:**
+```bash
+# Use previous image
+docker pull akiosai/akios:v0.9.5
+
+# Update wrapper
+curl -O https://raw.githubusercontent.com/akios-ai/akios/v0.9.5/akios
+```
+
+## Getting Help
+
+If migration fails:
+
+**1. Check diagnostics:**
+```bash
+akios doctor --json > diagnostics.json
+```
+
+**2. Review logs:**
+```bash
+akios logs --level ERROR
+```
+
+**3. Ask for help:**
+- GitHub Issues: https://github.com/akios-ai/akios/issues
+- Email: hello@akios.ai
+
+**Include:**
+- `akios --version` output
+- `diagnostics.json` file
+- Steps you've taken
+- Error messages
+
+## Post-Migration Checklist
+
+**✓ Verify everything works:**
+- [ ] `akios --version` shows 1.0.3+
+- [ ] `akios status --security` shows security active
+- [ ] Workflows run successfully in mock mode
+- [ ] Workflows run successfully with real APIs
+- [ ] `akios audit verify` passes
+- [ ] CI/CD pipelines updated
+- [ ] Team members notified
+- [ ] Documentation updated
+
+## Related Docs
+
+- **[Installation](installation.html)** - Fresh installation guide
+- **[Configuration](config-reference.html)** - All config options  
+- **[Troubleshooting](debugging.html)** - Common issues 

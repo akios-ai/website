@@ -1,54 +1,418 @@
-# CLI Reference (AKIOS V1.0)
+# CLI Reference
 
-Core commands for the security cage. Works with pip install, Docker wrapper, or direct Docker.
+Complete command reference for AKIOS. All commands work with pip install, Docker wrapper, or direct Docker.
 
-## Global
+## Quick Start Commands
+
+The commands you'll use most:
+
 ```bash
-akios --help            # commands & options
-akios --version         # version/build info
-akios --debug <cmd>     # verbose logs
-AKIOS_JSON_MODE=1 akios status  # machine-readable output
+akios init my-project          # Create new project
+akios setup                    # Configure API keys
+akios run templates/hello.yml  # Run a workflow
+akios status                   # Check system status
+akios logs --limit 10          # View recent logs
+akios clean --old-runs         # Clean up old runs
 ```
 
-## Project lifecycle
+## Installation Methods
+
+Choose your preferred installation:
+
+### Pip (Linux - Maximum Security)
 ```bash
-akios init [path]           # create project skeleton
-akios setup [--force]       # guided provider/key/budget setup
-akios config validate       # check config
-akios status [--security]   # runtime + security status
-akios clean [--old-runs]    # remove old runs/cache
+pip install akios>=1.0.3
+akios --version
 ```
 
-## Running workflows
+### Docker Wrapper (Cross-Platform)
 ```bash
-akios run templates/hello-workflow.yml       # run sample
-akios run workflows/my.yml --real-api        # force real API mode
-akios run workflows/my.yml --context key=val # inject context vars
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+chmod +x akios
+./akios --version
 ```
 
-## Templates
+### Direct Docker (Fallback)
 ```bash
-akios templates list         # show available templates
-akios templates pull <name>  # fetch/update template
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.3 --version
 ```
 
-## Audit
+## Global Options
+
+Available on all commands:
+
 ```bash
-akios audit view --limit 20
-akios audit export --since "7 days ago" --format json --output audit.json
-akios audit verify           # Merkle integrity check
-akios audit archive --older-than 90d --compress
+akios --help               # Show command help
+akios --version            # Show version info
+akios --debug <command>    # Enable debug output
 ```
 
-## Debugging
+## Project Commands
+
+### `akios init [path]`
+Create a new AKIOS project with templates and configuration.
+
 ```bash
-akios --debug status
-akios --debug run workflows/my.yml
+# Create project in current directory
+akios init
+
+# Create project in subdirectory
+akios init my-project
+
+# Create quietly (no banners)
+akios init --quiet
 ```
 
-## Installation quick refs
-- Pip (Linux best security): `pip install akios`
-- Docker wrapper (all platforms): `curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios && chmod +x akios`
-- Direct Docker: `docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 ...`
+**Creates:**
+- `config.yaml` - Runtime configuration
+- `templates/` - Example workflows
+- `workflows/` - Your custom workflows
+- `data/input/` and `data/output/` - File storage
+- `audit/` - Security logs
+- `.env` and `.env.example` - API key configuration
 
-Use `--help` on any command for full flags and examples.
+### `akios setup [--force]`
+Interactive wizard to configure API keys and settings.
+
+```bash
+# Run setup wizard (first-time setup)
+akios setup
+
+# Force re-run (reconfigure everything)
+akios setup --force
+
+# Non-interactive mode (CI/CD)
+akios setup --non-interactive
+
+# Use defaults (quick setup)
+akios setup --defaults
+
+# Enable mock mode (no API keys needed)
+akios setup --mock-mode
+```
+
+**Configures:**
+- AI provider (OpenAI, Anthropic, Grok, Mistral, Gemini)
+- API key with validation
+- Budget limits ($1.00 default)
+- Token limits (1000 per call default)
+- Network access settings
+
+### `akios status [options]`
+Show system status and security information.
+
+```bash
+# Basic status
+akios status
+
+# Detailed security dashboard
+akios status --security
+
+# Budget tracking details
+akios status --budget
+
+# Machine-readable JSON
+akios status --json
+
+# Detailed technical info
+akios status --verbose
+```
+
+**Shows:**
+- Security level (Full/Strong)
+- PII protection status
+- Budget usage and remaining
+- Audit logging status
+- Recent workflow runs
+
+### `akios clean [options]`
+Remove old workflow runs to free disk space.
+
+```bash
+# Remove runs older than 7 days (default)
+akios clean --old-runs
+
+# Remove runs older than 30 days
+akios clean --old-runs 30
+
+# Preview what would be cleaned
+akios clean --old-runs 7 --dry-run
+
+# JSON output for scripts
+akios clean --old-runs 7 --json
+```
+
+**Safety:** Only removes `data/output/run_*` directories. Audit logs are never touched.
+
+## Workflow Commands
+
+### `akios run <workflow.yml> [options]`
+Execute a workflow with full security.
+
+```bash
+# Run a template
+akios run templates/hello-workflow.yml
+
+# Run your custom workflow
+akios run workflows/my-workflow.yml
+
+# Enable real API mode (interactive setup)
+akios run workflow.yml --real-api
+
+# Verbose output
+akios run workflow.yml --verbose
+
+# Dry run (validate only)
+akios run workflow.yml --dry-run
+
+# Skip confirmations
+akios run workflow.yml --force
+```
+
+**Options:**
+- `--real-api` - Enable live APIs with setup wizard
+- `--verbose, -v` - Detailed execution logs
+- `--quiet, -q` - Suppress banners
+- `--dry-run, -d` - Validate without executing
+- `--force, -f` - Skip confirmation prompts
+- `--debug` - Enable debug logging
+
+### `akios templates list`
+Show all available workflow templates.
+
+```bash
+akios templates list
+```
+
+**Output:**
+```
+Available Templates
+===================
+hello-workflow.yml        Simple AI greeting example
+document_ingestion.yml    Document analysis with PII redaction
+batch_processing.yml      Multi-file processing with cost tracking
+file_analysis.yml         Security-focused file scanning
+```
+
+### `akios files [input|output]`
+Show available input files and output runs.
+
+```bash
+# Show all files
+akios files
+
+# Show only input files
+akios files input
+
+# Show only output runs
+akios files output
+```
+
+Helps you see what data is available for your workflows.
+
+## Audit & Logging Commands
+
+### `akios logs [options]`
+View workflow execution logs.
+
+```bash
+# Show recent logs (default 20 entries)
+akios logs
+
+# Show last 50 entries
+akios logs --limit 50
+
+# Show logs for specific workflow
+akios logs --task workflow-123
+
+# Filter by log level
+akios logs --level ERROR
+```
+
+**Options:**
+- `--limit, -l` - Number of entries to show
+- `--task, -t` - Filter by workflow ID
+- `--level` - Filter by level (INFO, ERROR, etc.)
+
+### `akios audit export [options]`
+Export cryptographic audit trail.
+
+```bash
+# Export latest audit (auto-generated filename)
+akios audit export
+
+# Export with custom filename
+akios audit export --output audit-report.json
+
+# Export specific workflow
+akios audit export --task workflow-123 --output audit.json
+```
+
+**Options:**
+- `--output, -o` - Output file path
+- `--task, -t` - Specific workflow ID
+- `--format, -f` - Export format (json)
+
+## Advanced Commands
+
+### `akios doctor [--json]`
+Run system diagnostics.
+
+```bash
+# Show diagnostics
+akios doctor
+
+# JSON output for scripts
+akios doctor --json
+```
+
+Checks security status, configuration, and system health.
+
+### `akios compliance report <workflow.yml> [options]`
+Generate compliance reports.
+
+```bash
+# Basic compliance report
+akios compliance report hello-workflow.yml
+
+# Detailed technical report
+akios compliance report workflow.yml --type detailed
+
+# Executive summary
+akios compliance report workflow.yml --type executive --format txt
+
+# Export to file
+akios compliance report workflow.yml --output compliance.json
+```
+
+**Report types:**
+- `basic` - Security validation summary
+- `detailed` - Technical details + audit events
+- `executive` - High-level management summary
+
+### `akios output [options]`
+Manage workflow outputs.
+
+```bash
+# List all outputs
+akios output
+
+# List for specific workflow
+akios output --workflow hello-workflow.yml
+
+# Clean old outputs (keep last 10)
+akios output clean --keep 10
+
+# Archive outputs
+akios output archive --output archive-2026-01-24.tar.gz
+
+# Export output metadata
+akios output export --format json --output outputs.json
+```
+
+## Environment Variables
+
+Control AKIOS behavior with environment variables:
+
+```bash
+# Show JSON output
+AKIOS_JSON_MODE=1 akios status
+
+# Enable debug logging
+AKIOS_DEBUG=1 akios run workflow.yml
+
+# Set API provider
+AKIOS_LLM_PROVIDER=grok akios status
+
+# Enable mock mode
+AKIOS_MOCK_LLM=1 akios run workflow.yml
+```
+
+## Common Workflows
+
+### First-Time Setup
+```bash
+# 1. Install
+pip install akios>=1.0.3
+
+# 2. Create project
+akios init my-project
+cd my-project
+
+# 3. Configure
+akios setup
+
+# 4. Run example
+akios run templates/hello-workflow.yml
+
+# 5. Check status
+akios status
+```
+
+### Daily Usage
+```bash
+# Run your workflow
+akios run workflows/my-workflow.yml
+
+# Check results
+akios files output
+
+# View logs
+akios logs --limit 10
+
+# Clean up periodically
+akios clean --old-runs 7
+```
+
+### Troubleshooting
+```bash
+# Check security status
+akios status --security
+
+# Enable debug mode
+akios --debug run workflow.yml
+
+# Run diagnostics
+akios doctor
+
+# View detailed logs
+akios logs --limit 50 --level ERROR
+```
+
+## Getting Help
+
+```bash
+# General help
+akios --help
+
+# Command-specific help
+akios run --help
+akios status --help
+akios clean --help
+
+# Show version
+akios --version
+```
+
+## Platform Differences
+
+**Native Linux (pip):**
+- Full kernel-hard security
+- Best performance
+- Maximum isolation
+- Commands: `akios <command>`
+
+**Docker (all platforms):**
+- Strong policy-based security
+- Cross-platform compatibility
+- Container isolation
+- Commands: `./akios <command>` (from project directory)
+
+Both methods provide the same commands and strong security.
+
+## Learn More
+
+- **[Quickstart](quickstart.html)** - Get started guide
+- **[Concepts](concepts.html)** - How AKIOS works
+- **[Configuration](config-reference.html)** - Customize settings
+- **[Debugging](debugging.html)** - Troubleshooting guide

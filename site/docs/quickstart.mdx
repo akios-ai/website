@@ -1,115 +1,167 @@
-# Quick Start Guide (AKIOS V1.0)
+# Quickstart Guide
 
-**Who:** New users. **What:** Run first secure workflow. **Time:** 15–30 min.
+Go from zero to your first secure AI workflow in 15 minutes. This guide walks you through everything step-by-step.
 
-**Prereqs:** Python 3.8+, Docker (optional), one API key (OpenAI/Anthropic/Grok/Mistral/Gemini), internet for first pull.
+## What You'll Build
 
+By the end of this guide, you'll have:
+- ✅ AKIOS installed and configured
+- ✅ Your first AI workflow running with real LLM calls
+- ✅ Understanding of project structure and how to create custom workflows
+- ✅ Knowledge of security features and audit logs
 
----
+## Prerequisites
 
-## What is AKIOS?
+- **5 minutes of your time**
+- **An API key** from OpenAI, Anthropic, Grok, Mistral, or Gemini (get [free keys below](#step-3-configure-your-api-key-2-minutes))
+- **Docker installed** (for cross-platform) OR **Python 3.8+** (for Linux)
 
-AKIOS is a **security-first runtime** for AI agent workflows:
-- Kernel sandbox + syscall filtering
-- PII redaction on I/O
-- Cryptographic audit trail
-- Budget / loop kill-switches
-- Works with OpenAI, Anthropic, Grok, Mistral, Gemini
+## Step 1: Install AKIOS (2 minutes)
 
----
+Choose your platform:
 
-## 1) Installation & setup
-
-Choose the install that matches your platform. For most users, start with **Pip** (native Linux) or the **Docker wrapper** (cross‑platform).
-
-### Pip (recommended on native Linux)
+**Linux users:**
 ```bash
-pip install akios
-akios --version
-akios init my-project
-cd my-project
-akios run templates/hello-workflow.yml
+pip install akios>=1.0.3
 ```
 
-### Docker wrapper (macOS/Windows/Linux)
+**macOS/Windows users or teams:**
 ```bash
 curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
 chmod +x akios
-./akios --help
+```
+
+That's it! Installation done.
+
+## Step 2: Create Your Project (1 minute)
+
+```bash
+# Linux (pip)
+akios init my-project
+
+# macOS/Windows/Docker
 ./akios init my-project
+
+# Go into your project
 cd my-project
-./akios run templates/hello-workflow.yml
 ```
 
-### Direct Docker fallback
+**What just happened?**
+AKIOS created a complete project structure:
+- `templates/` - Pre-built workflow examples
+- `workflows/` - Where you'll put custom workflows
+- `data/input/` and `data/output/` - For file operations
+- `audit/` - Security and compliance logs
+- `config.yaml` - Runtime settings
+
+## Step 3: Configure Your API Key (2 minutes)
+
+The setup wizard makes this easy:
+
 ```bash
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 init my-project
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+# Linux (pip)
+akios setup
+
+# macOS/Windows/Docker
+../akios setup
 ```
 
-Prereqs: Docker Desktop/Engine; one API key (OpenAI, Anthropic, Grok, Mistral, or Gemini).
+**The wizard asks you:**
+1. Which AI provider? (OpenAI, Anthropic, Grok, Mistral, or Gemini)
+2. What's your API key? (Paste it securely)
+3. Set a budget limit? (Default $1.00 per workflow)
 
----
+**Get free API keys:**
+- [OpenAI](https://platform.openai.com/api-keys) - GPT models
+- [Anthropic](https://console.anthropic.com/) - Claude models
+- [xAI](https://console.x.ai/) - Grok models
+- [Mistral](https://console.mistral.ai/) - Mistral models
+- [Google](https://makersuite.google.com/app/apikey) - Gemini models
 
-## 2) Project structure (after `init`)
-```
-my-project/
-├── config.yaml        # Runtime config (policies, budgets)
-├── templates/         # Starter workflows
-├── workflows/         # Your custom workflows
-├── data/input|output/ # Sample data in/out
-└── audit/             # Tamper-evident logs
-```
+## Step 4: Run Your First Workflow (5 minutes)
 
----
-
-## 3) First run + setup wizard
-
-The first `run` triggers an interactive wizard:
-- Pick provider + model (gpt-4o, claude-3.5, grok-3, mistral-medium, gemini-1.5)
-- Enter API key (stored in `.env`)
-- Set budget/token limits
-- Test connectivity and sandbox
-
-Manual rerun anytime:
 ```bash
-akios setup        # or ./akios setup
-akios setup --force
+# Linux (pip)
+akios run templates/hello-workflow.yml
+
+# macOS/Windows/Docker
+../akios run templates/hello-workflow.yml
 ```
 
----
+**What you'll see:**
+```
+✓ Loading configuration...
+✓ Step 1: LLM generates greeting
+✓ Step 2: Saves to file
+✓ Workflow completed
+Cost: $0.0012 | Time: 3.2s
+```
 
-## Expected output
-- Files: `data/output/run_*/` contains run artifacts.
-- Audit: `audit/audit_events.jsonl` with Merkle-proof chain.
-- Success log: `status: completed`, budget within limits.
-
-If it fails: run `akios status --security` then see [Debugging](debugging.html) and [Config Reference](config-reference.html).
-## 4) Verify the “Security Cage”
-
-Status + controls:
+**Check the results:**
 ```bash
-akios status --security
+akios files output
+cat data/output/run_*/hello-ai.txt
 ```
 
-Audit trail (redacted, signed):
+You just ran your first secure AI workflow! 🎉
+
+## Step 5: Explore Security Features
+
+**Check system status:**
 ```bash
-cat audit/audit_events.jsonl
+akios status
 ```
 
-Clean old runs:
+Shows security level, PII redaction, budget remaining, and audit status.
+
+**View audit logs:**
+```bash
+akios logs --limit 10
+```
+
+Every action is cryptographically logged for compliance.
+
+**See available templates:**
+```bash
+akios templates list
+```
+
+## Create Your Own Workflow
+
+Copy and customize a template:
+
+```bash
+cp templates/hello-workflow.yml workflows/my-greeting.yml
+nano workflows/my-greeting.yml  # Edit the prompt
+akios run workflows/my-greeting.yml
+```
+
+## Common Tasks
+
+**Process a document:**
+```bash
+echo "Contact john@example.com" > data/input/doc.txt
+akios run templates/document_ingestion.yml
+```
+
+**Clean old runs:**
 ```bash
 akios clean --old-runs
 ```
 
----
+## Troubleshooting
 
-## 5) Next steps
-- **[Configuration](config-reference)** — tune policies, budgets, network/fs rules.
-- **[Security](security)** — sandbox model, PII redaction, audit chain.
-- **[Concepts](concepts)** — architecture and core agents.
+**"API key not valid"** → Run `akios setup --force`
 
-## Related
-- [Installation](installation.html)
-- [Debugging](debugging.html)
-- [Security](security.html)
+**"Permission denied"** → Linux: `sudo usermod -aG docker $USER` then logout/login
+
+**"Workflow failed"** → Check `akios logs --limit 5` or see [Debugging](debugging.html)
+
+## What's Next?
+
+- **[Concepts](concepts.html)** - How AKIOS works
+- **[Security](security.html)** - Security features deep dive
+- **[Configuration](config-reference.html)** - Customize settings
+- **[CLI Reference](cli-reference.html)** - All commands
+
+You're ready to build secure AI workflows! 🚀

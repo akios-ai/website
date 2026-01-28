@@ -1,59 +1,172 @@
-# Installation (AKIOS V1.0)
+# Installation
 
-Choose the install path that matches your platform and security needs.
+Get AKIOS running in 2 minutes. Choose the method that works best for you.
 
-## Pip package (recommended on native Linux)
-Maximum security (kernel-hard: cgroups + seccomp). Works on macOS/Windows with standard process isolation.
+## Quick Install (Most Users)
+
+**On Linux** (maximum security with kernel-hard isolation):
 ```bash
-pip install akios
-akios --version
+pip install akios>=1.0.3
 akios init my-project
 cd my-project
 akios run templates/hello-workflow.yml
 ```
 
-## Docker wrapper (cross-platform)
-One shell script manages the Docker image and provides the same CLI everywhere.
+**On macOS/Windows or for teams** (Docker provides strong cross-platform security):
 ```bash
 curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
-ls -la akios && file akios   # verify
 chmod +x akios
 ./akios init my-project
 cd my-project
 ./akios run templates/hello-workflow.yml
-# Refresh image when needed:
+```
+
+That's it! The setup wizard will guide you through API key configuration on first run.
+
+## Three Installation Options
+
+### Option 1: Pip Package (Linux)
+Best for: Maximum security, Python developers, native Linux environments
+
+**What you get:** Full kernel-hard security with cgroups v2 + seccomp-bpf syscall filtering
+
+```bash
+# Install
+pip install akios>=1.0.3
+
+# Ubuntu 24.04+ users need pipx due to PEP 668
+sudo apt install pipx
+pipx install akios>=1.0.3
+
+# Verify and create project
+akios --version
+akios init my-project
+cd my-project
+```
+
+### Option 2: Docker Wrapper (Recommended for Teams)
+Best for: Cross-platform teams, macOS/Windows users, consistent deployments
+
+**What you get:** Strong policy-based security that works everywhere
+
+```bash
+# Download the wrapper script (one-time)
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+chmod +x akios
+
+# Create your project
+./akios init my-project
+cd my-project
+
+# Run your first workflow
+./akios run templates/hello-workflow.yml
+
+# Update to latest image anytime
 AKIOS_FORCE_PULL=1 ./akios status
 ```
 
-## Direct Docker (fallback/automation)
-Use if the wrapper cannot be downloaded or for scripted CI.
+### Option 3: Direct Docker (CI/CD & Automation)
+Best for: Continuous integration, automated pipelines, when wrapper script isn't available
+
 ```bash
-docker run --rm -v \"$(pwd):/app\" -w /app akiosai/akios:v1.0.0 init my-project
-docker run --rm -v \"$(pwd):/app\" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.3 init my-project
+cd my-project
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.3 run templates/hello-workflow.yml
 ```
 
-## Decision helper
-- **Linux + max security** → Pip (kernel-hard).
-- **Cross-platform team** → Docker wrapper.
-- **CI / fallback** → Direct Docker.
+## Which Should I Use?
 
+| Your Situation | Use This | Why |
+|----------------|----------|-----|
+| I'm on Linux and want maximum security | **Pip** | Full kernel isolation (cgroups v2, seccomp-bpf) |
+| I'm on macOS or Windows | **Docker** | Strong security, works everywhere |
+| My team uses different platforms | **Docker** | Same experience for everyone |
+| I need it for CI/CD pipelines | **Direct Docker** | Easy automation |
 
-## Which to choose
-| Option | Best for | Security level |
-|--------|----------|----------------|
-| Pip (Linux) | Max security, Python workflows | Full kernel-hard |
-| Docker wrapper | Cross-platform, teams | Strong container isolation |
-| Direct Docker | CI/fallback | Strong container isolation |
+## Setup Your API Keys
 
-## Next steps
-Run the guided setup and first workflow:
+After installation, configure your AI provider (first run only):
+
 ```bash
-akios setup            # guided provider/key/budget setup
+# The setup wizard runs automatically
 akios run templates/hello-workflow.yml
-akios status           # verify
+
+# Or run it manually anytime
+akios setup
 ```
 
-## Related
-- [Quickstart](quickstart.html)
-- [Security](security.html)
-- [Deployment](deployment.html)
+The wizard helps you:
+- Choose your AI provider (OpenAI, Anthropic, Grok, Mistral, Gemini)
+- Add your API key securely
+- Set budget limits
+- Test everything works
+
+**Get free API keys:**
+- [OpenAI](https://platform.openai.com/api-keys) - GPT-4, GPT-3.5
+- [Anthropic](https://console.anthropic.com/) - Claude models
+- [xAI](https://console.x.ai/) - Grok models
+- [Mistral](https://console.mistral.ai/) - Mistral models
+- [Google](https://makersuite.google.com/app/apikey) - Gemini models
+
+## Verify Everything Works
+
+```bash
+# Check version
+akios --version
+
+# See available templates
+akios templates list
+
+# Run a workflow
+akios run templates/hello-workflow.yml
+
+# Check the results
+akios files
+akios status
+```
+
+## Security Levels Explained
+
+**On Linux (Pip):** Full kernel-hard security
+- cgroups v2 resource isolation
+- seccomp-bpf syscall filtering
+- Maximum protection
+
+**With Docker (All Platforms):** Strong policy-based security
+- Container isolation
+- Command allowlisting
+- PII redaction
+- Comprehensive audit logging
+
+Both options provide production-grade security. Linux pip gives you the absolute maximum, Docker gives you excellent security everywhere.
+
+## Troubleshooting
+
+**"pip install failed"**
+```bash
+# Upgrade pip first
+pip install --upgrade pip
+
+# Or use pipx on Ubuntu 24.04+
+sudo apt install pipx
+pipx install akios
+```
+
+**"Docker wrapper won't download"**
+Use Direct Docker method instead - it doesn't need the wrapper script.
+
+**"Permission denied with Docker"**
+```bash
+# On Linux, add yourself to docker group
+sudo usermod -aG docker $USER
+# Then log out and back in
+```
+
+**Need more help?** See the [Debugging guide](debugging.html) or check [GitHub Issues](https://github.com/akios-ai/akios/issues).
+
+## What's Next?
+
+- **[Quickstart](quickstart.html)** - Complete tutorial from zero to your first AI workflow
+- **[Concepts](concepts.html)** - Understand how AKIOS works
+- **[Security](security.html)** - Deep dive into the security features
+- **[CLI Reference](cli-reference.html)** - All available commands

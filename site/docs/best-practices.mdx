@@ -1,37 +1,379 @@
-# Best Practices (AKIOS V1.0)
+# Best Practices
 
-Short, security-first patterns to keep workflows robust and maintainable.
+Proven patterns for building reliable, secure AKIOS workflows. Follow these guidelines to avoid common pitfalls and maximize productivity.
 
-## Project layout
-- Keep `data/` split into `input/`, `output/`, `audit/`; one run per `run_YYYY-MM-DD_HH-MM-SS/` folder.
-- Separate `workflows/production/` vs `workflows/development/`; keep reusable pieces in `templates/`.
-- `.env` is gitignored; never commit keys.
+## Project Organization
 
-## Config hygiene
-- Use env-specific files: `.env.development`, `.env.production`; load via `AKIOS_*` overrides.
-- Template configs with `${VAR:-default}` for portability.
-- Enforce least privilege: restrict `filesystem.allowed_paths`; deny network unless required.
+### Directory Structure
 
-## Workflow design
-- Modularize with shared fragments and anchors; keep steps small.
-- Add retries/backoff on external calls; use `skip_if` to short-circuit on validation failures.
-- Validate inputs early (size, type) before LLM/HTTP steps.
-- Add `cache_key`/`cache_ttl` where repeatable work is expensive.
+Organize your project for clarity:
 
-## Security practices
-- Minimal allowed paths; never include `./config`, `./.env`, `/etc`.
-- Rotate API keys; different keys per env.
-- Keep audit enabled; export/verify regularly.
+```
+my-akios-project/
+├── config.yaml           # Runtime configuration
+├── .env                  # API keys (DON'T COMMIT)
+├── .gitignore           # Exclude .env, audit/, data/
+├── workflows/
+│   ├── production/      # Production workflows
+│   │   └── process-docs.yml
+│   └── development/     # Dev workflows
+│       └── test-flow.yml
+├── templates/           # Reusable workflow templates
+│   └── common-tasks.yml
+├── data/
+│   ├── input/          # Source files
+│   ├── output/         # Results
+│   └── archive/        # Old runs
+└── audit/              # Tamper-evident logs
+    └── audit_events.jsonl
+```
 
-## Performance
-- Batch where possible; limit concurrency (`parallel --max-procs 2`).
-- Use size checks to downgrade work on large files (summary-only paths).
-- Prefer cached reads/analyses for static inputs.
+### Version Control
 
-## Monitoring & ops
-- Health checks: simple HTTP probe + disk space; alert via webhook on failures.
-- Audit maintenance: export weekly summaries, archive old logs, run `akios audit verify`.
+**Commit to git:**
+- ✅ `config.yaml`
+- ✅ `workflows/`
+- ✅ `templates/`
+- ✅ `.gitignore`
 
-## Testing
-- Unit test workflow parsing; integration test sample runs with `AKIOS_MOCK_LLM=true`.
-- Generate mock data via workflows for repeatable tests.
+**NEVER commit:**
+- ❌ `.env` (contains API keys)
+- ❌ `audit/` (contains sensitive logs)
+- ❌ `data/` (contains user data)
+
+**Example `.gitignore`:**
+```gitignore
+.env
+*.env
+audit/
+data/
+*.log
+```
+
+## Configuration Management
+
+### Environment-Specific Configs
+
+Use different settings per environment:
+
+```bash
+# Development
+cp .env.development .env
+akios run workflows/development/test.yml
+
+# Production
+cp .env.production .env
+akios run workflows/production/process.yml
+```
+
+**Example `.env.development`:**
+```bash
+AKIOS_LLM_PROVIDER=grok
+GROK_API_KEY=dev-key-here
+AKIOS_LLM_MODEL=grok-3
+AKIOS_BUDGET_LIMIT_PER_RUN=5.0
+AKIOS_NETWORK_ACCESS_ALLOWED=1
+```
+
+**Example `.env.production`:**
+```bash
+AKIOS_LLM_PROVIDER=grok
+GROK_API_KEY=prod-key-here
+AKIOS_LLM_MODEL=grok-3
+AKIOS_BUDGET_LIMIT_PER_RUN=1.0
+AKIOS_NETWORK_ACCESS_ALLOWED=0
+```
+
+### Least Privilege Configuration
+
+Always restrict access to minimum needed:
+
+```yaml
+# config.yaml - Production example
+filesystem:
+  allowed_paths:
+    - "./data/input"      # Only read from input
+    - "./data/output"     # Only write to output
+  # DON'T allow: ./config, ./.env, /etc, /home
+
+network_access_allowed: false  # Deny unless required
+
+sandbox_enabled: true         # Always true
+```
+
+## Workflow Design
+
+### Keep Steps Small
+
+Break complex workflows into simple steps:
+
+**❌ Don't: One giant step**
+```yaml
+steps:
+  - agent: llm
+    action: generate
+    parameters:
+      prompt: "Read file, analyze, summarize, translate, format"
+```
+
+**✅ Do: Multiple focused steps**
+```yaml
+steps:
+  - name: "Read document"
+    agent: filesystem
+    action: read
+    
+  - name: "Analyze content"
+    agent: llm
+    action: generate
+    
+  - name: "Summarize"
+    agent: llm
+    action: generate
+    
+  - name: "Save result"
+    agent: filesystem
+    action: write
+```
+
+### Input Validation
+
+Validate early, fail fast:
+
+```yaml
+steps:
+  - name: "Check file exists"
+    agent: filesystem
+    action: stat
+    parameters:
+      path: "data/input/document.txt"
+      
+  - name: "Check file size"
+    agent: filesystem
+    action: stat
+    parameters:
+      path: "data/input/document.txt"
+    # Skip if too large
+    skip_if: "$(.size > 10485760)"  # 10MB
+    
+  - name: "Process document"
+    agent: llm
+    action: generate
+```
+
+### Error Handling
+
+Handle failures gracefully:
+
+```yaml
+steps:
+  - name: "Fetch data from API"
+    agent: http
+    action: request
+    parameters:
+      url: "https://api.example.com/data"
+      method: "GET"
+      retry_count: 3        # Retry on failure
+      retry_delay: 5        # Wait 5 seconds
+      timeout: 30           # 30 second timeout
+```
+
+## Security Practices
+
+### Restrict File Access
+
+Only allow necessary paths:
+
+```yaml
+# config.yaml
+filesystem:
+  allowed_paths:
+    - "./data/input"
+    - "./data/output"
+```
+
+**Never allow:**
+- `./config` - Configuration files
+- `./.env` - API keys
+- `/etc` - System files
+- `/home` - User directories
+- `..` - Parent directories
+
+### Rotate API Keys
+
+Change keys regularly:
+
+```bash
+# Development keys: Monthly
+# Production keys: Quarterly
+# Compromised keys: Immediately
+```
+
+### Enable Audit Logging
+
+Always keep audit trail:
+
+```yaml
+# config.yaml
+audit_enabled: true
+audit_storage_path: "./audit/"
+```
+
+**Verify audit integrity:**
+```bash
+# Check audit logs
+akios audit verify
+
+# Export for compliance
+akios audit export --format json > audit-report.json
+```
+
+### Use PII Redaction
+
+Protect sensitive data:
+
+```yaml
+# config.yaml
+pii_redaction_enabled: true
+pii_redaction_outputs: true
+redaction_strategy: "mask"
+```
+
+Redacts:
+- Email addresses
+- Phone numbers
+- Credit cards
+- Social Security Numbers
+- 50+ other patterns
+
+## Performance Optimization
+
+### Set Appropriate Limits
+
+```yaml
+# Development: More resources
+cpu_limit: 0.8
+memory_limit_mb: 512
+
+# Production: Conservative
+cpu_limit: 0.5
+memory_limit_mb: 256
+```
+
+### Handle Large Files
+
+Check size before processing:
+
+```yaml
+steps:
+  - name: "Check file size"
+    agent: filesystem
+    action: stat
+    parameters:
+      path: "data/input/large-file.txt"
+      
+  - name: "Process if small"
+    agent: llm
+    action: generate
+    skip_if: "$(.size > 1048576)"  # Skip if > 1MB
+    
+  - name: "Summarize if large"
+    agent: llm
+    action: generate
+    skip_if: "$(.size <= 1048576)"  # Only if > 1MB
+    parameters:
+      prompt: "Generate brief summary only"
+```
+
+### Clean Old Runs
+
+Manage disk space:
+
+```bash
+# Keep last 7 days
+akios clean --old-runs 7
+
+# Clean specific workflow
+akios clean --workflow my-workflow
+```
+
+## Testing Workflows
+
+### Use Mock Mode
+
+Test without real API calls:
+
+```bash
+# Set mock mode
+export AKIOS_MOCK_LLM=1
+export AKIOS_NETWORK_ACCESS_ALLOWED=0
+
+# Run workflow
+akios run workflows/test-flow.yml
+```
+
+### Create Test Data
+
+```bash
+# Use templates with known inputs
+mkdir -p data/input/test
+echo "Test document" > data/input/test/sample.txt
+
+# Run against test data
+akios run workflows/process.yml
+```
+
+### Validate Outputs
+
+```bash
+# Check output exists
+test -f data/output/result.txt && echo "Success"
+
+# Verify content
+cat data/output/result.txt
+```
+
+## Monitoring & Operations
+
+### Health Checks
+
+Monitor AKIOS status:
+
+```bash
+# Basic health check
+akios status
+
+# Verbose status
+akios status --verbose
+
+# Security status
+akios status --security
+```
+
+### Audit Maintenance
+
+Regularly export and verify:
+
+ ```bash
+# Weekly audit export
+akios audit export --format json > audit-$(date +%Y-%m-%d).json
+
+# Verify integrity
+akios audit verify
+
+# Archive old logs
+mv audit/audit_events.jsonl audit/archive/audit-$(date +%Y-%m-%d).jsonl
+```
+
+### Disk Space Management
+
+```bash
+# Monitor usage
+du -sh data/ audit/
+
+# Clean old runs
+akios clean --old-runs 30
+
+# Archive completed runs
+tar -czf archive-$(date +%Y-%m-%d).tar.gz data/output/
+```

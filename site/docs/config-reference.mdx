@@ -1,66 +1,194 @@
-# AKIOS V1.0 – Configuration Reference
+# Configuration Reference
 
-Single `config.yaml` governs the runtime. Loaded at startup; immutable during execution. Defaults are security-first.
+Customize AKIOS to match your security and performance needs. This guide explains all configuration options with practical examples.
 
-## Where config lives
-```
-project/
-├── config.yaml      # main config
-├── workflows/       # your workflows
-├── templates/       # examples
-├── data/            # input/output
-└── audit/           # tamper-evident logs
-```
+## Configuration Files
 
-Load order (highest first): environment variables → `.env` → `config.yaml` → built-in defaults.
+AKIOS uses two files for configuration:
 
-## Setup & validation
-- First run of `akios run templates/hello-workflow.yml` launches the setup wizard.
-- Manual: `akios setup` (or `--force` to rerun).
-- `--real-api` flips to real calls (sets `AKIOS_MOCK_LLM=0`, enables network, prompts for keys).
-- Corruption guard flags bad provider names, malformed booleans, invalid key formats with suggested fixes.
-
-## Sensitive values (.env)
+**`.env`** - Your API keys and secrets (NEVER commit to git)
 ```bash
-AKIOS_LLM_PROVIDER=grok            # openai|anthropic|grok|mistral|gemini
-AKIOS_LLM_MODEL=grok-3             # provider-specific
-AKIOS_MOCK_LLM=0                   # 0=real,1=mock
-AKIOS_NETWORK_ACCESS_ALLOWED=1     # allow HTTP agent
-AKIOS_FORCE_PULL=1                 # wrapper always pulls latest image
-OPENAI_API_KEY=sk-...              # provider keys (one or more)
+AKIOS_LLM_PROVIDER=grok
+GROK_API_KEY=your-key-here
+AKIOS_LLM_MODEL=grok-3
 ```
 
-## Most-used overrides
-```bash
-export AKIOS_LLM_PROVIDER=openai
-export AKIOS_NETWORK_ACCESS_ALLOWED=1
-export AKIOS_BUDGET_LIMIT_PER_RUN=1.0
-```
-
-## Key config fields (security-first defaults)
+**`config.yaml`** - Runtime settings (safe to commit)
 ```yaml
-sandbox_enabled: true          # isolation (kernel-hard on Linux, policy in Docker)
-cpu_limit: 0.8                 # fraction of CPU
-memory_limit_mb: 256
-max_open_files: 100
-max_file_size_mb: 10
-network_access_allowed: false
-
-pii_redaction_enabled: true
-redaction_strategy: "mask"     # mask|hash|remove
-pii_redaction_outputs: true
-
-cost_kill_enabled: true
-max_tokens_per_call: 500
+sandbox_enabled: true
 budget_limit_per_run: 1.0
-
-audit_enabled: true
-audit_storage_path: "./audit/"
-audit_export_format: "json"
-
-environment: "development"
-log_level: "INFO"
+pii_redaction_enabled: true
 ```
+
+## Configuration Priority
+
+Settings are loaded in this order (highest wins):
+1. **Environment variables** - Override everything
+2. **`.env` file** - Your custom settings
+3. **`config.yaml`** - Project defaults
+4. **Built-in defaults** - Secure fallbacks
+
+## Quick Setup
+
+**Interactive setup wizard (recommended):**
+```bash
+akios setup
+```
+
+The wizard guides you through:
+- Choosing AI provider
+- Adding API key
+- Setting budget limits
+- Testing configuration
+
+## Environment Variables (.env)
+
+Store sensitive configuration in the `.env` file:
+
+### AI Provider Settings
+```bash
+# Choose your provider
+AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini
+
+# Choose your model
+AKIOS_LLM_MODEL=grok-3   # Provider-specific model name
+
+# Add your API key
+GROK_API_KEY=your-key-here
+```
+
+### Mode Settings
+```bash
+# Use real AI APIs (0) or mock responses (1)
+AKIOS_MOCK_LLM=0
+
+# Allow network access for HTTP agent
+AKIOS_NETWORK_ACCESS_ALLOWED=1
+```
+
+### Docker Settings
+```bash
+# Force pull latest image (Docker wrapper only)
+AKIOS_FORCE_PULL=1
+```
+
+## Common Configuration Tasks
+
+### Change AI Provider
+```bash
+# Edit .env file
+AKIOS_LLM_PROVIDER=openai
+OPENAI_API_KEY=sk-your-key
+AKIOS_LLM_MODEL=gpt-4o
+```
+
+### Increase Budget Limit
+```bash
+# For one-time use
+export AKIOS_BUDGET_LIMIT_PER_RUN=5.0
+akios run workflow.yml
+
+# Or edit config.yaml
+# budget_limit_per_run: 5.0
+```
+
+### Enable Network Access
+```bash
+# Edit config.yaml
+network_access_allowed: true
+```
+
+## Configuration Options (config.yaml)
+
+### Security Settings
+
+**`sandbox_enabled: true`**
+- Enables process isolation
+- Kernel-hard on Linux, policy-based in Docker
+- **Recommended:** Always `true`
+
+**`pii_redaction_enabled: true`**
+- Automatically removes sensitive data
+- Applied to inputs and outputs
+- **Recommended:** Always `true`
+
+**`pii_redaction_outputs: true`**
+- Redacts PII in AI responses
+- Conservative patterns for generated content
+- **Recommended:** Always `true`
+
+**`redaction_strategy: "mask"`**
+- How to handle PII: `mask`, `hash`, or `remove`
+- `mask` replaces with `[REDACTED]`
+- **Recommended:** `mask` (preserves structure)
+
+### Resource Limits
+
+**`cpu_limit: 0.8`**
+- Fraction of CPU available (0.1 - 1.0)
+- Prevents CPU exhaustion
+- **Default:** 0.8 (80% of CPU)
+
+**`memory_limit_mb: 256`**
+- Maximum memory in megabytes
+- Prevents memory exhaustion
+- **Default:** 256MB
+
+**`max_open_files: 100`**
+- Maximum file descriptors
+- Prevents file handle exhaustion
+- **Default:** 100 files
+
+**`max_file_size_mb: 10`**
+- Maximum file size for writes
+- Prevents disk space abuse
+- **Default:** 10MB per file
+
+**`network_access_allowed: false`**
+- Allow HTTP agent network calls
+- **Default:** `false` (deny by default)
+- Set to `true` for API integrations
+
+### Cost Controls
+
+**`cost_kill_enabled: true`**
+- Automatic termination on budget violations
+- **Recommended:** Always `true`
+
+**`budget_limit_per_run: 1.0`**
+- Maximum cost in USD per workflow
+- **Default:** $1.00
+- Increase for complex workflows
+
+**`max_tokens_per_call: 500`**
+- Token limit per LLM API call
+- **Default:** 500 tokens
+- Increase for longer generations
+
+### Audit Settings
+
+**`audit_enabled: true`**
+- Enables cryptographic audit logging
+- **Recommended:** Always `true` (required for compliance)
+
+**`audit_storage_path: "./audit/"`**
+- Directory for audit logs
+- **Default:** `./audit/`
+
+**`audit_export_format: "json"`**
+- Format for audit exports
+- **Default:** `json`
+
+### General Settings
+
+**`environment: "development"`**
+- Runtime environment: `development`, `testing`, or `production`
+- Affects logging verbosity
+- **Default:** `development`
+
+**`log_level: "INFO"`**
+- Logging detail: `DEBUG`, `INFO`, `WARNING`, `ERROR`
+- **Default:** `INFO`
 
 ## Environment overrides
 ```bash
@@ -70,26 +198,97 @@ export AKIOS_BUDGET_LIMIT_PER_RUN=0.5
 export AKIOS_LOG_LEVEL=DEBUG
 ```
 
-## Example profiles
-**Production (secure)**  
+## Example Configurations
+
+### Production (Maximum Security)
 ```yaml
+# Strict security for production workloads
 sandbox_enabled: true
 cpu_limit: 0.5
 memory_limit_mb: 128
 network_access_allowed: false
 budget_limit_per_run: 1.0
 log_level: "WARNING"
+environment: "production"
 ```
-**Development (relaxed)**  
+
+### Development (Relaxed)
 ```yaml
+# More permissive for development
+sandbox_enabled: true
+cpu_limit: 0.8
+memory_limit_mb: 512
 network_access_allowed: true
 budget_limit_per_run: 5.0
 log_level: "DEBUG"
+environment: "development"
 ```
 
-## Security notes
-- Treat `config.yaml`/`.env` as read-only at runtime; set file perms to `600`.
-- Fail fast: `akios status` surfaces config validation; invalid configs stop before execution.
+### Testing (Balanced)
+```yaml
+# Moderate settings for testing
+sandbox_enabled: true
+cpu_limit: 0.7
+memory_limit_mb: 256
+network_access_allowed: true
+budget_limit_per_run: 2.0
+log_level: "INFO"
+environment: "testing"
+```
+
+## Validation
+
+**Check your configuration:**
+```bash
+akios status
+```
+
+Shows: Current settings, security level, any configuration issues
+
+**Reconfigure everything:**
+```bash
+akios setup --force
+```
+
+## Security Best Practices
+
+**✓ Do:**
+- Keep `.env` out of version control (add to `.gitignore`)
+- Set file permissions to `600` for `.env`
+- Use setup wizard for initial configuration
+- Validate configuration with `akios status`
+- Use environment-specific configs
+
+**× Don't:**
+- Commit API keys to git
+- Disable security features in production
+- Use unlimited budgets
+- Share `.env` files
+- Modify configs during workflow execution
+
+## Troubleshooting Configuration
+
+**Configuration not working:**
+```bash
+# Check what AKIOS sees
+akios status --verbose
+
+# Reset configuration
+akios setup --force
+```
+
+**Invalid provider/model:**
+- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4o`
+- Anthropic: `claude-3.5-haiku`, `claude-3.5-sonnet`
+- Grok: `grok-3`
+- Mistral: `mistral-large`
+- Gemini: `gemini-1.5-pro`
+
+**API key issues:**
+```bash
+# Run setup wizard to fix
+akios setup --force
+```
 **Security Level:** Strong policy-based security
 **Configuration Notes:**
 - Consistent behavior across platforms

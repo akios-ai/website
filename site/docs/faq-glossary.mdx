@@ -1,19 +1,313 @@
-# FAQ & Glossary (AKIOS V1.0)
+# FAQ & Glossary
 
-## Quick FAQ
-- **Is AKIOS an agent framework?** No. It’s a security cage that runs agents/workflows with strict policies, sandboxing, redaction, and audit.
-- **What’s the strongest setup?** Pip on native Linux (cgroups v2 + seccomp-bpf). Docker wrapper is strong/policy-based across macOS/Win/Linux.
-- **Where are my outputs?** `data/output/run_*` per execution; audit logs in `audit/audit_events.jsonl`.
-- **How do I switch to real APIs?** `--real-api` or set `AKIOS_MOCK_LLM=0` and ensure API key + `network_access_allowed=true`.
-- **How do I check security status?** `akios status --security` and `akios audit verify`.
-- **What if a workflow fails validation?** Ensure each step has `agent`, `action`, `parameters`; use allowed agents only; see Policy Schema.
+Quick answers to common questions and explanations of key terms.
+
+## Frequently Asked Questions
+
+### What is AKIOS?
+
+AKIOS is a security-first runtime for AI agent workflows. It's not an agent framework — it's a security cage that wraps around agents, enforcing strict policies, sandboxing, PII redaction, and audit logging.
+
+### What's the strongest security setup?
+
+**Maximum security:** Pip installation on native Linux with:
+- Kernel >= 5.4
+- cgroups v2 (resource limits)
+- seccomp-bpf (syscall filtering)
+
+**Strong security:** Docker wrapper on macOS/Windows/Linux provides:
+- Container isolation
+- Policy-based security
+- Cross-platform compatibility
+
+### Where are my workflow outputs?
+
+Outputs are organized by run:
+```
+data/output/
+└── run_2024-01-15_10-30-45/    # Each run gets its own folder
+    ├── result.txt
+    └── metadata.json
+```
+
+Audit logs are in:
+```
+audit/
+└── audit_events.jsonl        # Tamper-evident logs
+```
+
+### How do I switch from mock to real APIs?
+
+**Option 1: Command flag**
+```bash
+akios run workflow.yml --real-api
+```
+
+**Option 2: Environment variable**
+```bash
+export AKIOS_MOCK_LLM=0
+export AKIOS_NETWORK_ACCESS_ALLOWED=1
+akios run workflow.yml
+```
+
+**Option 3: Config file**
+```yaml
+# config.yaml
+network_access_allowed: true
+```
+
+### How do I check my security status?
+
+```bash
+# Overall status
+akios status
+
+# Detailed security info
+akios status --security
+
+# Verify audit log integrity
+akios audit verify
+```
+
+### What if my workflow fails validation?
+
+Workflows must have this structure:
+
+```yaml
+steps:
+  - name: "Step name"
+    agent: "filesystem"     # Required: filesystem, http, llm, tool_executor
+    action: "read"          # Required: agent-specific action
+    parameters:             # Required: action-specific parameters
+      path: "data/input/file.txt"
+```
+
+**Common issues:**
+- Missing `agent`, `action`, or `parameters`
+- Invalid agent name
+- Disallowed file path
+- Unsupported model name
+
+See [Policy Schema](policy-schema.html) for complete reference.
+
+### Can I use AKIOS offline?
+
+Partially:
+- ✅ **Install offline:** Package pip files or Docker image
+- ✅ **Run workflows offline:** Filesystem and tool agents work
+- ❌ **LLM calls:** Require API access (local models planned for future)
+- ❌ **HTTP requests:** Require network
+
+For air-gapped environments, see [Deployment Guide](deployment.html#air-gapped-deployments).
+
+### How much does AKIOS cost?
+
+AKIOS itself is free and open-source. You only pay for:
+- AI API calls (OpenAI, Anthropic, Grok, etc.)
+- Cloud hosting (if you deploy to cloud)
+
+Set budget limits to control AI costs:
+```yaml
+budget_limit_per_run: 1.0  # USD
+```
+
+### What AI providers are supported?
+
+- **OpenAI:** gpt-3.5-turbo, gpt-4, gpt-4o
+- **Anthropic:** claude-3.5-haiku, claude-3.5-sonnet
+- **Grok:** grok-3
+- **Mistral:** mistral-large
+- **Gemini:** gemini-1.5-pro
+
+See [Installation](installation.html) for setup instructions.
+
+### Can I write custom agents?
+
+V1.0 focuses on the four core agents (filesystem, http, llm, tool_executor). Custom agents are planned for future versions.
+
+For now, use tool_executor agent to run custom commands:
+```yaml
+steps:
+  - agent: tool_executor
+    action: run
+    parameters:
+      command: ["python", "my_script.py"]
+```
+
+### How do I report security issues?
+
+Email: **hello@akios.ai**
+
+For vulnerability reports, see [Security Policy](../legal.html).
 
 ## Glossary
-- **Security cage**: The enforced sandbox + policies + redaction + audit layer AKIOS wraps around every workflow.
-- **Policy-based vs kernel-hard**: Policy-based (Docker, macOS/Win) uses container isolation; kernel-hard (Linux pip) adds seccomp-bpf + cgroups v2 on host.
-- **allowed_paths**: Explicit filesystem allowlist for the filesystem agent; anything else is denied.
-- **PII redaction**: Real-time masking/hashing/removal of sensitive patterns on inputs/outputs.
-- **Merkle audit**: Tamper-evident log chain; `akios audit verify` checks integrity.
-- **mock_llm / --real-api**: Mock mode returns synthetic outputs; real API mode uses provider endpoints with budgets/redaction intact.
-- **Budget/loop kill-switch**: Hard limits on cost/tokens and loop detection to stop runaway workflows.
-- **Agents**: Four primitives—filesystem, http, llm, tool_executor—used to compose workflows; no arbitrary code execution outside them.
+
+### Security Cage
+The complete security layer AKIOS enforces around every workflow:
+- Sandbox isolation (process/container)
+- Policy enforcement (allowed paths, actions)
+- PII redaction (sensitive data removal)
+- Audit logging (tamper-evident trail)
+
+### Policy-Based vs Kernel-Hard Security
+
+**Policy-based (Docker):**
+- Container isolation
+- Network policies
+- Resource limits
+- Works on macOS/Windows/Linux
+
+**Kernel-hard (Linux native):**
+- All policy-based features PLUS:
+- seccomp-bpf syscall filtering
+- cgroups v2 resource limits
+- Maximum security
+
+### Allowed Paths
+Explicit filesystem allowlist for the filesystem agent. Only these directories can be accessed:
+
+```yaml
+filesystem:
+  allowed_paths:
+    - "./data/input"
+    - "./data/output"
+```
+
+Anything outside these paths is denied.
+
+### PII Redaction
+Real-time masking, hashing, or removal of sensitive patterns:
+
+**Redacts 50+ pattern types:**
+- Email addresses
+- Phone numbers
+- Credit cards
+- Social Security Numbers
+- API keys
+- Passwords
+- And more...
+
+**Strategies:**
+- `mask` - Replace with `[REDACTED]`
+- `hash` - Replace with SHA256 hash
+- `remove` - Delete entirely
+
+### Merkle Audit
+Tamper-evident log chain where each log entry contains:
+- Event data (what happened)
+- Timestamp (when)
+- Hash of previous entry (creates chain)
+
+```bash
+# Verify integrity
+akios audit verify
+```
+
+If any log entry is modified, verification fails.
+
+### Mock vs Real API Mode
+
+**Mock mode (AKIOS_MOCK_LLM=1):**
+- Returns synthetic responses
+- No API calls
+- No cost
+- Good for testing
+
+**Real API mode (AKIOS_MOCK_LLM=0):**
+- Calls actual AI providers
+- Has cost
+- Budget limits enforced
+- PII redaction active
+
+### Budget Kill-Switch
+Hard limits that stop workflows automatically:
+
+```yaml
+budget_limit_per_run: 1.0      # USD
+max_tokens_per_call: 500        # tokens
+cost_kill_enabled: true         # auto-terminate
+```
+
+Prevents runaway costs from infinite loops or excessive API calls.
+
+### Agents
+The four core primitives for building workflows:
+
+**📚 filesystem** - File operations
+- read, write, list, stat, exists
+- Restricted to allowed_paths
+
+**🌐 http** - Web requests
+- GET, POST, PUT, DELETE
+- Rate limited and redacted
+
+**🤖 llm** - AI models
+- generate, chat, complete
+- Budget tracked
+
+**🛠️ tool_executor** - Safe commands
+- run allowlisted commands
+- Sandboxed subprocess
+
+No arbitrary code execution — only these four agents.
+
+### Workflow
+YAML file defining a sequence of agent actions:
+
+```yaml
+steps:
+  - name: "Read document"
+    agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/doc.txt"
+      
+  - name: "Analyze with AI"
+    agent: llm
+    action: generate
+    parameters:
+      prompt: "Summarize: {previous_output}"
+```
+
+### Security Context
+The combined security state for a workflow run:
+- Sandbox status (enabled/disabled)
+- Allowed paths
+- Network access (allowed/blocked)
+- Budget limits
+- PII redaction rules
+
+Displayed with `akios status --security`
+
+### Audit Event
+Single entry in the audit log:
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:45Z",
+  "workflow": "process-document.yml",
+  "agent": "llm",
+  "action": "generate",
+  "user": "user123",
+  "cost": 0.05,
+  "hash_chain": "abc123..."
+}
+```
+
+### Run Directory
+Output folder for single workflow execution:
+
+```
+data/output/run_2024-01-15_10-30-45/
+├── result.txt          # Workflow outputs
+├── metadata.json      # Run metadata
+└── audit_summary.json # Audit summary
+```
+
+Each run is isolated and timestamped.
+
+## Related Docs
+
+- **[Concepts](concepts.html)** - Core architecture
+- **[Security](security.html)** - Security features
+- **[Policy Schema](policy-schema.html)** - Workflow structure

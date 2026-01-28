@@ -56,6 +56,7 @@
       "summary_heading": "Summary",
       "summary_paragraph": "AKIOS is free open-source software (GPL-3) provided \"as is\" with no warranties — use it responsibly and secure your own environment.",
       "policies_links_heading": "Policies",
+      "link_legal": "Legal",
       "link_terms": "Terms of Use",
       "link_privacy": "Privacy Policy",
       "link_cookies": "Cookie Policy",
@@ -118,8 +119,7 @@
       "law_paragraph": "Le droit français s'applique. Juridiction compétente : tribunaux de Paris.",
       "summary_heading": "Résumé",
       "summary_paragraph": "Ce résumé est fourni à titre indicatif. Le logiciel open-source est sous licence GPL-3 sans garantie — sécurisez votre environnement.",
-      "policies_links_heading": "Politiques",
-      "link_terms": "Conditions d’utilisation",
+      "policies_links_heading": "Politiques",      "link_legal": "Mentions légales",      "link_terms": "Conditions d’utilisation",
       "link_privacy": "Politique de confidentialité",
       "link_cookies": "Politique Cookies",
       "link_disclosure": "Divulgation de vulnérabilités"

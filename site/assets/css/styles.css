@@ -376,7 +376,7 @@ img {
 
 .hero-figure img {
   width: 100%;
-  max-width: 100%; /* Allow full use of the 7 columns */
+  max-width: 500px; /* Constrain diagram size */
   display: block;
 }
 
@@ -385,6 +385,7 @@ img {
   margin-bottom: var(--space-3);
   white-space: nowrap; /* Force single line segments (respecting <br>) */
   max-width: none;
+  font-size: 2.25rem; /* Slightly more reduced font size */
 }
 
 .hero h1 br {
@@ -396,6 +397,31 @@ img {
   font-size: 1.25rem;
   color: var(--text); /* Stronger than muted */
   opacity: 0.8;       /* Slight soften, but readable */
+  margin-bottom: var(--space-5);
+  max-width: 50ch;
+}
+
+.hero-tagline {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+  margin-bottom: var(--space-4);
+  max-width: 46ch;
+}
+
+.hero-features {
+  font-size: 1.05rem;
+  color: var(--text);
+  opacity: 0.85;
+  margin-bottom: var(--space-4);
+  max-width: 50ch;
+  line-height: 1.6;
+}
+
+.hero-meta {
+  font-size: 0.95rem;
+  color: var(--muted);
   margin-bottom: var(--space-5);
   max-width: 50ch;
 }
@@ -977,6 +1003,24 @@ blockquote p:last-child {
     margin-left: auto;
     margin-right: auto;
   }
+
+  .hero-tagline {
+    font-size: 1.3rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-features {
+    font-size: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-meta {
+    font-size: 0.9rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1004,6 +1048,21 @@ blockquote p:last-child {
   .hero .subtitle {
     font-size: 0.9rem;
     max-width: 34ch;
+  }
+
+  .hero-tagline {
+    font-size: 1.1rem;
+    max-width: 38ch;
+  }
+
+  .hero-features {
+    font-size: 0.9rem;
+    max-width: 40ch;
+  }
+
+  .hero-meta {
+    font-size: 0.85rem;
+    max-width: 38ch;
   }
 
   .btn {

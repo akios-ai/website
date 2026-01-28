@@ -29,7 +29,15 @@
   <script>
     (function() {
       const path = window.location.pathname;
-      const links = document.querySelectorAll('.nav-links a, .footer-links a');
+      
+      // Get all links that start with ./, ../, or /
+      const allLinks = Array.from(document.querySelectorAll('a[href]')).filter(link => {
+        const href = link.getAttribute('href');
+        return href && (href.startsWith('/') || href.startsWith('./') || href.startsWith('../'));
+      });
+      
+      // Also include nav and footer links for active state styling
+      const links = allLinks;
 
       const normalize = (p) => {
         let v = p.replace(/^(\.\.\/|\.\/)+/, '').replace(/^\//, '');
@@ -112,8 +120,12 @@
                 url.pathname = '/fr' + url.pathname;
               } else if (url.pathname === '/community.html' || url.pathname === '/community/') {
                 url.pathname = '/fr/community/';
-              } else if (url.pathname === '/legal.html' || url.pathname === '/legal/') {
-                url.pathname = '/fr/legal/';
+              } else if (url.pathname === '/legal.html' || url.pathname === '/legal/' || 
+                         url.pathname === '/terms.html' || url.pathname === '/terms/' ||
+                         url.pathname === '/privacy.html' || url.pathname === '/privacy/' ||
+                         url.pathname === '/cookies.html' || url.pathname === '/cookies/' ||
+                         url.pathname === '/disclosure.html' || url.pathname === '/disclosure/') {
+                url.pathname = '/fr' + url.pathname;
               } else if (url.pathname === '/' || url.pathname === '/index.html') {
                 url.pathname = '/fr/';
               }
@@ -141,7 +153,9 @@
               targetPath = '/fr' + currentPath;
             } else if (currentPath === '/community.html' || currentPath === '/community/') {
               targetPath = '/fr/community/';
-            } else if (['/legal.html', '/legal/', '/terms.html', '/privacy.html', '/cookies.html', '/disclosure.html'].includes(currentPath)) {
+            } else if (currentPath === '/legal.html' || currentPath === '/legal/') {
+              targetPath = '/fr/legal/';
+            } else if (['/terms.html', '/terms/', '/privacy.html', '/privacy/', '/cookies.html', '/cookies/', '/disclosure.html', '/disclosure/'].includes(currentPath)) {
               targetPath = '/fr' + currentPath;
             } else if (currentPath === '/' || currentPath === '/index.html') {
               targetPath = '/fr/';
@@ -155,7 +169,9 @@
               targetPath = currentPath.replace(/^\/fr/, '');
             } else if (currentPath === '/fr/community.html' || currentPath === '/fr/community/') {
               targetPath = '/community/';
-            } else if (['/fr/legal.html', '/fr/legal/', '/fr/terms.html', '/fr/privacy.html', '/fr/cookies.html', '/fr/disclosure.html'].includes(currentPath)) {
+            } else if (currentPath === '/fr/legal.html' || currentPath === '/fr/legal/') {
+              targetPath = '/legal/';
+            } else if (['/fr/terms.html', '/fr/terms/', '/fr/privacy.html', '/fr/privacy/', '/fr/cookies.html', '/fr/cookies/', '/fr/disclosure.html', '/fr/disclosure/'].includes(currentPath)) {
               targetPath = currentPath.replace(/^\/fr/, '');
             } else if (currentPath === '/fr/' || currentPath === '/fr/index.html') {
               targetPath = '/';
