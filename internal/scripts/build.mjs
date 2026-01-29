@@ -8,13 +8,21 @@ const DIST_DIR = 'dist';
 const PARTIALS_DIR = 'partials';
 const LOCALES_DIR = 'internal/i18n/modules';
 
-// Load Version
-let version = '1.0.0';
+// Load Version - REQUIRED, BUILD FAILS IF MISSING
+let version;
 try {
     const versionFile = JSON.parse(fs.readFileSync('version.json', 'utf-8'));
-    version = versionFile.version || '1.0.0';
+    version = versionFile.version;
+    if (!version) {
+        console.error('❌ ERROR: version.json exists but "version" field is missing or empty');
+        console.error('   Fix: Add "version" field to version.json');
+        process.exit(1);
+    }
 } catch (error) {
-    console.warn('Warning: version.json not found, using default version');
+    console.error('❌ CRITICAL ERROR: version.json not found in project root');
+    console.error('   This file is REQUIRED for deployment to ensure version consistency');
+    console.error('   Expected format: {"version": "1.0.4", "releaseDate": "2026-01-29"}');
+    process.exit(1);
 }
 
 // Load Locales
