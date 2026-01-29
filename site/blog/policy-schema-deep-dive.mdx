@@ -13,72 +13,62 @@
   </p>
 
   <h2>Filesystem</h2>
-  ```yaml
-  filesystem:
-    allow:
-      - path: "/srv/akios/readme.md"
-        mode: "r"
-    deny_writes: true
-  ```
+  <pre><code>filesystem:
+  allow:
+    - path: "/srv/akios/readme.md"
+      mode: "r"
+  deny_writes: true</code></pre>
 
   <h2>HTTP</h2>
-  ```yaml
-  http:
-    allow:
-      - host: "api.example.com"
-        methods: ["GET"]
-        rate_limit_per_min: 30
-    redact_headers: ["authorization", "cookie"]
-  ```
+  <pre><code>http:
+  allow:
+    - host: "api.example.com"
+      methods: ["GET"]
+      rate_limit_per_min: 30
+  redact_headers: ["authorization", "cookie"]</code></pre>
 
   <h2>LLM</h2>
-  ```yaml
-  llm:
-    provider: "openai"
-    model: "gpt-4.1"
-    max_tokens: 1200
-    budget_usd: 0.25
-    redact_prompts: true
-    redact_responses: true
-  ```
+  <pre><code>llm:
+  provider: "openai"
+  model: "gpt-4.1"
+  max_tokens: 1200
+  budget_usd: 0.25
+  redact_prompts: true
+  redact_responses: true</code></pre>
 
   <h2>Tools (commands)</h2>
-  ```yaml
-  tools:
-    allow:
-      - name: "jq"
-        args: ["." ]
-      - name: "grep"
-        args: ["-n", "ERROR"]
-    working_dir: "/workspace"
-    timeout_sec: 20
-  ```
+  <pre><code>tools:
+  allow:
+    - name: "jq"
+      args: ["." ]
+    - name: "grep"
+      args: ["-n", "ERROR"]
+  working_dir: "/workspace"
+  timeout_sec: 20</code></pre>
 
   <h2>Putting it together</h2>
-  ```yaml
-  version: 1
-  name: "doc-summary"
-  filesystem:
-    allow:
-      - path: "/workspace/docs"
-        mode: "r"
-  http:
-    allow:
-      - host: "docs.example.com"
-        methods: ["GET"]
-  llm:
-    provider: "openai"
-    model: "gpt-4.1"
-    max_tokens: 1500
-    budget_usd: 0.30
-  tools:
-    allow:
-      - name: "jq"
-      - name: "grep"
-  audit:
-    merkle: true
-    pii_redaction: true
-  ```
+  <pre><code>version: 1
+name: "doc-summary"
+filesystem:
+  allow:
+    - path: "/workspace/docs"
+      mode: "r"
+http:
+  allow:
+    - host: "docs.example.com"
+      methods: ["GET"]
+llm:
+  provider: "openai"
+  model: "gpt-4.1"
+  max_tokens: 1500
+  budget_usd: 0.30
+tools:
+  allow:
+    - name: "jq"
+    - name: "grep"
+audit:
+  merkle: true
+  pii_redaction: true</code></pre>
 
   <p>Keep policies small, explicit, and signed. That’s how the cage stays predictable.</p>
 </div>

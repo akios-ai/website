@@ -5,6 +5,7 @@
       "description": "Latest news and updates from the AKIOS team.",
       "hero_heading": "Blog",
       "hero_subtitle": "Release notes, deep dives, and practical guides.",
+      "filter_all": "All Posts",
       "featured_label": "Featured",
       "category_release": "Release",
       "category_guide": "Guide",
@@ -41,6 +42,9 @@
       "post_1_title": "Introducing AKIOS: A Secure Runtime for Untrusted AI Agents",
       "post_1_excerpt": "Why we built a dedicated runtime for local AI agents, and how it differs from traditional sandboxing.",
       "post_1_time": "7"
+    },
+    "blog_post": {
+      "table_of_contents": "On This Page"
     }
   },
   "fr": {
@@ -49,6 +53,7 @@
       "description": "Actualités et mises à jour de l'équipe AKIOS.",
       "hero_heading": "Blog",
       "hero_subtitle": "Notes de version et mises à jour essentielles.",
+      "filter_all": "Tous les articles",
       "featured_label": "À la une",
       "category_release": "Publication",
       "category_guide": "Guide",
@@ -83,6 +88,9 @@
       "post_1_title": "Présentation d'AKIOS",
       "post_1_excerpt": "Pourquoi nous construisons un runtime dédié pour agents IA locaux.",
       "post_1_time": "7"
+    },
+    "blog_post": {
+      "table_of_contents": "Sur cette page"
     }
   }
 }

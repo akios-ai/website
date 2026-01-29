@@ -153,7 +153,31 @@ akios run templates/hello-workflow.yml</code></pre>
     </div>
   </section>
 
-  <!-- CTA Section -->
+
+  <!-- FAQ Section -->
+  <section class="section">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.home.faq_heading}}</h2>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4>{{i18n.home.faq_performance_question}}</h4>
+          <p>{{i18n.home.faq_performance_answer}}</p>
+        </div>
+        <div class="faq-item">
+          <h4>{{i18n.home.faq_cost_question}}</h4>
+          <p>{{i18n.home.faq_cost_answer}}</p>
+        </div>
+        <div class="faq-item">
+          <h4>{{i18n.home.faq_stack_question}}</h4>
+          <p>{{i18n.home.faq_stack_answer}}</p>
+        </div>
+        <div class="faq-item">
+          <h4>{{i18n.home.faq_security_question}}</h4>
+          <p>{{i18n.home.faq_security_answer}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
   <section class="section section-cta">
     <div class="page">
       <h2 class="section-heading">{{i18n.home.cta_title}}</h2>
@@ -168,9 +192,13 @@ akios run templates/hello-workflow.yml</code></pre>
   <!-- Support Section -->
   <section class="section">
     <div class="page">
-      <div class="callout">
-        <p>{{i18n.home.community_note}}</p>
-        <p class="subtitle">{{i18n.home.pro_pointer}}</p>
+      <div class="callout callout-featured">
+        <h3>{{i18n.home.support_title}}</h3>
+        <p style="text-align: center;">{{i18n.home.support_question}}</p>
+        <div style="display: flex; justify-content: center; gap: var(--space-3); margin-top: var(--space-3);">
+          <a href="https://discord.gg/akios" style="color: var(--action); text-decoration: none; font-weight: 500;">{{i18n.home.support_discord}}</a>
+          <a href="https://github.com/akios-ai/akios/discussions" style="color: var(--action); text-decoration: none; font-weight: 500;">{{i18n.home.support_discussions}}</a>
+        </div>
       </div>
     </div>
   </section>

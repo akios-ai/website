@@ -18,6 +18,13 @@
       <div class="hero hero-simple">
         <h1>{{i18n.blog_index.hero_heading}}</h1>
         <p class="subtitle">{{i18n.blog_index.hero_subtitle}}</p>
+        <div class="blog-filters">
+          <button class="filter-btn active" data-category="all">{{i18n.blog_index.filter_all}}</button>
+          <button class="filter-btn" data-category="release">{{i18n.blog_index.category_release}}</button>
+          <button class="filter-btn" data-category="guide">{{i18n.blog_index.category_guide}}</button>
+          <button class="filter-btn" data-category="tutorial">{{i18n.blog_index.category_tutorial}}</button>
+          <button class="filter-btn" data-category="roadmap">{{i18n.blog_index.category_roadmap}}</button>
+        </div>
       </div>
     </div>
   </section>
@@ -26,23 +33,8 @@
   <section class="section">
     <div class="page">
       <div class="blog-list">
-        <!-- Post 5: Hardening Checklist (Guide) -->
-        <article class="post-item">
-          <div class="post-meta">
-            <span class="post-date">{{i18n.blog_index.post_5_date}}</span>
-            <span class="post-category post-category-guide">{{i18n.blog_index.post_5_category}}</span>
-            <span class="post-read-time">{{i18n.blog_index.post_5_time}} {{i18n.blog_index.read_time_minutes}}</span>
-          </div>
-          <h2><a href="hardening-checklist.html">{{i18n.blog_index.post_5_title}}</a></h2>
-          <p>{{i18n.blog_index.post_5_excerpt}}</p>
-          <div class="post-author">
-            <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-            <span>AJ</span>
-          </div>
-        </article>
-
         <!-- Post 3: v1.0 Release (Featured) -->
-        <article class="post-item post-featured">
+        <article class="post-item post-featured" data-category="release">
           <div class="post-meta">
             <span class="post-featured-label">{{i18n.blog_index.featured_label}}</span>
             <span class="post-date">{{i18n.blog_index.post_3_date}}</span>
@@ -57,8 +49,23 @@
           </div>
         </article>
 
+        <!-- Post 5: Hardening Checklist (Guide) -->
+        <article class="post-item" data-category="guide">
+          <div class="post-meta">
+            <span class="post-date">{{i18n.blog_index.post_5_date}}</span>
+            <span class="post-category post-category-guide">{{i18n.blog_index.post_5_category}}</span>
+            <span class="post-read-time">{{i18n.blog_index.post_5_time}} {{i18n.blog_index.read_time_minutes}}</span>
+          </div>
+          <h2><a href="hardening-checklist.html">{{i18n.blog_index.post_5_title}}</a></h2>
+          <p>{{i18n.blog_index.post_5_excerpt}}</p>
+          <div class="post-author">
+            <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
+            <span>AJ</span>
+          </div>
+        </article>
+
         <!-- Post 6: Policy Schema Deep Dive (Tutorial) -->
-        <article class="post-item">
+        <article class="post-item" data-category="tutorial">
           <div class="post-meta">
             <span class="post-date">{{i18n.blog_index.post_6_date}}</span>
             <span class="post-category post-category-tutorial">{{i18n.blog_index.post_6_category}}</span>
@@ -73,7 +80,7 @@
         </article>
 
         <!-- Post 2: Secure Agent Communication (Tutorial) -->
-        <article class="post-item">
+        <article class="post-item" data-category="tutorial">
           <div class="post-meta">
             <span class="post-date">{{i18n.blog_index.post_2_date}}</span>
             <span class="post-category post-category-tutorial">{{i18n.blog_index.post_2_category}}</span>
@@ -88,7 +95,7 @@
         </article>
 
         <!-- Post 4: Roadmap (Roadmap) -->
-        <article class="post-item">
+        <article class="post-item" data-category="roadmap">
           <div class="post-meta">
             <span class="post-date">{{i18n.blog_index.post_4_date}}</span>
             <span class="post-category post-category-roadmap">{{i18n.blog_index.post_4_category}}</span>
@@ -103,7 +110,7 @@
         </article>
 
         <!-- Post 1: Introducing AKIOS (Release) -->
-        <article class="post-item">
+        <article class="post-item" data-category="release">
           <div class="post-meta">
             <span class="post-date">{{i18n.blog_index.post_1_date}}</span>
             <span class="post-category post-category-release">{{i18n.blog_index.post_1_category}}</span>
@@ -122,6 +129,33 @@
   </section>
 
   <!-- {{footer}} -->
+
+  <script>
+    // Blog category filter
+    document.addEventListener('DOMContentLoaded', function() {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const posts = document.querySelectorAll('.post-item');
+      
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const category = this.dataset.category;
+          
+          // Update active button
+          filterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Filter posts
+          posts.forEach(post => {
+            if (category === 'all' || post.dataset.category === category) {
+              post.style.display = 'block';
+            } else {
+              post.style.display = 'none';
+            }
+          });
+        });
+      });
+    });
+  </script>
 
 </body>
 </html>
