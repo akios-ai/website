@@ -45,6 +45,7 @@ rsync -av --delete --delete-excluded \
   --include='package-lock.json' \
   --include='CNAME' \
   --include='.gitignore' \
+  --include='version.json' \
   --include='.github/' \
   --include='.github/workflows/' \
   --include='.github/workflows/*.yml' \
