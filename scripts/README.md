@@ -168,148 +168,208 @@ The public repo (`akios-ai/website`) has **branch protection rules** on `main` t
 ✅ Creates audit trail of all changes  
 ✅ Ensures production code is always stable  
 
-### Recommended Rules (Enable These)
+### How to Set Up the Ruleset
 
-**Restrict updates** ✅
-- Only allow users with bypass permission to push directly to main
+**Path:** Public repo → Settings → Rules → Rulesets → Create New
+
+#### Step 1: Basic Settings
+```
+Ruleset Name: Main rule
+Target branches: Default (matches pattern: main)
+```
+
+#### Step 2: Bypass List
+
+The bypass list exempts certain apps/roles from the rules. These should be:
+
+**✅ Always Allow (already configured):**
+- `Copilot coding agent` ✓ — Allows our deployment automation
+- `Copilot code review` ✓ — For automated code reviews
+- `Repository admin` ✓ — Admin override when needed
+- `Deploy keys` ✓ — For CI/CD pipeline
+- `WriteRole` ✓ — For designated writers
+
+**❌ Team Members:** Should NOT be in bypass list (forces them to use PRs)
+
+#### Step 3: Configure Rules
+
+**CHECK (Enable) These Rules:**
+
+✅ **Restrict updates**
+- Only users with bypass permission can push directly
 - Forces all changes through PRs
 
-**Restrict deletions** ✅
+✅ **Restrict deletions**
 - Prevents accidental deletion of main branch
-- Protects production history
+- Protects repository history
 
-**Require a pull request before merging** ✅
-- Required approvals: `1` (at least one reviewer approval)
-- Dismiss stale approvals: `ON` (new commits require new reviews)
-- Require conversation resolution: `ON` (all comments must be addressed)
-- Require review from Code Owners: `OFF` (unless CODEOWNERS file exists)
+✅ **Require a pull request before merging**
+- All commits must come via PR
+- **Required approvals:** Set to `1` (minimum one reviewer)
+- **Dismiss stale pull request approvals:** ON ✓
+  - New commits require fresh approval
+- **Require review from Code Owners:** OFF (unless CODEOWNERS file exists)
+- **Require approval of the most recent reviewable push:** ON ✓
+  - Author cannot approve their own code
+- **Require conversation resolution before merging:** ON ✓
+  - All comments/discussions must be addressed
 
-**Require status checks to pass** ✅
-- Must pass: `ci` workflow (builds site, runs tests)
-- Must pass: `deploy` workflow (validates deployment)
-- Require branches to be up to date: `ON` (merge conflicts must be resolved first)
+✅ **Require status checks to pass**
+- **Add required checks:**
+  - `ci` (build and test workflow)
+  - `deploy` (deployment validation)
+- **Require branches to be up to date before merging:** ON ✓
+  - No merge conflicts allowed
+- **Do not require status checks on creation:** OFF
+  - New branches can be created freely
 
-**Block force pushes** ✅
+✅ **Block force pushes**
 - Prevents `git push --force` to main
 - Protects against accidental history rewrites
 
-**Require signed commits** ❌ (Off)
-- Only enable if all team members sign commits
-- Most teams don't require this initially
+✅ **Allowed merge methods**
+- Enable: `Squash`, `Rebase` (for clean history)
+- Disable: `Merge commit` (unless team prefers)
 
-**Require approval of the most recent reviewable push** ✅
-- Ensures someone other than author approves
+**UNCHECK (Disable) These Rules:**
 
-### Rules to Keep OFF
+❌ **Restrict creations**
+- Not needed once main exists
+- Would prevent creating PR branches
 
-**Restrict creations** ❌
-- Not needed once main branch exists
-- Would prevent new PR branches
+❌ **Require linear history**
+- Too restrictive for most teams
+- Prevents merge commits
 
-**Require linear history** ❌
-- Too restrictive; prevents merge commits
-- Keep off unless you enforce rebasing only
+❌ **Require deployments to succeed**
+- Unnecessary (deploy runs after merge)
+- Would block merges incorrectly
 
-**Require deployments to succeed** ❌
-- Unnecessary; deploy workflow runs after merge
-- Would block merges unnecessarily
+❌ **Require signed commits**
+- Only if all team members sign commits
+- Most teams don't require this
 
-**Require code scanning results** ❌
+❌ **Require code scanning results**
 - Only if CodeQL is configured
+- Add later if security scanning needed
+
+❌ **Require code quality results**
+- Only if code quality tool is configured
 - Add later if needed
 
-### Bypass List
+❌ **Automatically request Copilot code review**
+- Optional; enable if using Copilot review
 
-Certain automations need to bypass rules to function:
+### Step-by-Step UI Checklist
 
-**Who should be in the bypass list:**
-- ✅ Automation bots (GitHub Actions, Copilot agents)
-- ✅ Deployment service accounts
-- ❌ Regular team members (should use PRs)
+Go to: Repository Settings → Rules → Main rule
 
-**Our setup:**
-- `Copilot coding agent` — Bypass allowed for our deployment automation
-- `Copilot code review` — Bypass allowed for code review
+**In "Rules" section, check these boxes:**
 
-### How to Set Up Rulesets
-
-**Path:** Public repo → Settings → Rules → Rulesets
-
-1. **Create a new ruleset:**
-   - Click "New branch ruleset"
-   - Name: `Protect main`
-   - Target: Branch `main`
-
-2. **Enable (turn ON):**
-   - [ ] Restrict updates
-   - [ ] Restrict deletions
-   - [ ] Require a pull request before merging
-     - Required approvals: 1
-     - Dismiss stale approvals: ON
-     - Require conversation resolution: ON
-   - [ ] Require status checks to pass
-     - ci
-     - deploy
-     - Require up to date: ON
-   - [ ] Block force pushes
-   - [ ] Require approval of most recent push
-
-3. **Disable (turn OFF):**
-   - [ ] Restrict creations
-   - [ ] Require linear history
-   - [ ] Require signed commits
-   - [ ] Require code scanning
-   - [ ] Other advanced options (unless configured)
-
-4. **Bypass list:**
-   - Add: `Copilot coding agent` (for automation)
-   - Leave most team members OFF (forces PR workflow)
+- [x] Restrict updates
+- [x] Restrict deletions
+- [ ] Require linear history
+- [ ] Require deployments to succeed
+- [ ] Require signed commits
+- [x] Require a pull request before merging
+  - Required approvals: `1`
+  - [x] Dismiss stale pull request approvals
+  - [ ] Require review from specific teams
+  - [ ] Require review from Code Owners
+  - [x] Require approval of most recent reviewable push
+  - [x] Require conversation resolution before merging
+- [x] Require status checks to pass
+  - Add checks: `ci`, `deploy`
+  - [x] Require branches to be up to date
+  - [ ] Do not require status checks on creation
+- [x] Block force pushes
+- [ ] Require code scanning results
+- [ ] Require code quality results
+- [ ] Automatically request Copilot code review
 
 ### Enforcement Flow
 
-When protection is active:
+When rules are active:
 
 ```
-Developer → Edit → Commit → Push to feature branch
+Developer → Edit & Commit → Push to feature branch
            ↓
-GitHub → Check branch is NOT main ✓
+GitHub → Check: Is branch == main? No ✓
        → Feature branch allowed ✓
+       → Push succeeds
            ↓
-           → Create PR to main
-           → Automated tests run (ci, deploy workflows)
-           → If tests fail → PR blocked
-           → If tests pass → PR reviewable
-           → Need 1 approval
-           → All comments resolved
-           → Branch up to date with main
-           → Ready to merge
+           → Create Pull Request to main
+           → GitHub Actions runs (ci, deploy)
+           → If tests FAIL → 🔴 PR blocked
+           → If tests PASS → 🟢 PR ready to review
            ↓
-Reviewer → Approve PR
+Reviewer → Review code → Approve PR
          ↓
-GitHub → All checks pass? ✓
-       → Approval count ≥ 1? ✓
-       → Conversations resolved? ✓
+GitHub → Check all conditions:
+       → ✓ Status checks (ci, deploy) passed
+       → ✓ At least 1 approval
+       → ✓ All conversations resolved
+       → ✓ Branch up to date with main
+       → ✓ Most recent push approved
            ↓
-           → Merge allowed ✓
-           → Deploy workflow runs automatically
-           → New version on https://akios.ai
+           → Merge button enabled 🟢
+           ↓
+Developer → Click "Merge pull request"
+           ↓
+GitHub → Merge PR to main
+       → GitHub Actions deploy workflow runs
+       → 🚀 Deploy to https://akios.ai
+           ↓
+Production → Website updated live
 ```
 
-### Why We Don't Push Directly to Main
+### Why We DON'T Push Directly to Main
 
-Without PRs, anyone could:
-- Push broken code straight to production
-- Delete the main branch
-- Skip CI tests
-- Have no code review
-- No audit trail
+Without branch protection:
+- Anyone could push broken code directly to production 💥
+- Main branch could be deleted by accident 🗑️
+- CI tests could be skipped 🛑
+- No code review would happen 👁️
+- No audit trail of who changed what 📋
 
 **Branch protection ensures:**
-- Every change is reviewed
-- Every change is tested
-- Production stays stable
-- All changes are tracked
-- Mistakes are caught before deploy
+✅ Every change is reviewed by someone else  
+✅ Every change is tested automatically  
+✅ Production never gets broken code  
+✅ All changes are tracked (audit trail)  
+✅ Mistakes caught before users see them  
+
+### Troubleshooting Rules
+
+**"Merge button is disabled"**
+- Check: All CI checks passed (green ✓)
+- Check: At least 1 approval exists
+- Check: All threads are resolved
+- Check: Branch is up to date (no conflicts)
+
+**"Can't push to main directly"**
+- This is expected! Use a PR instead
+- Create feature branch → PR → merge
+
+**"Deploy didn't run"**
+- Check: PR was merged to main
+- Check: GitHub Actions section in repo
+- Check: deploy.yml workflow exists in .github/workflows/
+
+### Bypass Rules Explained
+
+The bypass list exists for automation and admins:
+
+| Role | Why Bypassed | When Used |
+|------|-------------|-----------|
+| Copilot coding agent | For automated deployments | `scripts/deploy-to-public.sh` |
+| Copilot code review | For automated code reviews | PR review comments |
+| Repository admin | Emergency override | Critical hotfixes |
+| Deploy keys | CI/CD pipeline access | GitHub Actions deploy |
+| WriteRole | Designated maintainers | Merge without PR (rare) |
+
+**Team members should NOT be in bypass list** — forces everyone to use PRs (good practice!)
+
 
 ## Troubleshooting
 
