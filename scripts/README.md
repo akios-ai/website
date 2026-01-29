@@ -170,7 +170,9 @@ The public repo (`akios-ai/website`) has **branch protection rules** on `main` t
 
 ### How to Set Up the Ruleset
 
-**Path:** Public repo → Settings → Rules → Rulesets → Create New
+**Path:** Public repo → Settings → **Rules** (not Branches) → Rulesets → Create New
+
+⚠️ **Important:** The ruleset is in the **Rules** tab, not the Branches tab. The Branches tab shows branch protection rules (old system); Rules tab shows Rulesets (newer system).
 
 #### Step 1: Basic Settings
 ```
@@ -369,6 +371,25 @@ The bypass list exists for automation and admins:
 | WriteRole | Designated maintainers | Merge without PR (rare) |
 
 **Team members should NOT be in bypass list** — forces everyone to use PRs (good practice!)
+
+### Using the Bypass (Copilot/Admins Only)
+
+If you need to push directly to main (e.g., urgent hotfix, CI checks temporarily broken), the Copilot agent and repository admins can bypass rules:
+
+```bash
+cd ../website-public
+git push --force origin feature-branch:main
+```
+
+**Note:** This bypasses:
+- ❌ PR requirement
+- ❌ Approval requirement  
+- ❌ Status check requirement
+- ❌ Force push protection
+
+**Use sparingly** — Only for emergencies. The bypass is tracked in GitHub audit logs.
+
+**Preferred approach:** Even for hotfixes, use `deploy-to-public.sh` to create a PR, then merge normally. This maintains audit trail and keeps the process consistent.
 
 
 ## Troubleshooting
