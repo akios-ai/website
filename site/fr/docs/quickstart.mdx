@@ -43,8 +43,8 @@ cd mon-projet
 
 ### Docker direct (secours)
 ```bash
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 init mon-projet
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} init mon-projet
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run templates/hello-workflow.yml
 ```
 
 Prérequis : Docker Desktop/Engine ; une clé API (OpenAI, Anthropic, Grok, Mistral ou Gemini).

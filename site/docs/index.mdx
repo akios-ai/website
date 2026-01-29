@@ -4,8 +4,10 @@ Welcome to the AKIOS documentation.
 
 ## Getting Started
 
+<div class="docs-section-highlight">
 <div class="features-grid docs-cards">
-  <a href="quickstart.html" class="docs-card">
+  <a href="quickstart.html" class="docs-card docs-card-featured">
+    <div class="docs-card-badge">Start Here</div>
     <h3 class="docs-card-title">Quickstart →</h3>
     <p class="docs-card-text">Run your first sandboxed agent in 2 minutes.</p>
   </a>
@@ -14,6 +16,7 @@ Welcome to the AKIOS documentation.
     <p class="docs-card-text">Install AKIOS via pip on native Unix, or use the container image.</p>
   </a>
 </div>
+</div>
 
 ## Core Concepts
 
@@ -21,7 +24,9 @@ Welcome to the AKIOS documentation.
 - **[Policies](policy-schema.html)**: Defining explicit access rules for agents.
 - **[Audit](security.html)**: How to verify agent actions.
 
-## Reference
+## Reference Documentation
+
+### Core Reference
 
 <div class="features-grid docs-cards">
   <a href="config-reference.html" class="docs-card">
@@ -32,14 +37,6 @@ Welcome to the AKIOS documentation.
     <h3 class="docs-card-title">Policy Schema →</h3>
     <p class="docs-card-text">See the YAML structure for network, filesystem, and limits.</p>
   </a>
-  <a href="debugging.html" class="docs-card">
-    <h3 class="docs-card-title">Debugging →</h3>
-    <p class="docs-card-text">Step through common failure modes and how to resolve them.</p>
-  </a>
-  <a href="best-practices.html" class="docs-card">
-    <h3 class="docs-card-title">Best Practices →</h3>
-    <p class="docs-card-text">Lean patterns for secure, performant workflows.</p>
-  </a>
   <a href="cli-reference.html" class="docs-card">
     <h3 class="docs-card-title">CLI Reference →</h3>
     <p class="docs-card-text">Essential commands for running and auditing AKIOS.</p>
@@ -48,10 +45,11 @@ Welcome to the AKIOS documentation.
     <h3 class="docs-card-title">API Reference →</h3>
     <p class="docs-card-text">Use AKIOS programmatically via Python.</p>
   </a>
-  <a href="deployment.html" class="docs-card">
-    <h3 class="docs-card-title">Deployment →</h3>
-    <p class="docs-card-text">Minimal, security-first ways to ship the cage.</p>
-  </a>
+</div>
+
+### Integration & Deployment
+
+<div class="features-grid docs-cards">
   <a href="integration-api.html" class="docs-card">
     <h3 class="docs-card-title">API Integration →</h3>
     <p class="docs-card-text">Secure HTTP/REST/GraphQL workflows.</p>
@@ -59,6 +57,23 @@ Welcome to the AKIOS documentation.
   <a href="integration-document-processing.html" class="docs-card">
     <h3 class="docs-card-title">Document Processing →</h3>
     <p class="docs-card-text">Ingest, redact, and analyze documents.</p>
+  </a>
+  <a href="deployment.html" class="docs-card">
+    <h3 class="docs-card-title">Deployment →</h3>
+    <p class="docs-card-text">Minimal, security-first ways to ship the cage.</p>
+  </a>
+</div>
+
+### Advanced Topics
+
+<div class="features-grid docs-cards">
+  <a href="best-practices.html" class="docs-card">
+    <h3 class="docs-card-title">Best Practices →</h3>
+    <p class="docs-card-text">Lean patterns for secure, performant workflows.</p>
+  </a>
+  <a href="debugging.html" class="docs-card">
+    <h3 class="docs-card-title">Debugging →</h3>
+    <p class="docs-card-text">Step through common failure modes and how to resolve them.</p>
   </a>
   <a href="migration-guide.html" class="docs-card">
     <h3 class="docs-card-title">Migration →</h3>
