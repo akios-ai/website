@@ -23,6 +23,9 @@ yarn-error.log*
 # Build outputs
 dist/
 
+# Generated diagram files (source is in gen-arch.mjs)
+site/assets/img/*.mmd
+
 # Internal-only docs (keep out of public repo)
 todo/
 tracking-issues.md
