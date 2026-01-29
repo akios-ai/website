@@ -155,6 +155,162 @@ After merge to `main`, GitHub Actions runs:
 
 Custom domain via `CNAME` file pointing to `akios.ai`.
 
+## Branch Protection Rules (Rulesets)
+
+The public repo (`akios-ai/website`) has **branch protection rules** on `main` to ensure stability and prevent accidental broken deployments.
+
+### Why Branch Protection?
+
+✅ Prevents direct pushes to `main` (forces PR review)  
+✅ Requires CI checks to pass before merge  
+✅ Prevents accidental deletion of main branch  
+✅ Requires approvals before merging  
+✅ Creates audit trail of all changes  
+✅ Ensures production code is always stable  
+
+### Recommended Rules (Enable These)
+
+**Restrict updates** ✅
+- Only allow users with bypass permission to push directly to main
+- Forces all changes through PRs
+
+**Restrict deletions** ✅
+- Prevents accidental deletion of main branch
+- Protects production history
+
+**Require a pull request before merging** ✅
+- Required approvals: `1` (at least one reviewer approval)
+- Dismiss stale approvals: `ON` (new commits require new reviews)
+- Require conversation resolution: `ON` (all comments must be addressed)
+- Require review from Code Owners: `OFF` (unless CODEOWNERS file exists)
+
+**Require status checks to pass** ✅
+- Must pass: `ci` workflow (builds site, runs tests)
+- Must pass: `deploy` workflow (validates deployment)
+- Require branches to be up to date: `ON` (merge conflicts must be resolved first)
+
+**Block force pushes** ✅
+- Prevents `git push --force` to main
+- Protects against accidental history rewrites
+
+**Require signed commits** ❌ (Off)
+- Only enable if all team members sign commits
+- Most teams don't require this initially
+
+**Require approval of the most recent reviewable push** ✅
+- Ensures someone other than author approves
+
+### Rules to Keep OFF
+
+**Restrict creations** ❌
+- Not needed once main branch exists
+- Would prevent new PR branches
+
+**Require linear history** ❌
+- Too restrictive; prevents merge commits
+- Keep off unless you enforce rebasing only
+
+**Require deployments to succeed** ❌
+- Unnecessary; deploy workflow runs after merge
+- Would block merges unnecessarily
+
+**Require code scanning results** ❌
+- Only if CodeQL is configured
+- Add later if needed
+
+### Bypass List
+
+Certain automations need to bypass rules to function:
+
+**Who should be in the bypass list:**
+- ✅ Automation bots (GitHub Actions, Copilot agents)
+- ✅ Deployment service accounts
+- ❌ Regular team members (should use PRs)
+
+**Our setup:**
+- `Copilot coding agent` — Bypass allowed for our deployment automation
+- `Copilot code review` — Bypass allowed for code review
+
+### How to Set Up Rulesets
+
+**Path:** Public repo → Settings → Rules → Rulesets
+
+1. **Create a new ruleset:**
+   - Click "New branch ruleset"
+   - Name: `Protect main`
+   - Target: Branch `main`
+
+2. **Enable (turn ON):**
+   - [ ] Restrict updates
+   - [ ] Restrict deletions
+   - [ ] Require a pull request before merging
+     - Required approvals: 1
+     - Dismiss stale approvals: ON
+     - Require conversation resolution: ON
+   - [ ] Require status checks to pass
+     - ci
+     - deploy
+     - Require up to date: ON
+   - [ ] Block force pushes
+   - [ ] Require approval of most recent push
+
+3. **Disable (turn OFF):**
+   - [ ] Restrict creations
+   - [ ] Require linear history
+   - [ ] Require signed commits
+   - [ ] Require code scanning
+   - [ ] Other advanced options (unless configured)
+
+4. **Bypass list:**
+   - Add: `Copilot coding agent` (for automation)
+   - Leave most team members OFF (forces PR workflow)
+
+### Enforcement Flow
+
+When protection is active:
+
+```
+Developer → Edit → Commit → Push to feature branch
+           ↓
+GitHub → Check branch is NOT main ✓
+       → Feature branch allowed ✓
+           ↓
+           → Create PR to main
+           → Automated tests run (ci, deploy workflows)
+           → If tests fail → PR blocked
+           → If tests pass → PR reviewable
+           → Need 1 approval
+           → All comments resolved
+           → Branch up to date with main
+           → Ready to merge
+           ↓
+Reviewer → Approve PR
+         ↓
+GitHub → All checks pass? ✓
+       → Approval count ≥ 1? ✓
+       → Conversations resolved? ✓
+           ↓
+           → Merge allowed ✓
+           → Deploy workflow runs automatically
+           → New version on https://akios.ai
+```
+
+### Why We Don't Push Directly to Main
+
+Without PRs, anyone could:
+- Push broken code straight to production
+- Delete the main branch
+- Skip CI tests
+- Have no code review
+- No audit trail
+
+**Branch protection ensures:**
+- Every change is reviewed
+- Every change is tested
+- Production stays stable
+- All changes are tracked
+- Mistakes are caught before deploy
+
 ## Troubleshooting
 
 **PR creation fails with "Resource not accessible"**
