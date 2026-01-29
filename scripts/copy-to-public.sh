@@ -41,6 +41,9 @@ rsync -av --delete --delete-excluded \
   --include='LICENSE' \
   --include='NOTICE' \
   --include='README.md' \
+  --include='CODE_OF_CONDUCT.md' \
+  --include='CONTRIBUTING.md' \
+  --include='SECURITY.md' \
   --include='package.json' \
   --include='package-lock.json' \
   --include='CNAME' \

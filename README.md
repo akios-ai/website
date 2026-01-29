@@ -110,6 +110,11 @@ We welcome contributions!
 3. Make your changes
 4. Submit a Pull Request
 
+**Please read:**
+- [Contributing Guidelines](CONTRIBUTING.md) – How to contribute
+- [Code of Conduct](CODE_OF_CONDUCT.md) – Community standards
+- [Security Policy](SECURITY.md) – Reporting vulnerabilities
+
 **Content Guidelines:**
 - Documentation should be clear and concise
 - Include code examples where relevant
