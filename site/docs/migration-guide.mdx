@@ -25,7 +25,7 @@ pip install --upgrade akios
 
 # Verify version
 akios --version
-# Should show: akios 1.0.3 or later
+# Should show: akios {{version}} or later
 
 # Test installation
 akios status
@@ -63,10 +63,10 @@ AKIOS_FORCE_PULL=1 ./akios --version
 
 ```bash
 # Pull latest image
-docker pull akiosai/akios:v1.0.3
+docker pull akiosai/akios:v{{version}}
 
 # Test run
-docker run --rm akiosai/akios:v1.0.3 --version
+docker run --rm akiosai/akios:v{{version}} --version
 ```
 
 **When to use:**
@@ -91,7 +91,7 @@ akios status --security
 
 **Expected output:**
 ```
-AKIOS v1.0.3
+AKIOS v{{version}}
 Security Level: Kernel-hard (Linux) or Policy-based (Docker)
 Audit: Active
 PII Protection: Active
@@ -172,7 +172,7 @@ akios run workflow.yml
 # .github/workflows/akios.yml
 steps:
   - name: Install AKIOS
-    run: pip install akios>=1.0.3
+    run: pip install akios>={{version}}
     
   - name: Run workflow
     run: akios run workflows/production/*.yml
@@ -322,7 +322,7 @@ akios logs --level ERROR
 ## Post-Migration Checklist
 
 **✓ Verify everything works:**
-- [ ] `akios --version` shows 1.0.3+
+- [ ] `akios --version` shows {{version}}+
 - [ ] `akios status --security` shows security active
 - [ ] Workflows run successfully in mock mode
 - [ ] Workflows run successfully with real APIs

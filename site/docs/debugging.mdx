@@ -31,7 +31,7 @@ pip show akios
 
 # Reinstall if needed
 pip uninstall akios
-pip install akios>=1.0.3
+pip install akios>={{version}}
 
 # Check PATH
 which akios
@@ -188,7 +188,7 @@ export AKIOS_BUDGET_LIMIT_PER_RUN=5.0
 
 ```bash
 # Pull latest image
-docker pull akiosai/akios:v1.0.3
+docker pull akiosai/akios:v{{version}}
 
 # Or force pull with wrapper
 AKIOS_FORCE_PULL=1 ./akios status

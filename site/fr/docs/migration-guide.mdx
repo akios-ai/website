@@ -24,7 +24,7 @@ chmod +x akios
 
 ## Docker direct (secours/CI)
 ```bash
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run templates/hello-workflow.yml
 ```
 
 ## Vérifications post-migration

@@ -6,7 +6,7 @@ Get AKIOS running in 2 minutes. Choose the method that works best for you.
 
 **On Linux** (maximum security with kernel-hard isolation):
 ```bash
-pip install akios>=1.0.3
+pip install akios>={{version}}
 akios init my-project
 cd my-project
 akios run templates/hello-workflow.yml
@@ -32,11 +32,11 @@ Best for: Maximum security, Python developers, native Linux environments
 
 ```bash
 # Install
-pip install akios>=1.0.3
+pip install akios>={{version}}
 
 # Ubuntu 24.04+ users need pipx due to PEP 668
 sudo apt install pipx
-pipx install akios>=1.0.3
+pipx install akios>={{version}}
 
 # Verify and create project
 akios --version
@@ -69,9 +69,9 @@ AKIOS_FORCE_PULL=1 ./akios status
 Best for: Continuous integration, automated pipelines, when wrapper script isn't available
 
 ```bash
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.3 init my-project
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} init my-project
 cd my-project
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.3 run templates/hello-workflow.yml
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run templates/hello-workflow.yml
 ```
 
 ## Which Should I Use?

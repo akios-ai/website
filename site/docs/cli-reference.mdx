@@ -21,7 +21,7 @@ Choose your preferred installation:
 
 ### Pip (Linux - Maximum Security)
 ```bash
-pip install akios>=1.0.3
+pip install akios>={{version}}
 akios --version
 ```
 
@@ -34,7 +34,7 @@ chmod +x akios
 
 ### Direct Docker (Fallback)
 ```bash
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.3 --version
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} --version
 ```
 
 ## Global Options
@@ -333,7 +333,7 @@ AKIOS_MOCK_LLM=1 akios run workflow.yml
 ### First-Time Setup
 ```bash
 # 1. Install
-pip install akios>=1.0.3
+pip install akios>={{version}}
 
 # 2. Create project
 akios init my-project
