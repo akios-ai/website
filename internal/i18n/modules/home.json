@@ -49,8 +49,9 @@
       "community_note": "Need help or to report an issue? Use GitHub Discussions or Issues — no contact form to keep support open and transparent.",
       "pro_pointer": "Have a question? Visit the <a href=\"community.html\">Community</a> page or use GitHub Discussions/Issues for open, transparent support.",
       "cta_title": "Ready to Secure Your AI Agents?",
-      "cta_body": "Star on GitHub if you value safe, auditable AI.<br>Join the community, contribute templates, and discuss use cases.",
-      "cta_button": "Star on GitHub"
+      "cta_body": "Get hands-on in 2 minutes with our Quickstart, or explore the code on GitHub. Join thousands of developers protecting their AI agents.",
+      "cta_primary_button": "Get Started",
+      "cta_secondary_button": "View on GitHub"
     }
   },
   "fr": {
@@ -103,8 +104,9 @@
       "community_note": "Besoin d’aide ou de signaler un bug ? Passez par GitHub Discussions ou Issues — pas de formulaire privé pour garder le support ouvert.",
       "pro_pointer": "Une question ? Rendez-vous sur la page <a href=\"community.html\">Communauté</a> ou passez par GitHub Discussions/Issues pour un support transparent.",
       "cta_title": "Prêt à tester la Cage ?",
-      "cta_body": "Mettez une étoile sur GitHub si vous valorisez l'IA sécurisée.<br>Rejoignez la communauté, contribuez des templates, discutez des cas d'usage.",
-      "cta_button": "Star sur GitHub"
+      "cta_body": "Commencez en 2 minutes avec le guide de démarrage rapide, ou explorez le code sur GitHub. Rejoignez les développeurs qui sécurisent leurs agents IA.",
+      "cta_primary_button": "Démarrer",
+      "cta_secondary_button": "Voir sur GitHub"
     }
   }
 }
