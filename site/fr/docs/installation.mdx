@@ -28,8 +28,8 @@ AKIOS_FORCE_PULL=1 ./akios status
 ## Docker direct (secours/CI)
 À utiliser si le wrapper est indisponible ou pour les scripts CI.
 ```bash
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 init mon-projet
-docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 run templates/hello-workflow.yml
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} init mon-projet
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run templates/hello-workflow.yml
 ```
 
 ## Arbre de décision

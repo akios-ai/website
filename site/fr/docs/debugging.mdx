@@ -30,7 +30,7 @@ AKIOS_JSON_MODE=1 akios status   # erreurs lisibles machine
 
 ## Spécifique Docker
 - Blocages fichiers sur macOS/Windows VM : mettre à jour Docker Desktop; si besoin `sandbox_enabled: false` (on garde l’isolation conteneur).
-- Image obsolète : `docker pull akiosai/akios:v1.0.0` ou `AKIOS_FORCE_PULL=1`.
+- Image obsolète : `docker pull akiosai/akios:v{{version}}` ou `AKIOS_FORCE_PULL=1`.
 
 ## Validation sécurité
 - "SECURITY VALIDATION FAILED" : sous Linux, kernel ≥5.4 et seccomp actifs; sous macOS/Windows, utiliser le mode Docker.

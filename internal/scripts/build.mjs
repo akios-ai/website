@@ -8,6 +8,15 @@ const DIST_DIR = 'dist';
 const PARTIALS_DIR = 'partials';
 const LOCALES_DIR = 'internal/i18n/modules';
 
+// Load Version
+let version = '1.0.0';
+try {
+    const versionFile = JSON.parse(fs.readFileSync('version.json', 'utf-8'));
+    version = versionFile.version || '1.0.0';
+} catch (error) {
+    console.warn('Warning: version.json not found, using default version');
+}
+
 // Load Locales
 const locales = { en: {}, fr: {} };
 
@@ -135,7 +144,8 @@ const build = async () => {
                         .replace(/<html lang="[^"]+">/i, `<html lang="${targetLocale}">`)
                         .replace('<!-- {{header}} -->', header)
                         .replace('<!-- {{footer}} -->', footer)
-                        .replace(/{{root}}/g, rootReplacement);
+                        .replace(/{{root}}/g, rootReplacement)
+                        .replace(/{{version}}/g, version);
 
                     const canonical = targetLocale === 'fr' ? 'https://akios.ai/fr/' : 'https://akios.ai/';
                     content = content.replace(/{{canonical}}/g, canonical);
@@ -163,7 +173,8 @@ const build = async () => {
                     .replace(/<html lang="[^"]+">/i, `<html lang="${locale}">`)
                     .replace('<!-- {{header}} -->', header)
                     .replace('<!-- {{footer}} -->', footer)
-                    .replace(/{{root}}/g, rootReplacement);
+                    .replace(/{{root}}/g, rootReplacement)
+                    .replace(/{{version}}/g, version);
                 
                 content = injectI18n(content, locale);
 
@@ -280,7 +291,7 @@ const build = async () => {
                 for (const finalRel of targets) {
                     const prefix = getRootPrefixFromTarget(finalRel);
                     const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
-                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl);
+                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
                     const htmlDistPath = path.join(DIST_DIR, finalRel);
                     await fs.outputFile(htmlDistPath, adjusted);
                     console.log(`Built MDX docs -> HTML (${locale}): ${htmlDistPath}`);
@@ -301,11 +312,78 @@ const build = async () => {
     
     <article class="section">
         <div class="page">
-            ${htmlBody}
+            <div class="blog-post-wrapper">
+                <div class="blog-post-main">
+                    ${htmlBody}
+                </div>
+                <!-- TOC DISABLED - Commented out for future use
+                <aside class="blog-toc">
+                    <div class="blog-toc-sticky">
+                        <h4>${t('blog_post.table_of_contents', locale)}</h4>
+                        <nav class="toc-nav"></nav>
+                    </div>
+                </aside>
+                -->
+            </div>
         </div>
     </article>
 
     ${footer.replace(/{{root}}/g, '{{ROOT}}')}
+    
+    <!-- TOC DISABLED - Commented out for future use
+    <script>
+        // Generate TOC from headings
+        (function() {
+            const content = document.querySelector('.blog-post-main .post-content');
+            const tocNav = document.querySelector('.toc-nav');
+            if (!content || !tocNav) return;
+            
+            const headings = content.querySelectorAll('h2');
+            if (headings.length === 0) {
+                document.querySelector('.blog-toc').style.display = 'none';
+                return;
+            }
+            
+            const tocList = document.createElement('ul');
+            headings.forEach((heading, index) => {
+                const id = 'heading-' + index;
+                heading.id = id;
+                
+                const li = document.createElement('li');
+                li.className = heading.tagName.toLowerCase();
+                const a = document.createElement('a');
+                a.href = '#' + id;
+                a.textContent = heading.textContent;
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                };
+                li.appendChild(a);
+                tocList.appendChild(li);
+            });
+            
+            tocNav.appendChild(tocList);
+            
+            // Highlight current section on scroll
+            let currentActive = null;
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        const link = tocNav.querySelector('a[href="#' + id + '"]');
+                        if (link) {
+                            if (currentActive) currentActive.classList.remove('active');
+                            link.classList.add('active');
+                            currentActive = link;
+                        }
+                    }
+                });
+            }, { rootMargin: '0px 0px -80% 0px' });
+            
+            headings.forEach(heading => observer.observe(heading));
+        })();
+    </script>
+    -->
 </body>
 </html>`;
 
@@ -314,7 +392,7 @@ const build = async () => {
                 for (const finalRel of targets) {
                     const prefix = getRootPrefixFromTarget(finalRel);
                     const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
-                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl);
+                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
                     const htmlDistPath = path.join(DIST_DIR, finalRel);
                     await fs.outputFile(htmlDistPath, adjusted);
                     console.log(`Built MDX blog -> HTML (${locale}): ${htmlDistPath}`);
@@ -345,7 +423,7 @@ const build = async () => {
                 for (const finalRel of targets) {
                     const prefix = getRootPrefixFromTarget(finalRel);
                     const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
-                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl);
+                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
                     const htmlDistPath = path.join(DIST_DIR, finalRel);
                     await fs.outputFile(htmlDistPath, adjusted);
                     console.log(`Built MDX page -> HTML (${locale}): ${htmlDistPath}`);

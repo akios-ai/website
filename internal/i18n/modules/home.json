@@ -51,7 +51,20 @@
       "cta_title": "Ready to Secure Your AI Agents?",
       "cta_body": "Get hands-on in 2 minutes with our Quickstart, or explore the code on GitHub. Join thousands of developers protecting their AI agents.",
       "cta_primary_button": "Get Started",
-      "cta_secondary_button": "View on GitHub"
+      "cta_secondary_button": "View on GitHub",
+      "faq_heading": "Frequently asked",
+      "faq_performance_question": "What about performance?",
+      "faq_performance_answer": "AKIOS runs agent containers with minimal overhead. Typical latency: <5ms policy enforcement, <50ms to first token. Benchmarks available in docs.",
+      "faq_cost_question": "How much does it cost?",
+      "faq_cost_answer": "AKIOS is completely free and open source under GPL-3. No licensing fees. Download, deploy, and run on your infrastructure.",
+      "faq_stack_question": "Will it work with my stack?",
+      "faq_stack_answer": "AKIOS works with any LLM (OpenAI, Anthropic, local) and any language. Run on Linux, macOS, or Docker. See integration docs.",
+      "faq_security_question": "How is security actually enforced?",
+      "faq_security_answer": "seccomp-bpf on Linux + kernel namespaces. Docker container isolation on other platforms. Policies signed & verified before execution.",
+      "support_title": "Need help or to report an issue? Use GitHub Discussions or Issues — no contact form to keep support open and transparent.",
+      "support_question": "Have a question? Visit the Community page or use GitHub Discussions/Issues for open, transparent support.",
+      "support_discord": "Join Discord →",
+      "support_discussions": "GitHub Discussions →"
     }
   },
   "fr": {
@@ -106,7 +119,20 @@
       "cta_title": "Prêt à tester la Cage ?",
       "cta_body": "Commencez en 2 minutes avec le guide de démarrage rapide, ou explorez le code sur GitHub. Rejoignez les développeurs qui sécurisent leurs agents IA.",
       "cta_primary_button": "Démarrer",
-      "cta_secondary_button": "Voir sur GitHub"
+      "cta_secondary_button": "Voir sur GitHub",
+      "faq_heading": "Questions fréquentes",
+      "faq_performance_question": "Et pour les performances ?",
+      "faq_performance_answer": "AKIOS exécute les conteneurs d'agents avec peu de surcharge. Latence typique : <5ms application des politiques, <50ms premier token. Benchmarks dans les docs.",
+      "faq_cost_question": "Quel est le coût ?",
+      "faq_cost_answer": "AKIOS est totalement gratuit et open source sous GPL-3. Pas de licence. Téléchargez, déployez et exécutez sur votre infrastructure.",
+      "faq_stack_question": "Compatible avec ma stack ?",
+      "faq_stack_answer": "AKIOS fonctionne avec tout LLM (OpenAI, Anthropic, local) et tout langage. Sur Linux, macOS ou Docker. Voir les docs d'intégration.",
+      "faq_security_question": "Comment la sécurité est-elle appliquée ?",
+      "faq_security_answer": "seccomp-bpf sur Linux + namespaces kernel. Isolation conteneur Docker sur autres plateformes. Politiques signées et vérifiées avant exécution.",
+      "support_title": "Besoin d'aide ou de signaler un bug ? Passez par GitHub Discussions ou Issues — pas de formulaire privé pour garder le support ouvert.",
+      "support_question": "Une question ? Rendez-vous sur la page Communauté ou passez par GitHub Discussions/Issues pour un support transparent.",
+      "support_discord": "Rejoindre Discord →",
+      "support_discussions": "GitHub Discussions →"
     }
   }
 }
