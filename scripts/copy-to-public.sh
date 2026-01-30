@@ -33,7 +33,8 @@ mv "$DEST/.git" "$GIT_SAFE_BACKUP/.git"
 
 # Regenerate diagrams so SVGs stay in sync with source (.mmd) before copying.
 # Uses npx to fetch @mermaid-js/mermaid-cli on demand; no global install needed.
-(cd "$SRC" && node internal/scripts/gen-arch.mjs)
+# DISABLED: SVGs are now locked in git as final versions - don't regenerate
+# (cd "$SRC" && node internal/scripts/gen-arch.mjs)
 
 rsync -av --delete --delete-excluded \
   --filter='P .git/' \
