@@ -1,0 +1,88 @@
+<header class="post-header">
+  <div class="post-meta">
+    20 janvier 2026 • <span>7 min de lecture</span>
+  </div>
+  <h1>Communication sécurisée entre agents : au‑delà du simple pipe</h1>
+  <div class="post-author">
+    <img src="https://github.com/aj14pm.png" alt="Auteur" class="avatar">
+    <span>AJ</span>
+  </div>
+</header>
+
+<div class="post-content">
+  <p class="lead">
+    L'un des plus grands défis des systèmes multi‑agents est de permettre aux agents de communiquer entre eux sans ouvrir de brèches de sécurité. Voici comment AKIOS résout ce problème avec des canaux à base de capacités.
+  </p>
+
+  <h2>Le dilemme de l'IPC</h2>
+  <p>
+    Les mécanismes d'IPC traditionnels comme la mémoire partagée ou les pipes nommés sont rapides, mais dangereux. Si l'agent A peut écrire dans la mémoire de l'agent B, il peut potentiellement détourner le flux d'exécution de B.
+  </p>
+  <p>
+    Dans AKIOS, nous adoptons une approche différente : la <strong>communication médiée par messages</strong>.
+  </p>
+
+  <pre><code>// Exemple : définir un canal sécurisé dans une politique AKIOS
+allow_channel {
+  from: "agent-a",
+  to: "agent-b",
+  protocol: "json-rpc",
+  max_rate: "100/s"
+}</code></pre>
+
+  <p>
+    Cette politique définit explicitement qu'A peut envoyer des messages JSON‑RPC à B, mais seulement jusqu'à 100 messages par seconde. Le noyau AKIOS applique cette limite et valide les en‑têtes de protocole avant que le message n'atteigne l'agent B.
+  </p>
+
+  <h2>Zero‑copy, zero‑trust</h2>
+  <p>
+    Malgré cette médiation, les performances restent élevées grâce à notre implémentation de buffer circulaire zero‑copy. Nous exposons des pages en lecture seule dans l'espace mémoire du récepteur, ce qui garantit que les données ne sont jamais recopiées inutilement et ne peuvent pas être modifiées par l'émetteur après l'envoi.
+  </p>
+
+  <h3>Benchmarks</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Méthode</th>
+        <th>Latence (p99)</th>
+        <th>Débit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Sockets Unix</td>
+        <td>12µs</td>
+        <td>4,5 Go/s</td>
+      </tr>
+      <tr>
+        <td>Canaux AKIOS</td>
+        <td>14µs</td>
+        <td>4,2 Go/s</td>
+      </tr>
+      <tr>
+        <td>HTTP/REST (localhost)</td>
+        <td>150µs</td>
+        <td>0,8 Go/s</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Nous obtenons des performances proches de l'IPC natif tout en maintenant des frontières d'isolation strictes. Cela vous permet de construire des essaims d'agents complexes où un agent compromis ne peut pas se déplacer latéralement pour en infecter d'autres.
+  </p>
+
+  <h2>Conclusion</h2>
+  <p>
+    La sécurité ne doit pas se faire au détriment des performances. Avec les canaux AKIOS, vous obtenez les deux : isolation forte et throughput élevé.
+  </p>
+</div>
+
+<div class="post-footer">
+  <div class="share-links">
+    <span>Partager :</span>
+    <a href="#" target="_blank">Twitter</a>
+    <a href="#" target="_blank">LinkedIn</a>
+    <a href="#" target="_blank">Hacker News</a>
+  </div>
+  <a href="index.html">← Retour au blog</a>
+</div>

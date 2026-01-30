@@ -1,0 +1,66 @@
+# Core Concepts
+
+AKIOS is built on a "Trust Signal" philosophy: security should be intrinsic, verifiable, and minimal. It is not just another agent framework; it is a **security cage** for AI.
+
+## The Security Cage
+
+Every AKIOS workflow runs inside a hardened environment designed to prevent data leakage, unauthorized access, and runaway costs.
+
+### 1. Sandboxing
+- **Native Linux**: Uses kernel-level `seccomp-bpf` and `cgroups` v2 to restrict system calls and resource usage.
+- **Docker**: Uses strict container policies, network isolation, and read-only root filesystems.
+- **Guarantee**: Agents cannot escape the cage or access the host system without explicit permission.
+
+### 2. PII Redaction
+- **Automatic Protection**: All data entering or leaving the cage is scanned for Personally Identifiable Information (PII).
+- **50+ Patterns**: Detects emails, phone numbers, credit cards, SSNs, IP addresses, and more.
+- **Strategies**:
+  - `mask`: Replaces data with `[REDACTED]` (Default).
+  - `hash`: Replaces data with a consistent hash for correlation without revealing values.
+  - `remove`: Strips the data entirely.
+
+### 3. Merkle Audit Log
+- **Tamper-Evident**: Every action (file read, network request, LLM call) is logged.
+- **Cryptographic Chain**: Each log entry contains a SHA-256 hash of the previous entry, forming a Merkle chain.
+- **Verifiable**: You can mathematically prove that the audit log has not been altered.
+
+### 4. Cost Kill-Switches
+- **Budget Enforcement**: Set a hard limit (e.g., $1.00) per workflow run.
+- **Token Limits**: Cap the number of tokens per LLM call.
+- **Loop Protection**: Automatically terminates infinite loops or runaway processes.
+
+## The 4 Core Agents
+
+AKIOS provides four specialized, secure agents. You do not write arbitrary code; you compose workflows using these safe primitives.
+
+### 📁 Filesystem Agent
+- **Purpose**: Safe reading and writing of files.
+- **Security**: Restricted to specific `allowed_paths`. Cannot access system files (`/etc`, `/var`) or parent directories (`..`).
+- **Actions**: `read`, `write`, `list`, `exists`, `stat`.
+
+### 🌐 HTTP Agent
+- **Purpose**: Secure communication with external APIs.
+- **Security**: Rate-limited, timeout-enforced, and subject to PII redaction.
+- **Actions**: `get`, `post`, `put`, `delete`.
+
+### 🤖 LLM Agent
+- **Purpose**: Intelligence and reasoning.
+- **Security**: Token-tracked, cost-limited, and PII-redacted. Keys are never logged.
+- **Providers**: OpenAI, Anthropic, Grok, Mistral, Gemini.
+- **Actions**: `complete` (text generation), `chat` (conversational).
+
+### 🛠️ Tool Executor Agent
+- **Purpose**: Running external command-line tools.
+- **Security**: Strict command allowlisting. Runs in a subprocess with reduced privileges.
+- **Actions**: `run`.
+
+## Architecture
+
+AKIOS is a **single-process** runtime.
+- **No Sidecars**: No database, no Redis, no background services required.
+- **State**: Ephemeral. State exists only during the workflow run.
+- **Persistence**: File-based (Inputs/Outputs) and Audit Logs.
+- **Deployment**: Single binary, Python package, or container.
+
+This minimalist architecture ensures that AKIOS is **auditable by design** and easy to deploy in air-gapped or high-security environments.
+

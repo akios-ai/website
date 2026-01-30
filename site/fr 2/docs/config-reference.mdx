@@ -1,0 +1,569 @@
+# AKIOS V1.0 – Référence de Configuration
+
+**Guide de configuration complet pour la cage de sécurité AKIOS.**
+
+AKIOS utilise un fichier unique `config.yaml` pour tous les paramètres. La configuration est chargée au démarrage et ne peut pas être modifiée pendant l'exécution pour des raisons de sécurité. Tous les paramètres ont des valeurs par défaut axées sur la sécurité.
+
+## 📁 Emplacement du Fichier de Configuration
+
+AKIOS recherche `config.yaml` dans le répertoire de travail actuel :
+
+```
+project/
+├── config.yaml          # Fichier de configuration principal
+├── workflows/           # Définitions des workflows
+├── templates/           # Modèles de workflow
+├── data/               # Données d'entrée/sortie
+└── audit/              # Journaux d'audit
+```
+
+## Configuration Initiale et Gestion
+
+AKIOS inclut un assistant de configuration interactif qui rend la configuration initiale simple.
+
+### Assistant de Configuration Interactif
+
+L'assistant vous guide à travers :
+- Sélection du fournisseur (OpenAI, Anthropic, Grok, Mistral, ou Gemini)
+- Configuration de la clé API avec validation du format
+- Génération et validation de la configuration
+
+```bash
+# L'assistant se lance automatiquement à la première commande
+akios run templates/hello-workflow.yml
+
+# Ou lancez-le manuellement
+akios setup
+
+# Forcez la réexécution si nécessaire
+akios setup --force
+```
+
+### Variables d'Environnement (fichier `.env`)
+
+AKIOS utilise des variables d'environnement pour la configuration sensible :
+
+```bash
+# Clés API (choisissez votre fournisseur)
+AKIOS_LLM_PROVIDER=grok
+GROK_API_KEY=xai-votre-cle-ici
+AKIOS_LLM_MODEL=grok-3
+
+# Paramètres de Mode
+AKIOS_MOCK_LLM=0              # 0=appels LLM réels, 1=sortie LLM simulée
+AKIOS_NETWORK_ACCESS_ALLOWED=1 # Autoriser les appels API externes
+
+# Contrôles du Wrapper Docker
+AKIOS_FORCE_PULL=1            # Toujours récupérer la dernière image avant l'exécution
+
+# Optionnel : Clés spécifiques au fournisseur
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+GROK_API_KEY=xai-...
+MISTRAL_API_KEY=votre-cle-mistral...
+GEMINI_API_KEY=votre-cle-gemini...
+```
+
+### Indicateur de Mode API Réel
+
+Pour plus de commodité, vous pouvez activer le mode API réel directement depuis la ligne de commande :
+
+```bash
+# Activer le mode API réel avec configuration interactive
+akios run workflow.yml --real-api
+
+# Cela effectue automatiquement :
+# - Définit AKIOS_MOCK_LLM=0
+# - Active l'accès réseau
+# - Demande les clés API manquantes de manière interactive
+# - Valide la configuration
+```
+
+**L'indicateur `--real-api` offre une transition transparente des tests simulés vers l'utilisation réelle de l'API sans modification manuelle de la configuration.**
+
+### Détection de Corruption de Configuration
+
+AKIOS détecte automatiquement et aide à corriger la corruption courante du fichier `.env` :
+
+- **Noms de fournisseurs concaténés** : `grokopenai` → suggère `grok`
+- **Formats de clés API invalides** : Validation en temps réel avec vérifications spécifiques au fournisseur
+- **Booléens mal formés** : `tru` → suggère `true`
+- **Champs requis manquants** : Conseils clairs sur ce qui est nécessaire
+
+**Exemple d'erreur avec suggestion de correction :**
+```
+CONFIGURATION VALIDATION FAILED: .env corruption detected
+Line 3: AKIOS_LLM_PROVIDER=grokopenai
+Suggestion: Concatenated provider names: 'grok' + 'openai' = 'grokopenai'
+Fix: Change to AKIOS_LLM_PROVIDER=grok
+```
+
+### Priorité de Chargement de la Configuration
+
+1. **Variables d'Environnement** (priorité la plus haute - écrase tout)
+2. **Fichier `.env`** (chargé automatiquement si présent)
+3. **`config.yaml`** (fichier de configuration de base)
+4. **Valeurs par défaut intégrées** (replis sécurisés)
+
+## ⚙️ Structure de la Configuration
+
+```yaml
+# Essentiels de la cage de sécurité
+sandbox_enabled: true
+cpu_limit: 0.8
+memory_limit_mb: 256
+max_open_files: 100
+max_file_size_mb: 10
+network_access_allowed: false
+
+# PII & conformité
+pii_redaction_enabled: true
+redaction_strategy: "mask"
+
+# Protection contre les coûts et boucles
+cost_kill_enabled: true
+max_tokens_per_call: 500
+budget_limit_per_run: 1.0
+
+# Audit & chemins
+audit_enabled: true
+audit_storage_path: "./audit/"
+audit_export_format: "json"
+
+# Général
+environment: "development"
+log_level: "INFO"
+```
+
+## 🔒 Paramètres de la Cage de Sécurité
+
+### `sandbox_enabled`
+**Type :** `boolean`  
+**Défaut :** `true`  
+**Description :** Active le sandboxing de sécurité (niveau noyau sur Linux natif avec seccomp-bpf, basé sur des politiques dans Docker)
+
+Lorsque activé :
+- Les processus s'exécutent dans des espaces de noms noyau isolés
+- Les appels système dangereux sont bloqués
+- L'accès au système de fichiers est restreint
+- L'accès réseau est contrôlé
+
+**Impact Sécurité :** Critique - fournit la garantie d'isolation principale
+
+```yaml
+sandbox_enabled: true  # Recommandé : toujours true
+```
+
+### `cpu_limit`
+**Type :** `float` (0.1 - 1.0)  
+**Défaut :** `0.8`  
+**Description :** Limite d'utilisation CPU en fraction du total des cœurs CPU
+
+Limite les ressources CPU disponibles pour l'ensemble du workflow. Empêche les processus incontrôlés de consommer tout le CPU système.
+
+```yaml
+cpu_limit: 0.8  # Utiliser 80% des cœurs CPU disponibles
+```
+
+### `memory_limit_mb`
+**Type :** `integer` (> 0)  
+**Défaut :** `256`  
+**Description :** Limite de mémoire en mégaoctets pour l'ensemble du workflow
+
+Termine automatiquement les workflows qui dépassent les limites de mémoire. Empêche les attaques par épuisement de la mémoire.
+
+```yaml
+memory_limit_mb: 256  # Limite de 256Mo par workflow
+```
+
+### `max_open_files`
+**Type :** `integer` (> 10)  
+**Défaut :** `100`  
+**Description :** Nombre maximum de descripteurs de fichiers ouverts
+
+Empêche les attaques par épuisement des descripteurs de fichiers et limite les opérations de fichiers concurrentes.
+
+```yaml
+max_open_files: 100  # Maximum 100 fichiers ouverts
+```
+
+### `max_file_size_mb`
+**Type :** `integer` (> 0)  
+**Défaut :** `10`  
+**Description :** Taille maximale de fichier en mégaoctets pour les opérations d'écriture
+
+Limite la taille des fichiers qui peuvent être écrits pour empêcher l'épuisement de l'espace disque.
+
+```yaml
+max_file_size_mb: 10  # Taille max de fichier 10Mo
+```
+
+### `network_access_allowed`
+**Type :** `boolean`  
+**Défaut :** `false`  
+**Description :** Autoriser l'accès réseau pour les opérations de l'agent HTTP
+
+Lorsque désactivé, les requêtes de l'agent HTTP sont bloquées. Lorsque activé, l'accès réseau limité en débit est autorisé.
+
+```yaml
+network_access_allowed: false  # Bloquer tout accès réseau (sécurisé)
+network_access_allowed: true   # Autoriser les appels réseau de l'agent HTTP
+```
+
+## 🛡️ Paramètres PII & Conformité
+
+### `pii_redaction_enabled`
+**Type :** `boolean`  
+**Défaut :** `true`  
+**Description :** Activer la rédaction PII en temps réel sur les entrées de l'agent
+
+Détecte et rédige automatiquement les données sensibles dans les invites et les messages :
+- Adresses email
+- Numéros de téléphone
+- Numéros de sécurité sociale
+- Numéros de carte de crédit
+- Adresses IP
+- Clés API et mots de passe
+
+```yaml
+pii_redaction_enabled: true  # Recommandé : toujours true
+```
+
+### `redaction_strategy`
+**Type :** `string` ("mask" | "hash" | "remove")  
+**Défaut :** `"mask"`  
+**Description :** Comment gérer les données PII détectées
+
+- `"mask"` : Remplacer par le marqueur `[REDACTED]`
+- `"hash"` : Remplacer par le hachage SHA-256
+- `"remove"` : Supprimer complètement les données
+
+```yaml
+redaction_strategy: "mask"  # Sûr, préserve la structure des données
+```
+
+### `pii_redaction_outputs`
+**Type :** `boolean`  
+**Défaut :** `true`  
+**Description :** Activer la rédaction PII sur les sorties LLM
+
+Applique un filtrage PII supplémentaire aux réponses générées par l'IA pour éviter les fuites de données accidentelles. Utilise des modèles conservateurs adaptés au contenu généré.
+
+**Impact Sécurité :** Empêche l'exposition de PII dans les réponses IA  
+**Impact Performance :** Minime (<1ms par réponse)
+
+```yaml
+pii_redaction_outputs: true  # Recommandé : toujours true pour la sécurité
+```
+
+### `pii_redaction_aggressive`
+**Type :** `boolean`  
+**Défaut :** `false`  
+**Description :** Utiliser des règles de rédaction PII agressives
+
+Lorsque activé, applique des modèles plus stricts incluant :
+- Détection d'adresse générique
+- Formats de numéro de téléphone étendus
+- Correspondance de modèles sensibles supplémentaires
+
+**Cas d'Usage :** Environnements haute sécurité nécessitant une protection maximale  
+**Compromis :** Peut avoir des faux positifs sur du contenu légitime
+
+```yaml
+pii_redaction_aggressive: false  # Utiliser uniquement si une sécurité maximale est requise
+```
+
+## 💰 Protection Coûts & Ressources
+
+### `cost_kill_enabled`
+**Type :** `boolean`  
+**Défaut :** `true`  
+**Description :** Activer la terminaison automatique lorsque les limites de budget sont dépassées
+
+Fournit une protection financière contre les coûts IA incontrôlés et les boucles infinies.
+
+```yaml
+cost_kill_enabled: true  # Recommandé : toujours true
+```
+
+### `max_tokens_per_call`
+**Type :** `integer` (> 0)  
+**Défaut :** `500`  
+**Description :** Maximum de tokens par appel API LLM
+
+Limite les requêtes LLM individuelles pour éviter des coûts API excessifs.
+
+```yaml
+max_tokens_per_call: 500  # Limite conservatrice
+max_tokens_per_call: 1000 # Limite plus élevée pour tâches complexes
+```
+
+### `budget_limit_per_run`
+**Type :** `float` (> 0.0)  
+**Défaut :** `1.0`  
+**Description :** Budget maximum en USD par exécution de workflow
+
+Termine automatiquement les workflows qui dépassent les limites de coût.
+
+```yaml
+budget_limit_per_run: 1.0   # $1.00 par workflow (recommandé)
+budget_limit_per_run: 5.0   # $5.00 pour workflows complexes
+```
+
+## 🛡️ Paramètres de Validation d'Entrée & Fiabilité
+
+### `input_validation_enabled`
+**Type :** `boolean`  
+**Défaut :** `true`  
+**Description :** Activer la validation automatique des entrées et les limites de taille
+
+Valide toutes les entrées IA pour la sécurité et empêche les requêtes surdimensionnées.
+
+```yaml
+input_validation_enabled: true  # Recommandé : toujours true
+```
+
+### `max_input_chars`
+**Type :** `integer` (> 0)  
+**Défaut :** `100000`  
+**Description :** Caractères maximum autorisés dans les entrées IA
+
+Rejette automatiquement les entrées dépassant cette limite pour prévenir les attaques DoS.
+
+```yaml
+max_input_chars: 100000  # 100k caractères (recommandé)
+max_input_chars: 50000   # Limite plus petite pour environnements restreints
+```
+
+## 📊 Paramètres d'Audit & Journalisation
+
+### `audit_enabled`
+**Type :** `boolean`  
+**Défaut :** `true`  
+**Description :** Activer la journalisation d'audit complète
+
+Enregistre chaque action de l'agent avec une preuve d'intégrité cryptographique.
+
+```yaml
+audit_enabled: true  # Recommandé : toujours true
+```
+
+### `audit_storage_path`
+**Type :** `string`  
+**Défaut :** `"./audit/"`  
+**Description :** Chemin du répertoire pour stocker les journaux d'audit
+
+Les journaux d'audit sont stockés sous forme de fichiers JSON Lines infalsifiables.
+
+```yaml
+audit_storage_path: "./audit/"  # Répertoire d'audit par défaut
+audit_storage_path: "/var/log/akios/"  # Chemin personnalisé
+```
+
+### `audit_export_format`
+**Type :** `string` ("json")
+**Défaut :** `"json"`
+**Description :** Format d'exportation pour les rapports d'audit
+
+- `"json"` : Format JSON lisible par machine avec vérification d'intégrité cryptographique
+
+```yaml
+audit_export_format: "json"   # Format JSON avec vérification d'intégrité
+```
+
+## ⚙️ Paramètres Généraux
+
+### `environment`
+**Type :** `string` ("development" | "testing" | "production")  
+**Défaut :** `"development"`  
+**Description :** Identifiant de l'environnement d'exécution
+
+Affecte la verbosité de la journalisation et la rigueur de la sécurité.
+
+```yaml
+environment: "development"  # Journalisation plus verbeuse
+environment: "production"   # Sécurité plus stricte, moins de journaux
+```
+
+### `log_level`
+**Type :** `string` ("DEBUG" | "INFO" | "WARNING" | "ERROR")  
+**Défaut :** `"INFO"`  
+**Description :** Niveau de verbosité de la journalisation
+
+Contrôle le niveau de détail de la journalisation console et fichier.
+
+```yaml
+log_level: "DEBUG"    # Verbosité maximale (développement)
+log_level: "INFO"     # Verbosité standard (recommandé)
+log_level: "WARNING"  # Uniquement avertissements et erreurs
+```
+
+## 🔧 Variables d'Environnement
+
+AKIOS supporte la configuration par variables d'environnement avec le préfixe `AKIOS_` :
+
+```bash
+# Écraser les valeurs de config
+export AKIOS_CPU_LIMIT=0.5
+export AKIOS_MEMORY_LIMIT_MB=128
+export AKIOS_BUDGET_LIMIT_PER_RUN=0.5
+export AKIOS_LOG_LEVEL=DEBUG
+```
+
+## 📋 Exemple de Configuration Complète
+
+```yaml
+# Configuration de Production AKIOS V1.0
+# Paramètres maximisant la sécurité pour les charges de travail de production
+
+# Cage de sécurité - protection maximale
+sandbox_enabled: true
+cpu_limit: 0.5
+memory_limit_mb: 128
+max_open_files: 50
+max_file_size_mb: 5
+network_access_allowed: false
+
+# Protection PII - toujours activée
+pii_redaction_enabled: true
+redaction_strategy: "mask"
+
+# Contrôle des coûts - limites strictes
+cost_kill_enabled: true
+max_tokens_per_call: 250
+budget_limit_per_run: 0.5
+
+# Audit - complet
+audit_enabled: true
+audit_storage_path: "./audit/"
+audit_export_format: "json"
+
+# Environnement
+environment: "production"
+log_level: "WARNING"
+```
+
+## ⚠️ Notes de Sécurité de Configuration
+
+- **La configuration est en lecture seule** après le démarrage d'AKIOS
+- **Pas de modification de configuration à l'exécution** pour la sécurité
+- **Validez les fichiers de config** avant déploiement
+- **Utilisez des permissions restrictives** sur les fichiers de config (`600`)
+- **Ne commitez jamais de secrets** dans le contrôle de version
+
+## 🔍 Validation de Configuration
+
+AKIOS valide la configuration au démarrage :
+
+```bash
+# Tester la configuration sans lancer de workflows
+akios --help  # Valide la config pendant l'initialisation
+
+# Vérifier les erreurs de configuration
+akios status  # Affiche l'état actuel de la configuration
+```
+
+Les configurations invalides échoueront immédiatement avec des messages d'erreur clairs.
+
+## 🚀 Configurations de Démarrage Rapide
+
+### Développement (Relaxé)
+```yaml
+sandbox_enabled: true
+cpu_limit: 0.8
+memory_limit_mb: 512
+network_access_allowed: true
+budget_limit_per_run: 5.0
+log_level: "DEBUG"
+```
+
+### Production (Sécurisé)
+```yaml
+sandbox_enabled: true
+cpu_limit: 0.5
+memory_limit_mb: 128
+network_access_allowed: false
+budget_limit_per_run: 1.0
+log_level: "WARNING"
+```
+
+### Test (Minimal)
+```yaml
+sandbox_enabled: false  # Désactiver pour tests plus rapides
+cpu_limit: 0.9
+memory_limit_mb: 1024
+network_access_allowed: true
+budget_limit_per_run: 10.0
+log_level: "DEBUG"
+```
+
+**Rappel :** La configuration ne peut pas être modifiée pendant l'exécution du workflow. Planifiez vos paramètres soigneusement pour le profil de sécurité et de performance dont vous avez besoin.
+
+## 🛠️ Impact de la Méthode d'Installation sur la Configuration
+
+La façon dont vous installez AKIOS affecte les fonctionnalités de sécurité disponibles et les configurations par défaut :
+
+### Déploiement Paquet Pip
+**Plateformes :** Linux uniquement (recommandé)
+**Niveau de Sécurité :** Sécurité complète au niveau noyau
+**Notes de Configuration :**
+- Fonctionnalités de sécurité maximales disponibles
+- Sandboxing niveau noyau (seccomp-bpf, cgroups)
+- Permissions natives du système de fichiers
+- Meilleures performances et sécurité
+
+### Déploiement Docker
+**Plateformes :** Linux, macOS, Windows
+**Niveau de Sécurité :** Sécurité forte basée sur des politiques
+**Notes de Configuration :**
+- Comportement cohérent sur toutes les plateformes
+- Isolation par conteneur au lieu de sandboxing noyau
+- Contrôles réseau via politiques de conteneur
+- Limites mémoire et CPU via Docker
+
+### Choisir la Bonne Installation
+
+| Cas d'Usage | Méthode Recommandée | Pourquoi |
+|-------------|---------------------|----------|
+| **Sécurité maximale, production Linux** | Paquet Pip | Fonctionnalités de sécurité noyau |
+| **Équipe de développement multi-plateforme** | Docker | Environnement cohérent partout |
+| **Intégration écosystème Python** | Paquet Pip | Compatibilité Python complète |
+
+### Configuration Spécifique à la Plateforme
+
+#### Linux (Toutes Méthodes)
+```yaml
+# Sécurité maximale disponible
+sandbox_enabled: true  # seccomp-bpf + cgroups
+environment: "production"
+```
+
+#### macOS/Windows (Docker)
+```yaml
+# Sécurité forte basée sur des politiques
+sandbox_enabled: true  # Politiques conteneur + liste blanche
+environment: "production"
+# Note : Pas de seccomp-bpf niveau noyau disponible
+```
+
+#### Docker (Toutes Plateformes)
+```yaml
+# Paramètres conscients du conteneur
+sandbox_enabled: true
+network_access_allowed: true  # Pour agent HTTP
+# Docker gère l'isolation des ressources
+```
+
+### Validation de Configuration par Méthode
+
+AKIOS valide la compatibilité de la configuration avec votre méthode de déploiement :
+
+```bash
+# Paquet Pip - valide les fonctionnalités du noyau Linux
+akios status  # Affiche l'état de sécurité noyau
+
+# Docker - valide l'environnement conteneur
+akios status  # Affiche l'état de sécurité basé sur les politiques
+```
+
+**Astuce :** Lancez `akios status` après l'installation pour voir vos capacités de sécurité et l'état de la configuration.

@@ -1,0 +1,153 @@
+# Troubleshooting Guide
+
+**Resolve common AKIOS issues and configuration problems**
+
+This guide covers frequently encountered issues, their causes, and step-by-step solutions for AKIOS V1.0.
+
+## Quick Diagnosis
+
+Run the diagnostic command to check system health:
+
+```bash
+# Check overall system status
+./akios status
+
+# Enable debug logging for detailed troubleshooting
+./akios --debug status
+
+# View recent audit events
+./akios audit view --limit 10
+
+# Check configuration validity
+./akios config validate
+```
+
+### Debug Logging
+
+For advanced troubleshooting, enable debug logging to see detailed internal operations:
+
+```bash
+# Enable debug logging for any command
+./akios --debug status
+./akios --debug run workflow.yml
+
+# Or set environment variable
+export AKIOS_DEBUG=1
+./akios status
+```
+
+Debug logs provide detailed information about:
+- Configuration loading and validation
+- Workflow execution steps
+- Agent operations and API calls
+- Security checks and audit logging
+
+## Installation Issues
+
+### Hybrid Distribution Troubleshooting
+
+**AKIOS V1.0 supports multiple installation methods - use this guide to troubleshoot each:**
+
+#### **Binary / Docker Wrapper Issues**
+
+**Symptoms:**
+- `command not found`
+- Permission denied errors
+
+**Solutions:**
+1. **Make executable:** `chmod +x akios-linux-x64` (or your binary name).
+2. **Check PATH:** Ensure the binary is in your current directory or in your system PATH.
+
+#### **Pip Package Issues**
+
+**Symptoms:**
+- Import errors after pip install
+- Security features not working on non-Linux platforms
+
+**Solutions:**
+1. **Verify pip installation:** `pip show akios`
+2. **Check Python version:** Must be 3.8+
+3. **Reinstall:** `pip uninstall akios && pip install akios`
+
+#### **Docker Issues**
+
+**Symptoms:**
+- `docker: command not found`
+- Container exits immediately
+- Volume mounting permissions issues
+
+**Solutions:**
+1. **Verify Docker:** `docker run hello-world`
+2. **Check Permissions:** Ensure your user is in the `docker` group (Linux) or Docker Desktop is running (Mac/Win).
+3. **Force Pull:** `AKIOS_FORCE_PULL=1 ./akios status` if the image appears outdated.
+
+## Configuration Issues
+
+### Environment Variable Problems
+
+**Symptoms:**
+- "API key not found" errors
+- Configuration not loading
+
+**Solutions:**
+1. **Check .env file:** Ensure it exists and has valid `KEY=value` pairs.
+2. **Fix Corruptions:** Look for concatenated values like `grokopenai` and fix them manually.
+3. **Use Setup Wizard:** Run `./akios setup --force` to regenerate config.
+
+### LLM Provider Errors
+
+**Symptoms:**
+- "Model 'xyz' is not valid for provider 'abc'"
+- "Unknown LLM provider"
+
+**Solutions:**
+1. **Check Combinations:** Ensure you use compatible provider/model pairs (e.g., Provider `openai` with Model `gpt-4`).
+2. **Case Insensitivity:** `gpt-4`, `GPT-4`, and `Gpt-4` are all valid.
+
+## Workflow Execution Issues
+
+### Agent Execution Failures
+
+#### Filesystem Agent
+- **Error:** "Path not allowed"
+- **Fix:** Add the path to `allowed_paths` in `config.yaml`. Use absolute paths in workflows.
+
+#### LLM Agent
+- **Error:** "Rate limit exceeded" or "API key missing"
+- **Fix:** Check your API quota and verify `AKIOS_LLM_PROVIDER` and `_API_KEY` variables.
+
+#### HTTP Agent
+- **Error:** Connection refused or timeout
+- **Fix:** Ensure `network_access_allowed: true` in `config.yaml`.
+
+## Docker-Specific Issues
+
+### Workflow Hangs on File Operations
+**Symptoms:** Workflows get stuck on file read/write, especially on macOS/Windows.
+**Cause:** POSIX resource limits conflict with Docker's cgroup management in virtualized environments.
+**Solution:**
+1. **Update Docker Desktop:** Use the latest version.
+2. **Disable Sandboxing (If needed):** Set `sandbox_enabled: false` in `config.yaml` to use Docker's native isolation instead of additional POSIX limits.
+
+### Image Pull Failures
+**Solution:** Run `docker pull akiosai/akios:v1.0.0` manually or check your network connection.
+
+## Security Issues
+
+### Startup Security Failures
+**Symptoms:** "SECURITY VALIDATION FAILED"
+**Cause:** Missing seccomp support or old kernel (on Native Linux).
+**Solution:** Ensure you are running on Linux with Kernel 5.4+. For macOS/Windows, use the Docker method which handles this for you.
+
+### PII Redaction Issues
+**Symptoms:** Sensitive data appearing in logs.
+**Solution:** Ensure `pii_redaction_enabled: true` in `config.yaml` and `audit_enabled: true`.
+
+## Emergency Recovery
+
+For critical issues where the system is unresponsive:
+
+1. **Stop all workflows:** `pkill -f akios`
+2. **Backup data:** `cp -r data/ data.backup`
+3. **Reset configuration:** `./akios setup --force`
+4. **Clean caches:** `./akios clean all`

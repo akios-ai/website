@@ -1,0 +1,89 @@
+# Modèle de Sécurité et Fonctionnalités
+
+AKIOS V1.0 offre une **sécurité forte basée sur des politiques** pour les agents IA sur toutes les plateformes. Le système est construit autour de l'isolation des conteneurs, de la protection en temps réel et de pistes d'audit complètes.
+
+## 🔒 Aperçu de la Sécurité
+
+AKIOS fournit une "Cage de Sécurité" pour vos agents IA, garantissant qu'ils opèrent dans des limites strictes.
+
+## 📋 Versions Supportées
+
+| Version | Supporté      | Mises à jour de Sécurité |
+|---------|---------------|--------------------------|
+| 1.0.x   | ✅ Actif      | ✅ Support Complet       |
+| <1.0    | ❌ Fin de Vie | ❌ Aucun Support         |
+
+## 🚨 Signaler des Vulnérabilités
+
+**NE signalez PAS les problèmes de sécurité sur le GitHub public.**
+
+Envoyez des rapports privés à : **hello@akios.ai**
+
+### Ce qu'il faut inclure
+- Description claire de la vulnérabilité
+- Étapes pour reproduire
+- Versions affectées
+- Impact potentiel (ex: contournement du sandbox, fuite PII)
+- Correctif suggéré (si possible)
+
+Nous accusons réception des rapports sous 24 heures et visons à les trier sous 72 heures.
+
+## Fonctionnalités de Sécurité
+
+### 🛡️ Isolation des Conteneurs
+- **Sandbox basé sur des politiques** : Liste blanche de commandes et restrictions de chemin.
+- **Quotas de ressources** : Limites CPU, mémoire et disque via cgroups v2.
+- **Isolation des processus** : Séparation basée sur les conteneurs du système hôte.
+- **Contrôles réseau** : Accès externe contrôlé (refus par défaut).
+
+### 🔒 Protections Spécifiques à l'IA
+- **Rédaction PII** : Détection et rédaction automatique des données sensibles (50+ modèles incluant données financières, santé et localisation).
+- **Kill-Switches de Coût** : Arrêt automatique en cas de dépassement de budget.
+- **Validation des Entrées** : Limites de taille automatiques et vérifications de sécurité.
+- **Prévention des Boucles** : Détection et blocage des boucles d'agents infinies.
+- **Assainissement des Sorties** : Rédaction post-traitement du contenu généré par l'IA.
+
+### 📜 Audit et Conformité
+- **Journalisation Complète** : Toutes les opérations suivies avec horodatage.
+- **Registre d'Audit Merkle** : Pistes d'audit cryptographiques inviolables.
+- **Journaux Sécurisés PII** : Données sensibles rédigées en temps réel.
+- **Capacités d'Export** : Rapports pour la conformité GDPR, HIPAA et CCPA.
+
+## Niveaux de Sécurité par Plateforme
+
+| Environnement | Niveau de Sécurité | Notes |
+|---------------|--------------------|-------|
+| **Linux Natif** | **Total (Kernel-Hard)** | Utilise cgroups v2 + seccomp-bpf pour une isolation maximale. Recommandé pour les environnements de haute sécurité. |
+| **Docker (Mac/Win/Linux)** | **Fort (Basé sur Politiques)** | Offre une forte isolation des conteneurs, rédaction PII et pistes d'audit. N'applique pas les permissions du système de fichiers hôte aussi strictement que Linux natif. |
+
+### Note sur la Sécurité Docker
+Le mode Docker offre une **sécurité forte basée sur des politiques** mais ne peut pas appliquer pleinement les permissions du système de fichiers hôte (ex: contournement `chmod 444`) ou les filtres seccomp au niveau du noyau sur les hôtes non-Linux. Pour une paranoïa maximale ou des environnements de conformité, utilisez **Linux Natif**.
+
+## Ce Que Nous Protégeons dans la V1.0
+
+- **Sandboxing de sécurité** : Kernel-hard sur Linux natif, fort basé sur des politiques dans Docker.
+- **Interception des appels système & quotas de ressources** : Prévention des processus incontrôlés.
+- **Rédaction PII en temps réel** : Protection des données utilisateur sensibles.
+- **Coupe-circuits de coût et de boucle imposés** : Prévention des pertes financières.
+- **Registre d'audit Merkle inviolable** : Garantie de la responsabilité.
+
+**Aucune garantie** : Aucun logiciel n'est sûr à 100 %. Les utilisateurs doivent sécuriser leur environnement et valider les résultats.
+
+## Vérification de la Sécurité
+
+Vous pouvez voir l'état complet de la sécurité et les protections actives en utilisant la commande dashboard :
+
+```bash
+# Afficher le tableau de bord de sécurité détaillé
+akios status --security
+
+# Afficher les informations de sécurité au format JSON
+akios status --security --json
+```
+
+### Ce que Montre le Tableau de Bord
+- **Niveau de Sécurité** : Total vs Fort
+- **Protection PII** : Actif/Inactif
+- **Accès Réseau** : Autorisé/Bloqué
+- **Journalisation d'Audit** : État de la Piste
+- **Contrôles de Coût** : Limites Budgétaires

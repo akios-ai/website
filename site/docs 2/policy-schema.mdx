@@ -1,0 +1,206 @@
+---
+title: Workflow Schema Guide
+description: Complete reference for AKIOS V1.0 workflow structure, validation, and agents.
+---
+
+# AKIOS V1.0 Workflow Schema Guide
+
+**Version 1.0.0** | **Last Updated:** January 26, 2026
+
+## Overview
+
+AKIOS includes automatic workflow validation to ensure your custom workflows are structured correctly and will execute reliably. This validation helps catch common mistakes before they cause problems.
+
+## What is Workflow Validation?
+
+Workflow validation ensures that your `workflow.yml` file follows the correct structure that AKIOS expects. Think of it as a friendly assistant that checks your workflow for obvious issues before you run it.
+
+### Key Benefits
+
+- **Catch mistakes early** - Know immediately if your workflow has structural issues
+- **Clear error messages** - Get helpful guidance when something is wrong
+- **Invisible when working** - No impact on valid workflows
+- **Consistent experience** - All workflows follow the same reliable structure
+
+## What Gets Validated?
+
+### Required Workflow Structure
+
+Every workflow must have these three elements:
+
+```yaml
+name: "Your Workflow Name"        # Required: String
+description: "What it does"       # Required: String
+steps:                            # Required: Array of steps
+  # ... workflow steps go here
+```
+
+### Step Structure
+
+Each step in your workflow must include:
+
+```yaml
+steps:
+  - step: 1                       # Optional: Step number (recommended) or unique string ID
+    agent: llm                    # Required: One of 4 agents
+    action: complete              # Required: Agent-specific action
+    config: {}                    # Optional: Agent configuration
+    parameters: {}                # Required: Action parameters
+```
+
+### Allowed Agents
+
+AKIOS V1.0 supports exactly 4 agents:
+
+| Agent | Purpose | Example Actions |
+|-------|---------|-----------------|
+| `llm` | AI language model calls | `complete`, `chat` |
+| `http` | Web API calls | `get`, `post`, `put`, `delete` |
+| `filesystem` | File operations | `read`, `write`, `stat` |
+| `tool_executor` | System commands | `run` |
+
+## Common Validation Errors
+
+### Missing Required Fields
+
+**Error:** `Step 1: missing required field 'action'`
+
+**Fix:** Add the missing field to your step:
+```yaml
+steps:
+  - step: 1
+    agent: llm
+    action: complete  # ← Add this
+    parameters: { "prompt": "Hello" }
+```
+
+### Unknown Agent
+
+**Error:** `Step 1 uses unknown agent 'gpt'. Valid agents: filesystem, http, llm, tool_executor`
+
+**Fix:** Use one of the 4 supported agents:
+```yaml
+agent: llm  # ← Use llm instead of gpt
+```
+
+### Invalid Action for Agent
+
+**Error:** `Step 1: action 'execute' not allowed for agent 'filesystem'. Must be one of: read, write, stat`
+
+**Fix:** Use an action supported by that agent:
+```yaml
+agent: filesystem
+action: read  # ← Use read instead of execute
+```
+
+## Example Valid Workflows
+
+### Simple LLM Workflow
+```yaml
+name: "AI Greeting Generator"
+description: "Generate a creative greeting using AI"
+
+steps:
+  - step: 1
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Generate a creative greeting"
+      max_tokens: 50
+```
+
+### Multi-Step Workflow
+```yaml
+name: "Data Processing Pipeline"
+description: "Read data, process with AI, save results"
+
+steps:
+  - step: 1
+    agent: filesystem
+    action: read
+    parameters:
+      path: "./data/input.txt"
+
+  - step: 2
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Summarize this data: {{step_1.content}}"
+      max_tokens: 100
+
+  - step: 3
+    agent: filesystem
+    action: write
+    parameters:
+      path: "./data/summary.txt"
+      content: "{{step_2.text}}"
+```
+
+## Template Customization
+
+When you customize templates (like `templates/hello-workflow.yml`), the validation ensures your changes don't break the basic structure.
+
+### Safe Customizations
+
+These changes are validated and will work:
+
+```yaml
+# ✅ Change parameters
+parameters:
+  prompt: "Your custom prompt here"
+  max_tokens: 100
+
+# ✅ Change agent config
+config:
+  provider: grok
+  model: grok-3
+
+# ✅ Add new steps (following the structure)
+- step: 4
+  agent: filesystem
+  action: write
+  parameters:
+    path: "./output.txt"
+    content: "Done!"
+```
+
+### What Won't Work
+
+These will trigger validation errors:
+
+```yaml
+# ❌ Wrong agent name
+agent: openai  # Use 'llm' instead
+
+# ❌ Invalid action
+action: generate_text  # Use 'complete' instead
+
+# ❌ Missing required fields
+- step: 1
+  agent: llm
+  # Missing 'action' and 'parameters'
+```
+
+## Validation Behavior
+
+### When Validation Passes
+- ✅ Workflow executes normally
+- ✅ No validation messages shown
+- ✅ Zero performance impact
+
+### When Validation Fails
+- ❌ Workflow stops before execution
+- ❌ Clear error message explaining the problem
+- ❌ Helpful guidance on how to fix it
+
+### Example Error Flow
+
+```bash
+$ ./akios run workflow.yml
+Error: Workflow validation failed:
+- Error: Invalid workflow configuration
+  Step 2 is missing the 'action' field
+
+  Each step needs: agent, action, parameters
+  Hint: Check your workflow.yml and compare with the original template.
+```

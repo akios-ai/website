@@ -230,6 +230,10 @@ const build = async () => {
             const isDocs = relPath.startsWith('docs/') || relPath.startsWith('fr/docs/');
             const isBlog = relPath.startsWith('blog/') || relPath.startsWith('fr/blog/');
 
+            // Define header and footer for both docs and blog
+            const header = injectI18n(headerTemplate, locale);
+            const footer = injectI18n(footerTemplate, locale);
+
             if (isDocs) {
                 const docsSidebar = `
             <aside class="docs-sidebar">
@@ -273,6 +277,46 @@ const build = async () => {
                 </nav>
             </aside>`;
 
+                let pageContent = `
+<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${t('nav.docs', locale)}</title>
+    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
+</head>
+<body>
+    ${header.replace(/{{root}}/g, '{{ROOT}}')}
+    
+    <div class="page">
+        <div class="docs-wrapper">
+            ${docsSidebar}
+            
+            <main class="docs-content">
+                ${htmlBody}
+            </main>
+        </div>
+    </div>
+
+    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
+
+    <script>
+        (function() {
+            const path = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.docs-nav a');
+            
+            sidebarLinks.forEach(link => {
+                const href = link.getAttribute('href');
+                if (path.endsWith(href)) {
+                    link.classList.add('active');
+                }
+            });
+        })();
+    </script>
+</body>
+</html>`;
+
                 const baseRel = relPath.replace(ext, '.html');
                 const targets = [baseRel, ...prettyPaths(baseRel)];
                 for (const finalRel of targets) {
@@ -285,9 +329,6 @@ const build = async () => {
                     } else {
                         locales.en.meta.lang_switch_url = '/fr/' + relPath.replace(ext, '.html');
                     }
-
-                    const header = injectI18n(headerTemplate, locale);
-                    const footer = injectI18n(footerTemplate, locale);
 
                     let pageContent = `
 <!DOCTYPE html>
@@ -335,7 +376,96 @@ const build = async () => {
                     console.log(`Built MDX docs -> HTML (${locale}): ${htmlDistPath}`);
                 }
             } else if (isBlog) {
-                let pageContent = '<html></html>';
+                let pageContent = `
+<!DOCTYPE html>
+<html lang="${locale}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AKIOS — ${t('nav.blog', locale)}</title>
+    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
+    <link rel="icon" href="{{ROOT}}/assets/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    ${header.replace(/{{root}}/g, '{{ROOT}}')}
+    
+    <article class="section">
+        <div class="page">
+            <div class="blog-post-wrapper">
+                <div class="blog-post-main">
+                    ${htmlBody}
+                </div>
+                <!-- TOC DISABLED - Commented out for future use
+                <aside class="blog-toc">
+                    <div class="blog-toc-sticky">
+                        <h4>${t('blog_post.table_of_contents', locale)}</h4>
+                        <nav class="toc-nav"></nav>
+                    </div>
+                </aside>
+                -->
+            </div>
+        </div>
+    </article>
+
+    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
+    
+    <!-- TOC DISABLED - Commented out for future use
+    <script>
+        // Generate TOC from headings
+        (function() {
+            const content = document.querySelector('.blog-post-main .post-content');
+            const tocNav = document.querySelector('.toc-nav');
+            if (!content || !tocNav) return;
+            
+            const headings = content.querySelectorAll('h2');
+            if (headings.length === 0) {
+                document.querySelector('.blog-toc').style.display = 'none';
+                return;
+            }
+            
+            const tocList = document.createElement('ul');
+            headings.forEach((heading, index) => {
+                const id = 'heading-' + index;
+                heading.id = id;
+                
+                const li = document.createElement('li');
+                li.className = heading.tagName.toLowerCase();
+                const a = document.createElement('a');
+                a.href = '#' + id;
+                a.textContent = heading.textContent;
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                };
+                li.appendChild(a);
+                tocList.appendChild(li);
+            });
+            
+            tocNav.appendChild(tocList);
+            
+            // Highlight current section on scroll
+            let currentActive = null;
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        const link = tocNav.querySelector('a[href="#' + id + '"]');
+                        if (link) {
+                            if (currentActive) currentActive.classList.remove('active');
+                            link.classList.add('active');
+                            currentActive = link;
+                        }
+                    }
+                });
+            }, { rootMargin: '0px 0px -80% 0px' });
+            
+            headings.forEach(heading => observer.observe(heading));
+        })();
+    </script>
+    -->
+</body>
+</html>`;
+
                 const baseRel = relPath.replace(ext, '.html');
                 const targets = [baseRel, ...prettyPaths(baseRel)];
                 for (const finalRel of targets) {
@@ -348,11 +478,6 @@ const build = async () => {
                     } else {
                         locales.en.meta.lang_switch_url = '/fr/' + relPath.replace(ext, '.html');
                     }
-
-                    const header = injectI18n(headerTemplate, locale);
-                    const footer = injectI18n(footerTemplate, locale);
-
-
 
                     const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
                     const htmlDistPath = path.join(DIST_DIR, finalRel);
@@ -360,23 +485,7 @@ const build = async () => {
                     console.log(`Built MDX blog -> HTML (${locale}): ${htmlDistPath}`);
                 }
             } else {
-                const baseRel = relPath.replace(ext, '.html');
-                const targets = [baseRel, ...prettyPaths(baseRel)];
-                for (const finalRel of targets) {
-                    const prefix = getRootPrefixFromTarget(finalRel);
-                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
-
-                    // Set dynamic lang_switch_url
-                    if (relPath.startsWith('fr/')) {
-                        locales.fr.meta.lang_switch_url = '/' + relPath.substring(3).replace(ext, '.html');
-                    } else {
-                        locales.en.meta.lang_switch_url = '/fr/' + relPath.replace(ext, '.html');
-                    }
-
-                    const header = injectI18n(headerTemplate, locale);
-                    const footer = injectI18n(footerTemplate, locale);
-
-                    let pageContent = `
+                let pageContent = `
 <!DOCTYPE html>
 <html lang="${locale}">
 <head>
@@ -395,6 +504,19 @@ const build = async () => {
     ${footer.replace(/{{root}}/g, '{{ROOT}}')}
 </body>
 </html>`;
+
+                const baseRel = relPath.replace(ext, '.html');
+                const targets = [baseRel, ...prettyPaths(baseRel)];
+                for (const finalRel of targets) {
+                    const prefix = getRootPrefixFromTarget(finalRel);
+                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
+
+                    // Set dynamic lang_switch_url
+                    if (relPath.startsWith('fr/')) {
+                        locales.fr.meta.lang_switch_url = '/' + relPath.substring(3).replace(ext, '.html');
+                    } else {
+                        locales.en.meta.lang_switch_url = '/fr/' + relPath.replace(ext, '.html');
+                    }
 
                     const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
                     const htmlDistPath = path.join(DIST_DIR, finalRel);

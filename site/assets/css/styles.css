@@ -332,7 +332,7 @@ img {
 }
 
 .lang-switch-label {
-  font-size: 0.625rem;
+  font-size: 0.6225rem;
   color: var(--muted);
 }
 
@@ -503,7 +503,7 @@ pre {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 4px 8px;
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   color: var(--muted);
   cursor: pointer;
   opacity: 0;
@@ -782,7 +782,7 @@ blockquote p:last-child {
 
 .post-meta {
   font-family: var(--font-mono);
-  font-size: 0.625rem; /* Tech-spec size */
+  font-size: 0.75rem; /* Tech-spec size */
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--muted);
@@ -864,7 +864,7 @@ blockquote p:last-child {
 
 /* Post Read Time */
 .post-read-time {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 
@@ -1016,7 +1016,7 @@ Table of Contents
 }
 
 .docs-nav .section-title {
-  font-size: 0.625rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text);
@@ -1274,7 +1274,7 @@ Table of Contents
   }
 
   .btn {
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     padding: 0.4rem 0.9rem;
     white-space: nowrap;
   }
