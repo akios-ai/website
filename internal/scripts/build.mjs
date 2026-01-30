@@ -272,6 +272,7 @@ const build = async () => {
                     <ul>
                         <li><a href="{{ROOT}}/docs/best-practices.html">Best Practices</a></li>
                         <li><a href="{{ROOT}}/docs/deployment.html">Deployment</a></li>
+                        <li><a href="{{ROOT}}/docs/ec2-deployment.html">EC2 Deployment</a></li>
                         <li><a href="{{ROOT}}/docs/migration-guide.html">Migration Guide</a></li>
                     </ul>
                 </nav>

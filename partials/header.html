@@ -10,10 +10,15 @@
         <a href="{{root}}/blog/index.html">{{i18n.nav.blog}}</a>
         <a href="{{root}}/community.html">{{i18n.nav.community}}</a>
         <a href="https://github.com/akios-ai/akios" target="_blank">GitHub ↗</a>
-        <span class="lang-switch">
-          <span class="lang-switch-label">{{i18n.meta.lang_label}}</span>
-          <a href="{{root}}{{i18n.meta.lang_switch_url}}" class="lang-link">{{i18n.meta.lang_switch_label}}</a>
-        </span>
+        <div class="lang-switch">
+          <select id="lang-select" onchange="if(this.value) window.location.href = this.value;">
+            <option value="{{root}}/index.html">EN</option>
+            <option value="{{root}}/fr/index.html">FR</option>
+          </select>
+        </div>
+        <script>
+          document.getElementById('lang-select').value = window.location.pathname.includes('/fr/') ? '{{root}}/fr/index.html' : '{{root}}/index.html';
+        </script>
       </nav>
     </div>
   </header>
