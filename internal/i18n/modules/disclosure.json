@@ -3,7 +3,7 @@
     "disclosure_page": {
       "title": "Vulnerability Disclosure — AKIOS",
       "description": "Vulnerability Disclosure Policy for reporting security issues to AKIOS.",
-      "heading": "Vulnerability Disclosure Policy – akios.ai",
+      "heading": "Vulnerability Disclosure Policy",
       "last_updated": "Last updated: 2026-01-26",
       "contact_intro": "Email: security@akioud.ai",
       "report_details": "Please include: component/URL, reproduction steps, impact, logs or PoC, and secure contact method.",
@@ -23,7 +23,7 @@
     "disclosure_page": {
       "title": "Divulgation de vulnérabilités — AKIOS",
       "description": "Politique de divulgation de vulnérabilités pour signaler des problèmes de sécurité à AKIOS.",
-      "heading": "Politique de divulgation de vulnérabilités – akios.ai",
+      "heading": "Politique de divulgation de vulnérabilités",
       "last_updated": "Dernière mise à jour : 2026-01-26",
       "contact_intro": "Email : security@akioud.ai",
       "report_details": "Merci d’inclure : composant/URL concerné, étapes de reproduction, impact, journaux ou PoC, et un moyen de contact sécurisé.",
