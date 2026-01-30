@@ -49,36 +49,48 @@ flowchart LR
 
 const heroDiagram = `
 flowchart TB
-  classDef core fill:#06b6d4,stroke:#06b6d4,stroke-width:3,color:#18181b,font-weight:700
-  classDef layer fill:#ffffff,stroke:#06b6d4,stroke-width:2.25,color:#18181b,font-weight:650
+  classDef core fill:#06b6d4,stroke:#06b6d4,stroke-width:3,color:#ffffff,font-weight:700
+  classDef layer fill:#ffffff,stroke:#06b6d4,stroke-width:2,color:#18181b,font-weight:600
   classDef input fill:#f4f4f5,stroke:#a1a1aa,stroke-width:2,stroke-dasharray: 5 5,color:#52525b
-  classDef badge fill:#06b6d4,stroke:#06b6d4,stroke-width:2,color:#ffffff,font-weight:700,rx:5,ry:5
+  classDef badge fill:#0891b2,stroke:none,color:#ffffff,font-weight:600,font-size:12px,rx:12,ry:12
   
-  linkStyle default stroke:#18181b,stroke-width:2.25,color:#18181b
+  linkStyle default stroke:#18181b,stroke-width:2,color:#18181b
 
-  Src[Untrusted Agents\nLLMs & Code]:::input
+  Src[Untrusted Agents]:::input
 
   subgraph AKIOS [AKIOS Secure Runtime]
     direction TB
-    style AKIOS fill:#ecfeff,stroke:#06b6d4,stroke-width:3,color:#0e7490,font-weight:700,rx:10,ry:10
+    style AKIOS fill:#ecfeff,stroke:#06b6d4,stroke-width:3,color:#0e7490,font-weight:700,rx:8,ry:8
     
-    Guard[Policy Guard\nAllowlist Only]:::layer
-    Sandbox[Sandbox Kernel\nComplete Isolation]:::layer
-    Audit[Audit Ledger\nImmutable Log]:::layer
+    subgraph PBox [ ]
+      direction LR
+      style PBox fill:#ffffff,stroke:#a5f3fc,stroke-width:2,rx:6,ry:6
+      Guard[Guard]:::layer
+      B1([Policy-as-Code]):::badge
+      Guard --- B1
+    end
+
+    subgraph SBox [ ]
+      direction LR
+      style SBox fill:#ffffff,stroke:#a5f3fc,stroke-width:2,rx:6,ry:6
+      Sandbox[Sandbox Kernel]:::layer
+    end
+
+    subgraph ABox [ ]
+      direction LR
+      style ABox fill:#ffffff,stroke:#a5f3fc,stroke-width:2,rx:6,ry:6
+      Audit[Audit Ledger]:::layer
+      B2([Attested Actions]):::badge
+      Audit --- B2
+    end
     
-    Guard --> Sandbox --> Audit
-
-    Badge1[Policy-as-code]:::badge
-    Badge2[Attested actions]:::badge
-
-    Guard -.-> Badge1
-    Audit -.-> Badge2
+    PBox --> SBox --> ABox
   end
 
-  Dest[Your Infrastructure\nAPIs · DBs · Cloud]:::core
+  Dest[Infrastructure]:::core
 
-  Src --> Guard
-  Audit --> Dest
+  Src --> PBox
+  ABox --> Dest
 `;
 
 fs.mkdirSync(outDir, { recursive: true });

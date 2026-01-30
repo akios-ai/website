@@ -1,0 +1,118 @@
+# Guide de Démarrage Rapide
+
+**Maîtriser AKIOS V1.0 - De Débutant à Utilisateur Avancé**
+
+*Tutoriel complet : 15-30 minutes*
+
+---
+
+## Qu'est-ce qu'AKIOS ?
+
+AKIOS (AI Knowledge & Intelligence Operating System) est un **environnement d'exécution axé sur la sécurité** pour les flux de travail d'agents IA. Il fournit une "Cage de Sécurité" pour vos agents IA, garantissant :
+
+- **🛡️ Sécurité de Niveau Militaire** : Sandboxing, protection PII et pistes d'audit.
+- **🤖 Support IA Multi-Fournisseurs** : OpenAI, Anthropic, Grok, Mistral, Gemini.
+- **⚡ Prêt pour la Production** : Sorties IA réelles, gestion des erreurs et journaux inaltérables.
+
+---
+
+## 1. Installation
+
+AKIOS V1.0 fournit un binaire autonome pour une exécution sans configuration.
+
+### Télécharger le Binaire (Recommandé)
+
+**Linux (x64)**
+```bash
+curl -L -o akios-linux-x64 https://github.com/akios-ai/akios/releases/download/v1.0.0/akios-linux-x64
+chmod +x akios-linux-x64
+```
+
+**macOS (Universel)**
+```bash
+curl -L -o akios-macos-universal https://github.com/akios-ai/akios/releases/download/v1.0.0/akios-macos-universal
+chmod +x akios-macos-universal
+```
+
+**Windows (x64)**
+Téléchargez `akios-windows-x64.exe` depuis les [Releases GitHub](https://github.com/akios-ai/akios/releases).
+
+> **Autres Méthodes** : Voir le [Guide d'Installation](installation) pour les instructions Pip (Python) ou Docker.
+
+---
+
+## 2. Créer Votre Projet
+
+Initialisez un nouveau squelette de projet. Cela crée votre configuration, vos modèles et la structure des répertoires.
+
+```bash
+# Linux
+./akios-linux-x64 init my-project
+
+# macOS
+./akios-macos-universal init my-project
+
+# Windows
+.\akios-windows-x64.exe init my-project
+```
+
+Naviguez dans votre nouveau projet :
+
+```bash
+cd my-project
+```
+
+---
+
+## 3. Configurer et Exécuter
+
+Exécutez votre premier flux de travail. L'**Assistant de Configuration Interactif** se lancera automatiquement pour vous aider à configurer votre fournisseur IA.
+
+```bash
+# Linux
+../akios-linux-x64 run templates/hello-workflow.yml
+
+# macOS
+../akios-macos-universal run templates/hello-workflow.yml
+```
+
+**L'Assistant vous guidera pour :**
+1.  Sélectionner votre Fournisseur IA (OpenAI, Anthropic, Grok, Mistral, Gemini).
+2.  Entrer votre Clé API (stockée en toute sécurité dans `.env`).
+3.  Définir les limites budgétaires (par ex. 1,00 $ max).
+4.  Vérifier la connectivité.
+
+---
+
+## 4. Explorer la "Cage de Sécurité"
+
+AKIOS ne fait pas que lancer le script ; il le surveille.
+
+### Voir le Statut de Sécurité
+Vérifiez le statut de votre projet et les mesures de sécurité actives.
+
+```bash
+../akios-linux-x64 status --security
+```
+
+### Journaux d'Audit
+Chaque action est enregistrée cryptographiquement. Vérifiez la piste d'audit :
+
+```bash
+cat audit/audit_events.jsonl
+```
+
+### Nettoyage
+Supprimez les données des anciennes exécutions lorsque vous avez terminé.
+
+```bash
+../akios-linux-x64 clean --old-runs
+```
+
+---
+
+## Prochaines Étapes
+
+- **[Configuration](config-reference)** : Paramètres avancés dans `config.yaml`.
+- **[Plongée dans la Sécurité](security)** : Comment fonctionnent le sandboxing et la rédaction PII.
+- **[Concepts](concepts)** : Architecture et agents principaux.

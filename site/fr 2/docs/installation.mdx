@@ -1,0 +1,93 @@
+# Installation
+
+AKIOS V1.0 prend en charge quatre méthodes de déploiement officielles. Choisissez celle qui correspond à vos besoins de sécurité et à votre système d'exploitation.
+
+## 1. Binaire Autonome (Recommandé)
+
+**Aucune configuration requise.** Téléchargez un binaire unique et lancez-le. C'est le moyen le plus rapide de démarrer et fonctionne parfaitement dans les environnements isolés (air-gapped).
+
+### Linux (x64)
+```bash
+# Télécharger
+curl -L -o akios-linux-x64 https://github.com/akios-ai/akios/releases/download/v1.0.0/akios-linux-x64
+
+# Rendre exécutable
+chmod +x akios-linux-x64
+
+# Exécuter
+./akios-linux-x64 init my-project
+```
+
+### macOS (Universel)
+```bash
+# Télécharger
+curl -L -o akios-macos-universal https://github.com/akios-ai/akios/releases/download/v1.0.0/akios-macos-universal
+
+# Rendre exécutable
+chmod +x akios-macos-universal
+
+# Exécuter
+./akios-macos-universal init my-project
+```
+
+### Windows (x64)
+Téléchargez `akios-windows-x64.exe` depuis la [Page des Releases](https://github.com/akios-ai/akios/releases).
+
+```powershell
+# Exécuter dans PowerShell
+.\akios-windows-x64.exe init my-project
+```
+
+## 2. Paquet Pip (Développeurs Python)
+
+Pour une intégration transparente avec les flux de travail Python et les pipelines CI/CD.
+
+```bash
+# Installer via pip
+pip install akios
+
+# Initialiser le projet
+akios init my-project
+```
+
+**Note :** Sur Linux, cette méthode applique un sandboxing complet au niveau du noyau (cgroups + seccomp). Sur macOS/Windows, elle fonctionne avec une isolation de processus standard.
+
+## 3. Wrapper Docker (Équipes Multi-Plateformes)
+
+Un script shell léger qui gère le conteneur Docker pour vous. Idéal pour les équipes travaillant sur différents systèmes d'exploitation.
+
+```bash
+# Télécharger le script wrapper
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+
+# Vérifier le téléchargement (~3.4KB)
+ls -la akios && file akios
+
+# Rendre exécutable
+chmod +x akios
+
+# Exécuter
+./akios init my-project
+```
+
+## 4. Docker Direct (Secours d'Urgence)
+
+Utilisez ceci si vous ne pouvez pas télécharger le script wrapper ou préférez la gestion directe des conteneurs.
+
+```bash
+# Exécuter directement
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 init my-project
+```
+
+## Comparaison
+
+| Méthode | Idéal Pour | Sécurité | Support OS |
+|---------|------------|----------|------------|
+| **Binaire** | **Démarrage Rapide / Air-Gapped** | Élevée | Linux, macOS, Windows |
+| **Pip** | **Devs Python / CI/CD** | **Max (Linux)** | Linux, macOS, Windows |
+| **Docker** | **Équipes Multi-Plateformes** | Élevée (Conteneur) | Linux, macOS, Windows |
+| **Direct** | **Secours / Automatisation** | Élevée (Conteneur) | Linux, macOS, Windows |
+
+## Prochaines Étapes
+
+Une fois installé, passez au guide de [Démarrage Rapide](quickstart) pour exécuter votre premier flux de travail sécurisé.

@@ -1,0 +1,101 @@
+# Use Cases & Examples
+
+Where AKIOS fits in your infrastructure and day-to-day workflows.
+
+## Core Scenarios
+
+### Running 3rd-Party Agents
+When you download an agent from a marketplace or a community repo, you can't be sure what it does. AKIOS lets you run these agents safely on your local machine or dev server without risking your data.
+
+### CI/CD Pipelines
+Integrate AKIOS into your CI/CD pipeline to test agents before deploying them. You can verify that an agent adheres to its declared policies (for example, it doesn't try to access the internet if it shouldn't).
+
+### Data Processing Jobs
+Run sensitive data processing tasks in an ephemeral, network-isolated environment to ensure no data leaks occur during processing.
+
+## Real-World Examples
+
+Specific examples of how the security cage solves practical problems.
+
+### 1. Secure Incoming Document Processing (Public Sector)
+
+**Problem**: Government agencies receive citizen documents containing sensitive PII (names, SSNs).
+**Solution**: Read document -> Redact PII -> Summarize with LLM -> Save.
+
+```yaml
+name: "Secure Document Summary"
+description: "Redacts PII and summarizes a PDF."
+steps:
+  - step: "read_pdf"
+    agent: "filesystem"
+    action: "read"
+    parameters:
+      path: "/inputs/application.txt"
+
+  - step: "analyze"
+    agent: "llm"
+    action: "complete"
+    parameters:
+      model: "gpt-4"
+      # PII redaction happens automatically here by the cage
+      prompt: "Summarize this application: {{read_pdf.content}}"
+
+  - step: "save"
+    agent: "filesystem"
+    action: "write"
+    parameters:
+      path: "/outputs/summary.txt"
+      content: "{{analyze.text}}"
+```
+
+**Value**: GDPR-compliant processing with verifiable audit trails.
+
+### 2. External API Enrichment (Finance)
+
+**Problem**: Enrich client data via external API without exposing PII or exceeding budget.
+**Solution**: Fetch Data -> Redact -> Enrich -> Cost Kill-Switch.
+
+```yaml
+name: "KYC Enrichment"
+description: "Fetches user data and analyzes risk."
+steps:
+  - step: "fetch_data"
+    agent: "http"
+    action: "get"
+    parameters:
+      url: "https://api.external-data.com/user/{{user_id}}"
+
+  - step: "risk_analysis"
+    agent: "llm"
+    action: "complete"
+    parameters:
+      model: "claude-3-opus"
+      prompt: "Analyze risk for this user data: {{fetch_data.body}}"
+
+  - step: "save_report"
+    agent: "filesystem"
+    action: "write"
+    parameters:
+      path: "/reports/{{user_id}}_risk.json"
+      content: "{{risk_analysis.text}}"
+```
+
+**Value**: Strict cost control ($1.00 limit) and PII protection for sensitive financial data.
+
+### 3. Secure Tool Execution (DevOps)
+
+**Problem**: Run a Python script to analyze logs without giving it full system access.
+**Solution**: Tool Agent with strict command allowlist.
+
+```yaml
+name: "Log Analyzer"
+description: "Runs a python script to parse logs."
+steps:
+  - step: "run_script"
+    agent: "tool_executor"
+    action: "run"
+    parameters:
+      command: "python3 /scripts/analyze_logs.py --input /logs/server.log"
+```
+
+**Value**: The script cannot access the network or files outside the allowed paths.

@@ -1,0 +1,93 @@
+# Installation
+
+AKIOS V1.0 supports four official deployment methods. Choose the one that matches your security requirements and operating system.
+
+## 1. Standalone Binary (Recommended)
+
+**Zero setup required.** Download a single binary and run it. This is the fastest way to get started and works perfectly in air-gapped environments.
+
+### Linux (x64)
+```bash
+# Download
+curl -L -o akios-linux-x64 https://github.com/akios-ai/akios/releases/download/v1.0.0/akios-linux-x64
+
+# Make executable
+chmod +x akios-linux-x64
+
+# Run
+./akios-linux-x64 init my-project
+```
+
+### macOS (Universal)
+```bash
+# Download
+curl -L -o akios-macos-universal https://github.com/akios-ai/akios/releases/download/v1.0.0/akios-macos-universal
+
+# Make executable
+chmod +x akios-macos-universal
+
+# Run
+./akios-macos-universal init my-project
+```
+
+### Windows (x64)
+Download `akios-windows-x64.exe` from the [Releases Page](https://github.com/akios-ai/akios/releases).
+
+```powershell
+# Run in PowerShell
+.\akios-windows-x64.exe init my-project
+```
+
+## 2. Pip Package (Python Developers)
+
+For seamless integration with Python workflows and CI/CD pipelines.
+
+```bash
+# Install via pip
+pip install akios
+
+# Initialize project
+akios init my-project
+```
+
+**Note:** On Linux, this method enforces full kernel-level sandboxing (cgroups + seccomp). On macOS/Windows, it runs with standard process isolation.
+
+## 3. Docker Wrapper (Cross-Platform Teams)
+
+A lightweight shell script that manages the Docker container for you. Best for teams working across different operating systems.
+
+```bash
+# Download wrapper script
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+
+# Verify download (~3.4KB shell script)
+ls -la akios && file akios
+
+# Make executable
+chmod +x akios
+
+# Run
+./akios init my-project
+```
+
+## 4. Direct Docker (Emergency Fallback)
+
+Use this if you cannot download the wrapper script or prefer direct container management.
+
+```bash
+# Run directly
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v1.0.0 init my-project
+```
+
+## Comparison
+
+| Method | Best For | Security | OS Support |
+|--------|----------|----------|------------|
+| **Binary** | **Quick Start / Air-Gapped** | High | Linux, macOS, Windows |
+| **Pip** | **Python Devs / CI/CD** | **Max (Linux)** | Linux, macOS, Windows |
+| **Docker** | **Cross-Platform Teams** | High (Container) | Linux, macOS, Windows |
+| **Direct** | **Fallback / Automation** | High (Container) | Linux, macOS, Windows |
+
+## Next Steps
+
+Once installed, proceed to the [Quick Start](quickstart) guide to run your first secure workflow.

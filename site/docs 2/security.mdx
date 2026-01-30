@@ -1,0 +1,89 @@
+# Security Model & Features
+
+AKIOS V1.0 provides **strong, policy-based security** for AI agents across all platforms. The system is built around container isolation, real-time protection, and comprehensive audit trails.
+
+## 🔒 Security Overview
+
+AKIOS provides a "Security Cage" for your AI agents, ensuring they operate within strict boundaries.
+
+## 📋 Supported Versions
+
+| Version | Supported     | Security Updates |
+|---------|---------------|------------------|
+| 1.0.x   | ✅ Active     | ✅ Full Support   |
+| <1.0    | ❌ End of Life| ❌ No Support    |
+
+## 🚨 Reporting Vulnerabilities
+
+**DO NOT report security issues on public GitHub.**
+
+Send private reports to: **hello@akios.ai**
+
+### What to Include
+- Clear description of the vulnerability
+- Steps to reproduce
+- Affected versions
+- Potential impact (e.g. sandbox bypass, PII leak)
+- Suggested fix (if any)
+
+We acknowledge reports within 24 hours and aim to triage within 72 hours.
+
+## Security Features
+
+### 🛡️ Container Isolation
+- **Policy-based sandbox**: Command allowlisting and path restrictions.
+- **Resource quotas**: CPU, memory, and disk limits via cgroups v2.
+- **Process isolation**: Container-based separation from the host system.
+- **Network controls**: Controlled external access (default deny).
+
+### 🔒 AI-Specific Protections
+- **PII Redaction**: Automatic detection and redaction of sensitive data (50+ patterns including financial, health, and location data).
+- **Cost Kill-Switches**: Automatic termination on budget violations.
+- **Input Validation**: Automatic size limits and safety checks.
+- **Loop Prevention**: Detection and blocking of infinite agent loops.
+- **Output Sanitization**: Post-processing redaction of AI-generated content.
+
+### 📜 Audit & Compliance
+- **Comprehensive Logging**: All operations tracked with timestamps.
+- **Merkle Audit Ledger**: Tamper-evident cryptographic audit trails.
+- **PII-Safe Logs**: Sensitive data redacted in real-time.
+- **Export Capabilities**: Reports for GDPR, HIPAA, and CCPA compliance.
+
+## Platform Security Levels
+
+| Environment | Security Level | Notes |
+|-------------|----------------|-------|
+| **Native Linux** | **Full (Kernel-Hard)** | Uses cgroups v2 + seccomp-bpf for maximum isolation. Recommended for high-security environments. |
+| **Docker (Mac/Win/Linux)** | **Strong (Policy-Based)** | Provides strong container isolation, PII redaction, and audit trails. Does not enforce host filesystem permissions as strictly as native Linux. |
+
+### Note on Docker Security
+Docker mode provides **strong policy-based security** but cannot fully enforce host filesystem permissions (e.g., `chmod 444` bypass) or kernel-level seccomp filters on non-Linux hosts. For maximum paranoia or compliance environments, use **Native Linux**.
+
+## What We Protect In V1.0
+
+- **Security sandboxing**: Kernel-hard on native Linux, strong policy-based in Docker.
+- **Syscall interception & resource quotas**: Preventing runaway processes.
+- **Real-time PII redaction**: Protecting sensitive user data.
+- **Enforced cost & loop kill-switches**: Preventing financial drain.
+- **Merkle tamper-evident audit ledger**: Ensuring accountability.
+
+**No guarantees**: No software is 100% secure. Users must secure their environment and validate outputs.
+
+## Verifying Security
+
+You can view the comprehensive security status and active protections using the dashboard command:
+
+```bash
+# Show detailed security dashboard
+akios status --security
+
+# Show security information in JSON format
+akios status --security --json
+```
+
+### What the Dashboard Shows
+- **Security Level**: Full vs Strong
+- **PII Protection**: Active/Inactive
+- **Network Access**: Allowed/Blocked
+- **Audit Logging**: Trail Status
+- **Cost Controls**: Budget Limits
