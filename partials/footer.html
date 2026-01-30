@@ -29,8 +29,46 @@
       </div>
     </div>
   </footer>
+
   <script>
     (function() {
+      // Cookie banner logic
+      const cookieBanner = document.getElementById('cookie-banner');
+      const acceptAllBtn = document.getElementById('accept-all-cookies');
+      const refuseAllBtn = document.getElementById('refuse-all-cookies');
+      const customizeBtn = document.getElementById('customize-cookies');
+
+      // Check if consent already given
+      if (!localStorage.getItem('cookie-consent')) {
+        cookieBanner.style.display = 'block';
+      }
+
+      acceptAllBtn.addEventListener('click', () => {
+        localStorage.setItem('cookie-consent', 'accepted');
+        cookieBanner.style.display = 'none';
+        // Enable analytics if any
+      });
+
+      refuseAllBtn.addEventListener('click', () => {
+        localStorage.setItem('cookie-consent', 'refused');
+        cookieBanner.style.display = 'none';
+        // Disable analytics
+      });
+
+      customizeBtn.addEventListener('click', () => {
+        // Redirect to cookie settings page
+        window.location.href = '{{root}}/cookies.html';
+      });
+
+      // Add cookie settings link to footer
+      const footerLinks = document.querySelector('.footer-links-fixed .footer-row');
+      if (footerLinks) {
+        const cookieLink = document.createElement('a');
+        cookieLink.href = '{{root}}/cookies.html';
+        cookieLink.textContent = 'Cookie settings';
+        footerLinks.appendChild(cookieLink);
+      }
+
       const path = window.location.pathname;
       
       // Get all links that start with ./, ../, or /
