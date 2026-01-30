@@ -8,7 +8,7 @@
     },
     "footer": {
       "copyright": "© 2026 AKIOS",
-      "tagline": "Secure runtime for untrusted AI agents. Open source (GPL-3), native Unix first.",
+      "tagline": "Secure runtime for untrusted AI agents. Open source (GPL-3.0-only), native Unix first.",
       "legal": "Legal"
     },
     "sidebar": {
@@ -44,7 +44,7 @@
     },
     "footer": {
       "copyright": "© 2026 AKIOS",
-      "tagline": "Runtime sécurisé pour agents IA non fiables. Open source (GPL-3), natif Unix.",
+      "tagline": "Runtime sécurisé pour agents IA non fiables. Open source (GPL-3.0-only), natif Unix.",
       "legal": "Mentions légales"
     },
     "sidebar": {
