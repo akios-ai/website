@@ -327,17 +327,10 @@ img {
   align-items: center;
   gap: 0.35rem;
   margin-left: var(--space-3);
-  font-size: 0.8125rem;
-  color: var(--muted);
 }
 
-.lang-switch-label {
-  font-size: 0.6225rem;
-  color: var(--muted);
-}
-
-.lang-link {
-  font-size: 0.8125rem;
+.lang-switch select {
+  border: 1px solid var(--accent);
 }
 
 /* --- Components: Hero --- */

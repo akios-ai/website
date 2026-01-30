@@ -1,0 +1,154 @@
+# Running AKIOS on AWS EC2
+
+Want to test AKIOS at scale? This guide helps you set up on AWS and validate performance for your specific use case.
+
+**Read this if:** You're testing AKIOS on AWS, need to understand performance expectations, or want to validate security on your infrastructure.
+
+**Time needed:** 20 minutes setup + 10 minutes testing = ~30 minutes total.
+
+## Quick Decision: Which Instance?
+
+**Just testing locally?** Start with **t3.medium** (~$15/month)
+- 2 vCPU, 4GB RAM
+- Our validated baseline
+- Good for development and learning
+
+**Small production workload?** Use **t3.large** (~$30/month)
+- 2 vCPU, 8GB RAM
+- 2x the memory of t3.medium
+- More burstable performance
+
+**Continuous high-throughput?** Choose **c6i.large** (~$70/month)
+- 2 vCPU, 4GB RAM
+- Sustained performance (no burst limits)
+- Best for always-on workloads
+
+**Unsure?** Start with t3.medium. Test it. Upgrade if needed.
+
+## Performance to Expect
+
+On t3.medium (our tested baseline):
+- **Startup:** ~25ms per workflow
+- **Throughput:** ~44 workflows per second
+- **Memory:** ~21MB per workflow
+
+**Real talk:** These numbers apply to t3.medium. Performance on other instances depends on CPU cores, region, and your workload. **Test your specific instance to verify.**
+
+## 4-Step Setup
+
+### 1. Create Instance
+
+AWS Console → EC2 → Launch Instances:
+- **AMI:** Ubuntu 22.04 LTS or 24.04 LTS
+- **Type:** t3.medium (or your choice)
+- **Key Pair:** Create and save the .pem file securely
+- **Security:** Allow SSH (port 22) from your IP
+- **Launch** → wait 2-3 minutes
+
+### 2. Connect
+
+```bash
+chmod 400 your-key.pem
+ssh -i your-key.pem ubuntu@your-instance-ip
+```
+
+### 3. Install AKIOS
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3-pip python3-venv
+pip install akios
+```
+
+### 4. Test It
+
+```bash
+akios setup    # Choose your LLM provider, enter API key
+akios run templates/hello-workflow.yml
+```
+
+Check output in `data/output/`
+
+## Verify It Works
+
+```bash
+# Check security is active
+akios status --security
+# Look for: "Full (kernel-hard)" or "Strong (policy-based)"
+
+# Check PII redaction
+echo "email: test@example.com" > sample.txt
+akios test --input sample.txt
+# Should show email redacted in output
+
+# Review audit logs
+cat audit/audit_events.jsonl | head -3
+```
+
+All three pass? Great! AKIOS is working on your instance.
+
+## Troubleshooting
+
+**Can't SSH?**
+- Check security group allows port 22
+- Use correct username: `ubuntu` for Ubuntu AMIs
+- Try: `ssh -v -i key.pem ubuntu@ip` for details
+
+**Slow performance?**
+- Check CPU/memory: `top`
+- Test network: `ping 8.8.8.8`
+- Try larger instance if needed
+
+**High memory usage?**
+- Check available: `free -h`
+- Reduce workflow input size
+- Try r6i instance for memory-intensive work
+
+**Command not found?**
+```bash
+pip install --upgrade akios
+```
+
+## Costs
+
+**t3.medium:** ~$15/month  
+**t3.large:** ~$30/month  
+**c6i.large:** ~$70/month  
+
+**Tips:**
+- Stop instances when not testing (pauses costs)
+- Terminate when done (full cleanup)
+- Watch your bill during testing
+- Set AWS billing alerts
+
+## Your Responsibilities
+
+✅ **You handle:**
+- AWS account security and access keys
+- Instance configuration and security groups
+- Monitoring and stopping instances
+- AWS and data transfer costs
+
+✅ **We provide:**
+- Secure sandbox isolation
+- PII redaction (50+ patterns)
+- Audit logging
+- Budget controls for LLM API calls
+
+## Security Basics
+
+- Keep `.pem` files secure (never commit to git)
+- Restrict security group to your IP only
+- Use IAM roles, not root credentials
+- Rotate credentials regularly
+- Terminate instances when done
+
+## Next Steps
+
+- [Deployment Guide](./deployment.mdx) — Production best practices
+- [Security Guide](./security.mdx) — Hardening details
+- [Best Practices](./best-practices.mdx) — Workflow patterns
+
+---
+
+**Legal:** AKIOS is provided "as-is." You're responsible for AWS security, costs, and validating performance on your chosen infrastructure. We validate baseline performance on t3.medium in us-east-1 only.

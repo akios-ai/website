@@ -23,65 +23,76 @@ cd my-project
 
 That's it! The setup wizard will guide you through API key configuration on first run.
 
-## Three Installation Options
+## Which Should I Use?
 
-### Option 1: Pip Package (Linux)
-Best for: Maximum security, Python developers, native Linux environments
+| Your Situation | Use This | Why |
+|----------------|----------|-----|
+| I'm on Linux and want max security | **Pip** | Full kernel isolation, fastest performance |
+| I'm on macOS or Windows | **Docker** | Only option (Docker required) |
+| My team uses different platforms | **Docker** | Everyone gets identical setup |
+| I need it in CI/CD pipelines | **Docker** (Direct) | Easy automation, no wrapper needed |
+| I do Python development | **Pip** | Access to Python libraries and extensions |
 
-**What you get:** Full kernel-hard security with cgroups v2 + seccomp-bpf syscall filtering
+## Two Installation Options
+
+### Option 1: Pip Package (Linux Only)
+Best for: Developers, CI/CD pipelines, custom extensions, full Python ecosystem access
+
+**What you get:** Native Python installation - access to Python libraries, plugins, and custom extensions (ecosystem integration)
 
 ```bash
-# Install
-pip install akios>={{version}}
-
-# Ubuntu 24.04+ users need pipx due to PEP 668
+# Ubuntu 24.04+ users: Use pipx instead of pip due to PEP 668
 sudo apt install pipx
 pipx install akios>={{version}}
 
-# Verify and create project
+# Other users (Ubuntu 20.04/22.04, macOS, Windows):
+pip install akios>={{version}}
+
+# Or install a specific version:
+pip install akios==1.0.4
+
+# Verify installation
 akios --version
 akios init my-project
 cd my-project
 ```
 
-### Option 2: Docker Wrapper (Recommended for Teams)
-Best for: Cross-platform teams, macOS/Windows users, consistent deployments
+### Option 2: Docker (macOS, Windows, Linux)
+Best for: Teams using containers, cloud deployments, CI/CD, zero-setup environments
 
-**What you get:** Strong policy-based security that works everywhere
+**Prerequisites:** Docker must be installed (download from [docker.com](https://www.docker.com/products/docker-desktop))
 
+**What you get:** Containerized deployment works everywhere - same environment on every machine, no Python installation needed
+
+**Option A: Direct Docker (for automation/CI/CD):**
 ```bash
-# Download the wrapper script (one-time)
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
-chmod +x akios
+# Pull the Docker image
+docker pull akiosai/akios:v{{version}}
 
-# Create your project
-./akios init my-project
-cd my-project
-
-# Run your first workflow
-./akios run templates/hello-workflow.yml
-
-# Update to latest image anytime
-AKIOS_FORCE_PULL=1 ./akios status
-```
-
-### Option 3: Direct Docker (CI/CD & Automation)
-Best for: Continuous integration, automated pipelines, when wrapper script isn't available
-
-```bash
+# Initialize a new project
 docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} init my-project
+
+# Run workflows
 cd my-project
 docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run templates/hello-workflow.yml
 ```
 
-## Which Should I Use?
+**Option B: Docker wrapper script (recommended - easier commands):**
+```bash
+# Create wrapper script (one-time setup)
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+chmod +x akios
 
-| Your Situation | Use This | Why |
-|----------------|----------|-----|
-| I'm on Linux and want maximum security | **Pip** | Full kernel isolation (cgroups v2, seccomp-bpf) |
-| I'm on macOS or Windows | **Docker** | Strong security, works everywhere |
-| My team uses different platforms | **Docker** | Same experience for everyone |
-| I need it for CI/CD pipelines | **Direct Docker** | Easy automation |
+# Now use ./akios like native installation
+./akios init my-project
+cd my-project
+./akios run templates/hello-workflow.yml
+
+# Force refresh image (pull latest)
+AKIOS_FORCE_PULL=1 ./akios status
+```
+
+
 
 ## Setup Your API Keys
 
