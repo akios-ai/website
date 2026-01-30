@@ -125,7 +125,7 @@ We welcome contributions!
 
 | Component | License |
 |-----------|---------|
-| **AKIOS Open Runtime** (separate repo) | GPL-3.0-or-later |
+| **AKIOS Open Runtime** (separate repo) | GPL-3.0-only |
 | **Website Source Code** (this repo) | MIT License |
 | **AKIOS PRO** | Proprietary |
 
