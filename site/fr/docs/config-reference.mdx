@@ -51,7 +51,7 @@ redaction_strategy: "mask"
 pii_redaction_outputs: true
 
 cost_kill_enabled: true
-max_tokens_per_call: 500
+max_tokens_per_call: 1000
 budget_limit_per_run: 1.0
 
 audit_enabled: true
@@ -90,7 +90,25 @@ log_level: "DEBUG"
 ## Notes de sécurité
 - Considérez `config.yaml`/`.env` en lecture seule à l’exécution; permissions `600`.
 - Échec rapide : `akios status` surface les erreurs de config; aucune exécution avec une config invalide.
+## Domaines autorisés (liste blanche HTTPS)
 
+Par défaut, **tout accès réseau externe est bloqué** (sécurité d'abord). Les endpoints LLM (OpenAI, Anthropic, Grok, Mistral, Gemini) passent toujours, quel que soit ce paramètre — `network_access_allowed` contrôle uniquement l'agent HTTP.
+
+**Configurer une liste blanche HTTPS pour l'agent HTTP :**
+```yaml
+# config.yaml
+network_access_allowed: true
+allowed_domains:
+  - "api.salesforce.com"
+  - "api.mycompany.com"
+```
+
+Ou via variable d'environnement :
+```bash
+AKIOS_ALLOWED_DOMAINS="api.salesforce.com,api.mycompany.com"
+```
+
+Les sous-domaines doivent être ajoutés explicitement — ils ne sont pas automatiquement autorisés.
 ## Related
 - [Sécurité](security.html)
 - [Schéma de politique](policy-schema.html)

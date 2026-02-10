@@ -6,7 +6,7 @@ Quick answers to common questions and explanations of key terms.
 
 ### What is AKIOS?
 
-AKIOS is a security-first runtime for AI agent workflows. It's not an agent framework — it's a security cage that wraps around agents, enforcing strict policies, sandboxing, PII redaction, and audit logging.
+AKIOS is a security-first runtime for AI agent workflows. It's not an agent framework — it's a security runtime that wraps around agents, enforcing strict policies, sandboxing, PII redaction, and audit logging.
 
 ### What's the strongest security setup?
 
@@ -136,7 +136,7 @@ steps:
 
 ### How do I report security issues?
 
-Email: **hello@akios.ai**
+Email: **security@akioud.ai**
 
 For vulnerability reports, see [Security Policy](security.html).
 
@@ -224,7 +224,7 @@ Hard limits that stop workflows automatically:
 
 ```yaml
 budget_limit_per_run: 1.0      # USD
-max_tokens_per_call: 500        # tokens
+max_tokens_per_call: 1000       # tokens
 cost_kill_enabled: true         # auto-terminate
 ```
 
@@ -264,7 +264,7 @@ steps:
       
   - name: "Analyze with AI"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Summarize: {previous_output}"
 ```

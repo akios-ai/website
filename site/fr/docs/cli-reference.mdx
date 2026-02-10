@@ -1,54 +1,293 @@
 # Référence CLI (AKIOS V1.0)
 
-Commandes essentielles de la cage de sécurité (pip, wrapper Docker ou Docker direct).
+Référence complète des commandes AKIOS. Toutes les commandes fonctionnent avec pip, le wrapper Docker ou Docker direct.
 
-## Global
+## Commandes rapides
+
+Les commandes les plus utilisées :
+
 ```bash
-akios --help            # commandes & options
-akios --version         # version/build
-akios --debug <cmd>     # logs verbeux
-AKIOS_JSON_MODE=1 akios status  # sortie JSON
+akios init mon-projet              # Créer un nouveau projet
+akios setup                        # Configurer les clés API
+akios run templates/hello.yml      # Exécuter un workflow
+akios status                       # Vérifier l'état du système
+akios logs --limit 10              # Voir les logs récents
+akios clean --old-runs             # Nettoyer les anciens runs
 ```
 
-## Cycle projet
+## Méthodes d'installation
+
+### Pip (Linux — Sécurité maximale)
 ```bash
-akios init [chemin]         # créer le squelette
-akios setup [--force]       # assistant clés/fournisseur/budget
-akios config validate       # valider la config
-akios status [--security]   # état + sécurité
-akios clean [--old-runs]    # nettoyer anciens runs/cache
+pip install akios>={{version}}
+akios --version
 ```
 
-## Exécuter des workflows
+### Wrapper Docker (multi-plateforme)
+```bash
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
+chmod +x akios
+./akios --version
+```
+
+### Docker direct (secours)
+```bash
+docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} --version
+```
+
+## Options globales
+
+```bash
+akios --help               # Aide commande
+akios --version            # Info version
+akios --debug <commande>   # Sortie de débogage
+```
+
+## Commandes projet
+
+### `akios init [chemin]`
+Créer un nouveau projet AKIOS avec templates et configuration.
+
+```bash
+akios init
+akios init mon-projet
+akios init --quiet
+akios init --wizard
+```
+
+**Options :** `--force`, `--quiet`, `--json`, `--wizard`
+
+### `akios setup [--force]`
+Assistant interactif pour configurer les clés API et les paramètres.
+
+```bash
+akios setup
+akios setup --force
+akios setup --non-interactive
+akios setup --defaults
+akios setup --mock-mode
+```
+
+### `akios status [options]`
+Afficher l'état du système et les informations de sécurité.
+
+```bash
+akios status
+akios status --security
+akios status --budget
+akios status --json
+akios status --verbose
+```
+
+### `akios clean [options]`
+Supprimer les anciens runs pour libérer l'espace disque.
+
+```bash
+akios clean --old-runs
+akios clean --old-runs 30
+akios clean --old-runs 7 --dry-run
+akios clean --old-runs 7 --json
+```
+
+**Sécurité :** Supprime uniquement les répertoires `data/output/run_*`. Les logs d'audit ne sont jamais touchés.
+
+## Commandes workflow
+
+### `akios run <workflow.yml> [options]`
 ```bash
 akios run templates/hello-workflow.yml
 akios run workflows/mon.yml --real-api
-akios run workflows/mon.yml --context cle=valeur
+akios run workflow.yml --verbose
+akios run workflow.yml --dry-run
+akios run workflow.yml --force
 ```
 
-## Templates
+**Options :** `--real-api`, `--verbose, -v`, `--quiet, -q`, `--dry-run, -d`, `--force, -f`, `--debug`
+
+### `akios templates list`
+Afficher tous les templates de workflows disponibles.
+
+### `akios files [input|output]`
+Afficher les fichiers d'entrée et les runs de sortie disponibles.
+
+## Commandes audit & journalisation
+
+### `akios logs [options]`
 ```bash
-akios templates list
-akios templates pull <nom>
+akios logs
+akios logs --limit 50
+akios logs --task workflow-123
+akios logs --level ERROR
 ```
 
-## Audit
+### `akios audit export [options]`
 ```bash
-akios audit view --limit 20
-akios audit export --since "7 days ago" --format json --output audit.json
+akios audit export
+akios audit export --output audit-report.json
+akios audit export --task workflow-123 --output audit.json
+```
+
+### `akios audit verify`
+Vérifier l'intégrité de la chaîne de Merkle du journal d'audit cryptographique.
+
+```bash
 akios audit verify
-akios audit archive --older-than 90d --compress
+akios audit verify --json
 ```
 
-## Débogage
+### `akios audit log`
+Voir les entrées récentes du journal d'audit.
+
 ```bash
-akios --debug status
-akios --debug run workflows/mon.yml
+akios audit log
+akios audit log --limit 20
 ```
 
-## Rappels installation
-- Pip (Linux sécu max) : `pip install akios`
-- Wrapper Docker (toutes plateformes) : `curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios && chmod +x akios`
-- Docker direct : `docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} ...`
+## Commandes avancées
 
-`--help` sur chaque commande pour les options détaillées.
+### `akios doctor [--json]`
+Exécuter des diagnostics système.
+
+```bash
+akios doctor
+akios doctor --json
+```
+
+### `akios compliance report <workflow.yml> [options]`
+```bash
+akios compliance report hello-workflow.yml
+akios compliance report workflow.yml --type detailed
+akios compliance report workflow.yml --type executive --format txt
+```
+
+### `akios output` — Gérer les sorties de workflows
+
+```bash
+# Obtenir la dernière sortie en JSON déployable (CI/CD)
+akios output latest
+
+# Lister toutes les sorties
+akios output list
+
+# Nettoyer les anciennes sorties
+akios output clean hello-workflow.yml --max-age 7
+
+# Archiver les sorties
+akios output archive hello-workflow.yml --name archive.tar.gz
+```
+
+**Sous-commandes :**
+
+- **`latest`** — JSON structuré pour l'intégration CI/CD : métadonnées, détails d'exécution, état de sécurité, ventilation des coûts, résultats par étape.
+- **`list`** — Lister les sorties. Filtrer par nom de workflow optionnellement.
+- **`clean`** — Nettoyer les anciennes sorties. Options : `--max-age` (jours, défaut 30), `--max-count` (défaut 50), `--dry-run`, `--json`.
+- **`archive`** — Archiver les sorties. Options : `--name` (auto-généré si omis), `--json`.
+
+### `akios cage` / `akios security` — Gestion de la cage de sécurité
+
+Gérer la cage de sécurité AKIOS — contrôler la rédaction PII, l'accès réseau, le sandbox et la journalisation d'audit. `cage` et `security` sont des alias interchangeables.
+
+```bash
+# Activer la sécurité complète (rédaction PII, verrou HTTPS, sandbox, audit)
+akios cage up
+
+# Relâcher la sécurité pour le développement (détruit les données de session par défaut)
+akios cage down
+
+# Mode dev — relâcher les protections, garder les données pour le débogage
+akios cage down --keep-data
+
+# Afficher la posture actuelle et l'état des protections
+akios cage status
+```
+
+**`cage down`** (par défaut) **détruit toutes les données de session** — `audit/`, `data/output/`, `data/input/` sont supprimés définitivement. C'est la promesse fondamentale de la cage : zéro résidu de données.
+
+**`cage down --keep-data`** relâche les protections sans effacer les données (commodité développement uniquement).
+
+### `akios protect` — Analyse de protection PII
+
+```bash
+akios protect preview templates/hello-workflow.yml
+akios protect scan data/input/document.txt
+akios protect preview --json
+akios protect scan data/input/document.txt --json
+```
+
+**`preview`** analyse les entrées d'un workflow pour détecter les PII.
+**`scan`** analyse un fichier pour les PII et affiche les catégories détectées.
+
+### `akios docs` — Voir la documentation
+
+```bash
+akios docs
+akios docs security
+akios docs workflows
+```
+
+### `akios timeline` — Chronologie des workflows
+
+```bash
+akios timeline
+akios timeline --verbose
+akios timeline --json
+```
+
+### `akios testing` — Contexte de test
+
+```bash
+akios testing
+```
+
+Affiche le mode mock, la disponibilité des clés API et les recommandations de test.
+
+## Validation fournisseur/modèle LLM
+
+AKIOS valide la compatibilité fournisseur/modèle au démarrage pour prévenir les erreurs API.
+
+| Fournisseur | Modèles |
+|-------------|---------|
+| **OpenAI** | `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini` |
+| **Anthropic** | `claude-3.5-haiku`, `claude-3.5-sonnet` |
+| **Grok** | `grok-3` |
+| **Mistral** | `mistral-small`, `mistral-medium`, `mistral-large` |
+| **Gemini** | `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash` |
+
+La validation est insensible à la casse. Les combinaisons invalides échouent immédiatement avec des messages clairs :
+
+```bash
+# Invalide — mauvais fournisseur pour ce modèle
+AKIOS_LLM_PROVIDER=openai AKIOS_LLM_MODEL=grok-3 akios status
+# Erreur: "Model 'grok-3' is not valid for provider 'openai'"
+```
+
+## Variables d'environnement
+
+```bash
+AKIOS_JSON_MODE=1 akios status
+AKIOS_DEBUG=1 akios run workflow.yml
+AKIOS_LLM_PROVIDER=grok akios status
+AKIOS_MOCK_LLM=1 akios run workflow.yml
+```
+
+## Différences par plateforme
+
+**Linux natif (pip) :**
+- Sécurité kernel-hard complète
+- Meilleures performances
+- Isolation maximale
+- Commandes : `akios <commande>`
+
+**Docker (toutes plateformes) :**
+- Sécurité forte basée sur politiques
+- Compatibilité multi-plateforme
+- Isolation conteneur
+- Commandes : `./akios <commande>` (depuis le répertoire projet)
+
+## En savoir plus
+
+- **[Démarrage rapide](quickstart.html)** — Guide de démarrage
+- **[Concepts](concepts.html)** — Comment AKIOS fonctionne
+- **[Configuration](config-reference.html)** — Personnaliser les paramètres
+- **[Débogage](debugging.html)** — Guide de dépannage

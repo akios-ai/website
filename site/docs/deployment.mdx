@@ -1,6 +1,6 @@
 # Deployment (AKIOS V1.0)
 
-Minimal, security-first deployment: single-process cage via pip or Docker. No sidecars, no reverse proxies, no multi-service stacks.
+Minimal, security-first deployment: single-process runtime via pip or Docker. No sidecars, no reverse proxies, no multi-service stacks.
 
 ## Scope (what’s supported)
 - **Pip package** (Linux: kernel-hard security; macOS/Windows: standard isolation).
@@ -128,6 +128,7 @@ For maximum security on Linux:
 - Kernel >= 5.4
 - seccomp-bpf support
 - cgroups v2 enabled
+- System packages: `libseccomp-dev` and `python3-seccomp`
 
 ```bash
 # Check kernel version
@@ -135,6 +136,9 @@ uname -r
 
 # Check seccomp
 grep SECCOMP /boot/config-$(uname -r)
+
+# Install required packages (Debian/Ubuntu)
+sudo apt install libseccomp-dev python3-seccomp
 ```
 
 ### Configuration Validation
@@ -160,6 +164,10 @@ AKIOS V1.0 focuses on single-process security:
 - Built-in monitoring dashboards
 
 **Future versions** will add enterprise deployment features. For now, keep it simple: one container, one workflow, maximum security.
+
+## Legal & Compliance Notes
+
+AKIOS is a security tool, not a guarantee. Users are responsible for compliance with applicable laws and regulations in their jurisdiction. The security cage reduces risk but does not eliminate it. Always validate outputs and run AKIOS in appropriate environments for your security needs. See the [Security](security.html) page for compliance frameworks supported by audit exports.
 
 ## Production Checklist
 

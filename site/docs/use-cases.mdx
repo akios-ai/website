@@ -102,7 +102,7 @@ steps:
     
   - name: "Analyze with AI"
     agent: llm
-    action: generate
+    action: complete
     # AI sees redacted version
     
   - name: "Save audit trail"
@@ -161,14 +161,14 @@ steps:
       
   - name: "Validate format"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4o"
       prompt: "Check if this application is complete: {{previous_output}}"
       
   - name: "Generate summary"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4o"
       prompt: "Summarize the key points: {{application}}"
@@ -209,10 +209,9 @@ description: "Enrich customer data and assess risk"
 steps:
   - name: "Fetch external data"
     agent: http
-    action: request
+    action: get
     parameters:
       url: "https://api.data-provider.com/person/{{customer_id}}"
-      method: "GET"
       headers:
         Authorization: "Bearer {{API_TOKEN}}"
       timeout: 30
@@ -226,7 +225,7 @@ steps:
       
   - name: "AI risk analysis"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "claude-3.5-sonnet"
       prompt: |
@@ -287,14 +286,14 @@ steps:
       
   - name: "Extract symptoms"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4"
       prompt: "Extract all symptoms mentioned: {{record}}"
       
   - name: "Identify patterns"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4"
       prompt: "Identify any patterns or correlations: {{symptoms}}"
@@ -355,7 +354,7 @@ steps:
       
   - name: "AI analysis"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4o"
       prompt: |

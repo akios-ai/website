@@ -6,8 +6,18 @@
   <title>{{i18n.home.title}}</title>
   <meta name="description" content="{{i18n.home.description}}">
   <link rel="canonical" href="{{canonical}}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{i18n.home.title}}">
+  <meta property="og:description" content="{{i18n.home.description}}">
   <meta property="og:url" content="{{canonical}}">
+  <meta property="og:site_name" content="AKIOS">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{i18n.home.title}}">
+  <meta name="twitter:description" content="{{i18n.home.description}}">
   <meta name="twitter:url" content="{{canonical}}">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://img.shields.io" crossorigin>
+  <link rel="preconnect" href="https://contrib.rocks" crossorigin>
   <link rel="stylesheet" href="{{root}}/assets/css/styles.css">
   <link rel="icon" href="{{root}}/assets/img/favicon.svg" type="image/svg+xml">
 </head>
@@ -15,6 +25,8 @@
 
   <!-- Header -->
   <!-- {{header}} -->
+
+  <main id="main-content">
 
   <!-- Hero Section -->
   <section class="section section-hero">
@@ -32,7 +44,15 @@
         </p>
         <div class="hero-actions">
           <a href="docs/quickstart.html" class="btn btn-primary">{{i18n.home.hero_cta_primary}}</a>
-          <a href="https://github.com/akios-ai/akios" class="btn btn-outline">{{i18n.home.hero_cta_secondary}}</a>
+          <a href="https://github.com/akios-ai/akios" class="btn btn-outline" rel="noopener">{{i18n.home.hero_cta_secondary}}</a>
+        </div>
+        <div class="hero-install">
+          <pre class="hero-install-cmd"><code>pip install akios</code></pre>
+        </div>
+        <div class="hero-badges">
+          <a href="https://github.com/akios-ai/akios" class="badge-link"><img src="https://img.shields.io/github/stars/akios-ai/akios?style=flat&logo=github&label=Stars" alt="GitHub Stars" loading="lazy"></a>
+          <a href="https://pypi.org/project/akios/" class="badge-link"><img src="https://img.shields.io/pypi/v/akios?label=PyPI&color=06b6d4" alt="PyPI Version" loading="lazy"></a>
+          <a href="https://github.com/akios-ai/akios/blob/main/LICENSE" class="badge-link"><img src="https://img.shields.io/badge/license-GPL--3.0--only-blue" alt="License" loading="lazy"></a>
         </div>
       </div>
       <figure class="hero-figure">
@@ -87,13 +107,15 @@ pip install akios
 akios init my-project
 cd my-project
 
-# Run the sample workflow (kernel-hard on Linux)
+# Run the sample workflow
 akios run templates/hello-workflow.yml</code></pre>
 
       <p class="code-caption">{{i18n.home.quickstart_caption}}</p>
-      <pre><code>[akios] sandbox: seccomp-bpf, cgroups v2 (Linux) / policy container (Docker) 
-[akios] pii: redaction enabled 
-[akios] audit: Merkle trail initialized</code></pre>
+      <pre><code>[akios] environment: native linux (kernel-hard)
+[akios] sandbox: seccomp-bpf, cgroups v2
+[akios] pii: redaction enabled (50+ patterns)
+[akios] audit: Merkle trail initialized
+[akios] workflow: completed successfully in 1.2s</code></pre>
       
       <div class="quickstart-link-row">
         <a href="docs/quickstart.html" class="quickstart-link">{{i18n.home.quickstart_link}}</a>
@@ -117,12 +139,12 @@ akios run templates/hello-workflow.yml</code></pre>
       <h2 class="section-heading">{{i18n.home.security_heading}}</h2>
       <p>{{i18n.home.security_intro}}</p>
       <ul class="security-list">
-        <li class="security-item">{{i18n.home.security_item_1}}</li>
-        <li class="security-item">{{i18n.home.security_item_2}}</li>
-        <li class="security-item">{{i18n.home.security_item_3}}</li>
-        <li class="security-item">{{i18n.home.security_item_4}}</li>
-        <li class="security-item">{{i18n.home.security_item_5}}</li>
-        <li class="security-item">{{i18n.home.security_item_6}}</li>
+        <li class="security-item"><strong>{{i18n.home.security_title_1}}</strong><span>{{i18n.home.security_item_1}}</span></li>
+        <li class="security-item"><strong>{{i18n.home.security_title_2}}</strong><span>{{i18n.home.security_item_2}}</span></li>
+        <li class="security-item"><strong>{{i18n.home.security_title_3}}</strong><span>{{i18n.home.security_item_3}}</span></li>
+        <li class="security-item"><strong>{{i18n.home.security_title_4}}</strong><span>{{i18n.home.security_item_4}}</span></li>
+        <li class="security-item"><strong>{{i18n.home.security_title_5}}</strong><span>{{i18n.home.security_item_5}}</span></li>
+        <li class="security-item"><strong>{{i18n.home.security_title_6}}</strong><span>{{i18n.home.security_item_6}}</span></li>
       </ul>
     </div>
   </section>
@@ -154,6 +176,59 @@ akios run templates/hello-workflow.yml</code></pre>
   </section>
 
 
+  <!-- Industry Case Studies -->
+  <section class="section">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.case_studies_home.heading}}</h2>
+      <p>{{i18n.case_studies_home.intro}}</p>
+      <div class="case-studies-grid">
+        <a href="case-studies/healthcare-hipaa-security-cage.html" class="case-study-card case-study-available">
+          <span class="case-study-industry">{{i18n.case_studies_home.industry_healthcare}}</span>
+          <p class="case-study-desc">{{i18n.case_studies_home.industry_healthcare_desc}}</p>
+          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
+        </a>
+        <a href="case-studies/banking-fraud-detection.html" class="case-study-card case-study-available">
+          <span class="case-study-industry">{{i18n.case_studies_home.industry_banking}}</span>
+          <p class="case-study-desc">{{i18n.case_studies_home.industry_banking_desc}}</p>
+          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
+        </a>
+        <a href="case-studies/accounting-document-processing.html" class="case-study-card case-study-available">
+          <span class="case-study-industry">{{i18n.case_studies_home.industry_accounting}}</span>
+          <p class="case-study-desc">{{i18n.case_studies_home.industry_accounting_desc}}</p>
+          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
+        </a>
+        <a href="case-studies/legal-contract-review.html" class="case-study-card case-study-available">
+          <span class="case-study-industry">{{i18n.case_studies_home.industry_legal}}</span>
+          <p class="case-study-desc">{{i18n.case_studies_home.industry_legal_desc}}</p>
+          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
+        </a>
+        <a href="case-studies/government-airgap-deployment.html" class="case-study-card case-study-available">
+          <span class="case-study-industry">{{i18n.case_studies_home.industry_gov}}</span>
+          <p class="case-study-desc">{{i18n.case_studies_home.industry_gov_desc}}</p>
+          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
+        </a>
+        <a href="case-studies/insurance-claims-processing.html" class="case-study-card case-study-available">
+          <span class="case-study-industry">{{i18n.case_studies_home.industry_insurance}}</span>
+          <p class="case-study-desc">{{i18n.case_studies_home.industry_insurance_desc}}</p>
+          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
+        </a>
+        <a href="case-studies/pharma-clinical-trials.html" class="case-study-card case-study-available">
+          <span class="case-study-industry">{{i18n.case_studies_home.industry_pharma}}</span>
+          <p class="case-study-desc">{{i18n.case_studies_home.industry_pharma_desc}}</p>
+          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
+        </a>
+        <a href="case-studies/energy-grid-security.html" class="case-study-card case-study-available">
+          <span class="case-study-industry">{{i18n.case_studies_home.industry_energy}}</span>
+          <p class="case-study-desc">{{i18n.case_studies_home.industry_energy_desc}}</p>
+          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
+        </a>
+      </div>
+      <div class="case-studies-cta">
+        <a href="case-studies/index.html" class="quickstart-link">{{i18n.case_studies_home.view_all}}</a>
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ Section -->
   <section class="section">
     <div class="page">
@@ -184,7 +259,7 @@ akios run templates/hello-workflow.yml</code></pre>
       <p>{{i18n.home.cta_body}}</p>
       <div class="hero-actions" style="margin-top: var(--space-4);">
         <a href="docs/quickstart.html" class="btn btn-primary">{{i18n.home.cta_primary_button}}</a>
-        <a href="https://github.com/akios-ai/akios" class="btn btn-outline">{{i18n.home.cta_secondary_button}}</a>
+        <a href="https://github.com/akios-ai/akios" class="btn btn-outline" rel="noopener">{{i18n.home.cta_secondary_button}}</a>
       </div>
     </div>
   </section>
@@ -202,6 +277,8 @@ akios run templates/hello-workflow.yml</code></pre>
       </div>
     </div>
   </section>
+
+  </main>
 
   <!-- Footer -->
   <!-- {{footer}} -->

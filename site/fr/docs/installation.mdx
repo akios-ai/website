@@ -4,6 +4,13 @@ Choisissez la méthode adaptée à votre plateforme et à votre niveau de sécur
 
 ## Paquet Pip (recommandé sur Linux natif)
 Sécurité maximale (kernel-hard : cgroups + seccomp). Fonctionne sur macOS/Windows avec isolation standard.
+
+**Prérequis Linux pour la sécurité kernel-hard complète :**
+```bash
+# Installer les paquets système pour le support seccomp
+sudo apt install libseccomp-dev python3-seccomp
+```
+
 ```bash
 pip install akios
 akios --version
@@ -15,9 +22,10 @@ akios run templates/hello-workflow.yml
 ## Wrapper Docker (multi-plateforme)
 Un script shell gère l’image Docker et offre le même CLI partout.
 ```bash
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 ls -la akios && file akios   # vérifier
-tchmod +x akios
+chmod +x akios
 ./akios init mon-projet
 cd mon-projet
 ./akios run templates/hello-workflow.yml

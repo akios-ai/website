@@ -1,0 +1,260 @@
+# Workflow Schema
+
+Define agent workflows using YAML. This page documents the structure, available agents, and validation rules.
+
+## Basic Structure
+
+Every workflow needs three fields:
+
+```yaml
+name: "my-workflow"
+description: "What this workflow does"
+steps:
+  - agent: llm
+    action: complete
+    parameters:
+      prompt: "Hello, world!"
+```
+
+## Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Workflow identifier |
+| `description` | string | Human-readable description |
+| `steps` | array | Ordered list of execution steps |
+
+## Step Fields
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `step` | number | No | Optional step number (auto-assigned) |
+| `agent` | string | Yes | Agent to execute: `llm`, `http`, `filesystem`, `tool_executor` |
+| `action` | string | Yes | Agent-specific action (see below) |
+| `config` | object | No | Agent configuration overrides |
+| `parameters` | object | Yes | Action-specific parameters |
+
+## Available Agents & Actions
+
+### LLM Agent
+
+**Actions:** `complete`, `chat`
+
+```yaml
+- agent: llm
+  action: complete
+  parameters:
+    prompt: "Summarize the following document"
+    model: gpt-3.5-turbo      # optional, uses config default
+    max_tokens: 1000           # optional, default 1000
+    temperature: 0.7           # optional, default 0.7
+```
+
+```yaml
+- agent: llm
+  action: chat
+  parameters:
+    messages:
+      - role: system
+        content: "You are a helpful assistant."
+      - role: user
+        content: "What is AKIOS?"
+```
+
+**Supported providers & models:**
+- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini`
+- Anthropic: `claude-3.5-haiku`, `claude-3.5-sonnet`
+- Grok: `grok-3`
+- Mistral: `mistral-small`, `mistral-medium`, `mistral-large`
+- Gemini: `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`
+
+### HTTP Agent
+
+**Actions:** `get`, `post`, `put`, `delete`
+
+```yaml
+- agent: http
+  action: get
+  parameters:
+    url: "https://api.example.com/data"
+    headers:
+      Authorization: "Bearer ${API_TOKEN}"
+    timeout: 30
+```
+
+```yaml
+- agent: http
+  action: post
+  parameters:
+    url: "https://api.example.com/submit"
+    json:
+      key: "value"
+```
+
+**Constraints:** Rate-limited to 10 requests/minute. SSL required. PII redacted from payloads.
+
+### Filesystem Agent
+
+**Actions:** `read`, `write`, `list`, `exists`, `stat`
+
+```yaml
+- agent: filesystem
+  action: read
+  parameters:
+    path: "data/input/document.txt"
+```
+
+```yaml
+- agent: filesystem
+  action: write
+  parameters:
+    path: "data/output/result.txt"
+    content: "Analysis complete."
+```
+
+**Allowed paths:** `./workflows/`, `./templates/`, `./data/input/`, `./data/output/`
+
+Write is disabled by default. PII redaction applies to all content.
+
+### Tool Executor Agent
+
+**Actions:** `run`
+
+```yaml
+- agent: tool_executor
+  action: run
+  parameters:
+    command: "wc -l data/input/document.txt"
+    timeout: 30
+```
+
+**Allowed commands:** `echo`, `cat`, `grep`, `head`, `tail`, `wc`, `sort`, `uniq`, `cut`, `tr`, `date`, `pwd`, `ls`, `find`, `ps`, `df`, `free`
+
+**Limits:** 30s default timeout (300s max), 1MB max output.
+
+## Complete Workflow Examples
+
+### Simple AI Generation
+
+```yaml
+name: "hello-ai"
+description: "Generate a greeting with AI"
+steps:
+  - agent: llm
+    action: complete
+    parameters:
+      prompt: "Write a short, friendly greeting."
+```
+
+### Multi-Step Pipeline
+
+```yaml
+name: "document-analysis"
+description: "Read, analyze, and save results"
+steps:
+  - step: 1
+    agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/contract.txt"
+
+  - step: 2
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Analyze this document for key terms and risks: ${steps.1.output}"
+      max_tokens: 2000
+
+  - step: 3
+    agent: filesystem
+    action: write
+    parameters:
+      path: "data/output/analysis.txt"
+      content: "${steps.2.output}"
+```
+
+### API Integration
+
+```yaml
+name: "api-enrichment"
+description: "Fetch data and enrich with AI"
+steps:
+  - step: 1
+    agent: http
+    action: get
+    parameters:
+      url: "https://api.example.com/customer/123"
+
+  - step: 2
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Summarize this customer data: ${steps.1.output}"
+
+  - step: 3
+    agent: filesystem
+    action: write
+    parameters:
+      path: "data/output/customer-summary.txt"
+      content: "${steps.2.output}"
+```
+
+## Variable Substitution
+
+Reference outputs from previous steps:
+
+```yaml
+# Reference step output
+prompt: "Analyze: ${steps.1.output}"
+
+# Reference environment variables
+url: "https://api.example.com/v1?key=${API_KEY}"
+```
+
+## Validation
+
+Workflows are validated at `akios run` time (<50ms overhead). Validation checks:
+
+- Required fields present (`name`, `description`, `steps`)
+- Valid agent names
+- Valid action for each agent
+- Required parameters present
+- Path restrictions for filesystem agent
+
+**Common validation errors:**
+
+| Error | Fix |
+|-------|-----|
+| Missing `agent` field | Add `agent: llm` (or http/filesystem/tool_executor) |
+| Unknown agent | Use one of: `llm`, `http`, `filesystem`, `tool_executor` |
+| Invalid action | Check agent-specific actions above |
+| Missing parameters | Add required `parameters` block |
+| Path not allowed | Use allowed paths only |
+
+## Testing Workflows
+
+```bash
+# Test with mock responses (no API key needed)
+AKIOS_MOCK_LLM=1 akios run workflows/my-workflow.yml
+
+# Test with real APIs
+akios run workflows/my-workflow.yml --real-api
+
+# Validate without executing
+akios run workflows/my-workflow.yml --dry-run
+```
+
+## Best Practices
+
+- **Keep steps small** — One action per step for clear audit trails
+- **Use mock mode first** — Test workflow logic before spending API credits
+- **Set budgets** — Always configure `budget_limit_per_run` in config.yaml
+- **Validate inputs** — Check file existence before processing
+- **Name steps** — Use `step:` numbers for readable variable references
+
+## Related
+
+- **[CLI Reference](cli-reference.html)** — `akios run` options
+- **[Configuration](config-reference.html)** — Runtime settings
+- **[Best Practices](best-practices.html)** — Workflow patterns
+- **[API Reference](api-reference.html)** — Programmatic workflow creation

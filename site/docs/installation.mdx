@@ -14,7 +14,8 @@ akios run templates/hello-workflow.yml
 
 **On macOS/Windows or for teams** (Docker provides strong cross-platform security):
 ```bash
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 chmod +x akios
 ./akios init my-project
 cd my-project
@@ -40,6 +41,12 @@ Best for: Developers, CI/CD pipelines, custom extensions, full Python ecosystem 
 
 **What you get:** Native Python installation - access to Python libraries, plugins, and custom extensions (ecosystem integration)
 
+**Linux prerequisites for full kernel-hard security:**
+```bash
+# Install system packages for seccomp support
+sudo apt install libseccomp-dev python3-seccomp
+```
+
 ```bash
 # Ubuntu 24.04+ users: Use pipx instead of pip due to PEP 668
 sudo apt install pipx
@@ -49,7 +56,7 @@ pipx install akios>={{version}}
 pip install akios>={{version}}
 
 # Or install a specific version:
-pip install akios==1.0.4
+pip install akios==1.0.5
 
 # Verify installation
 akios --version
@@ -80,7 +87,8 @@ docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run template
 **Option B: Docker wrapper script (recommended - easier commands):**
 ```bash
 # Create wrapper script (one-time setup)
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 chmod +x akios
 
 # Now use ./akios like native installation

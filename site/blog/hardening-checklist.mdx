@@ -41,10 +41,11 @@
 
   <h2>CI/CD safety</h2>
   <ul>
-    <li>Gate PRs on <code>akios lint</code> + <code>akios policy validate</code>.</li>
+    <li>Gate PRs on <code>akios run --dry-run</code> to validate workflows before merging.</li>
     <li>Run sample workflows in a throwaway namespace/VM per PR.</li>
+    <li>Use <code>akios compliance report</code> to generate compliance artifacts per build.</li>
     <li>Block merges if audit output deviates from expected hash chain.</li>
   </ul>
 
-  <p>Ship with these basics and you’ll keep the cage tight while you iterate.</p>
+<p>Ship with these basics and you'll keep your security tight while you iterate.</p>
 </div>

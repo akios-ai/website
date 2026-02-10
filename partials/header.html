@@ -1,24 +1,39 @@
+  <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);else if(window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.setAttribute('data-theme','dark');})();</script>
+
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
   <header class="site-header">
     <div class="page">
       <a href="{{root}}/" class="brand">
         <img src="{{root}}/assets/img/logo.svg" alt="AKIOS Logo" style="height: 32px; width: auto;">
         AKIOS
       </a>
-      <nav class="nav-links">
+      <nav class="nav-links" id="nav-menu">
         <a href="{{root}}/docs/quickstart.html">{{i18n.sidebar.quickstart}}</a>
         <a href="{{root}}/docs/index.html">{{i18n.nav.docs}}</a>
         <a href="{{root}}/blog/index.html">{{i18n.nav.blog}}</a>
+        <a href="{{root}}/case-studies/index.html">{{i18n.nav.case_studies}}</a>
         <a href="{{root}}/community.html">{{i18n.nav.community}}</a>
-        <a href="https://github.com/akios-ai/akios" target="_blank">GitHub ↗</a>
-        <div class="lang-switch">
-          <select id="lang-select" onchange="if(this.value) window.location.href = this.value;">
-            <option value="{{root}}/index.html">EN</option>
-            <option value="{{root}}/fr/index.html">FR</option>
-          </select>
-        </div>
-        <script>
-          document.getElementById('lang-select').value = window.location.pathname.includes('/fr/') ? '{{root}}/fr/index.html' : '{{root}}/index.html';
-        </script>
+        <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
+      <div class="header-actions">
+        <button class="search-trigger" id="search-trigger" aria-label="Search docs" title="Search (⌘K)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span class="search-shortcut">⌘K</span>
+        </button>
+        <div class="lang-toggle" id="lang-toggle">
+          <a href="{{root}}/index.html" class="lang-btn" data-lang="en">EN</a>
+          <span class="lang-sep">|</span>
+          <a href="{{root}}/fr/index.html" class="lang-btn" data-lang="fr">FR</a>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+          <svg class="icon-menu" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          <svg class="icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
     </div>
   </header>

@@ -33,7 +33,8 @@ akios run templates/hello-workflow.yml
 
 ### Wrapper Docker (macOS/Windows/Linux)
 ```bash
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 chmod +x akios
 ./akios --help
 ./akios init mon-projet
@@ -105,8 +106,48 @@ akios clean --old-runs
 ---
 
 ## 5) Prochaines étapes
+
+**Vérifier l'état du système :**
+```bash
+akios status
+```
+
+**Activer la cage de sécurité :**
+```bash
+akios cage up
+akios cage status
+```
+
+**Analyser les fichiers pour les PII avant traitement :**
+```bash
+akios protect scan data/input/document.txt
+akios protect preview templates/hello-workflow.yml
+```
+
+**Exécuter les diagnostics :**
+```bash
+akios doctor
+```
+
+**Voir la chronologie d'exécution :**
+```bash
+akios timeline
+```
+
+**Obtenir la dernière sortie en JSON déployable (CI/CD) :**
+```bash
+akios output latest
+```
+
+**Voir les logs d'audit :**
+```bash
+akios logs --limit 10
+akios audit verify
+```
+
+**Explorer :**
 - **[Configuration](config-reference)** — règles réseau/fs, budgets, politiques.
-- **[Sécurité](security)** — sandbox, rédaction PII, chaîne d’audit.
+- **[Sécurité](security)** — cage, sandbox, rédaction PII, chaîne d'audit.
 - **[Concepts](concepts)** — architecture et agents principaux.
 
 ## Related

@@ -28,7 +28,7 @@ description: "What it does"     # Recommended: Description
 steps:                           # Required: List of steps
   - name: "Step 1"              # Required: Step name
     agent: "llm"                # Required: Which agent
-    action: "generate"          # Required: What action
+    action: "complete"          # Required: What action
     parameters:                 # Required: Action parameters
       prompt: "Hello"
 ```
@@ -40,7 +40,7 @@ description: "Simple greeting"
 steps:
   - name: "Greet"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Say hello"
 ```
@@ -51,8 +51,8 @@ AKIOS provides four core agents:
 
 | Agent | Purpose | Common Actions |
 |-------|---------|----------------|
-| **llm** | AI model calls | `generate`, `chat`, `complete` |
-| **http** | Web/API requests | `request` (GET, POST, PUT, DELETE) |
+| **llm** | AI model calls | `complete`, `chat` |
+| **http** | Web/API requests | `get`, `post`, `put`, `delete` |
 | **filesystem** | File operations | `read`, `write`, `list`, `stat`, `exists` |
 | **tool_executor** | Safe commands | `run` |
 
@@ -61,15 +61,14 @@ AKIOS provides four core agents:
 Generate text using AI models.
 
 **Actions:**
-- `generate` - Generate completion
+- `complete` - Generate text completion
 - `chat` - Chat-style conversation
-- `complete` - Complete text
 
 **Example:**
 ```yaml
 - name: "Generate text"
   agent: llm
-  action: generate
+  action: complete
   parameters:
     model: "gpt-4o"
     prompt: "Write a poem about security"
@@ -81,16 +80,18 @@ Generate text using AI models.
 Make HTTP/HTTPS requests to APIs.
 
 **Actions:**
-- `request` - Make HTTP request (specify method in parameters)
+- `get` - HTTP GET request
+- `post` - HTTP POST request
+- `put` - HTTP PUT request
+- `delete` - HTTP DELETE request
 
 **Example:**
 ```yaml
 - name: "Fetch data"
   agent: http
-  action: request
+  action: get
   parameters:
     url: "https://api.example.com/data"
-    method: "GET"
     headers:
       Authorization: "Bearer {{API_TOKEN}}"
     timeout: 30
@@ -144,7 +145,7 @@ description: "Generate creative content with AI"
 steps:
   - name: "Generate story"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4o"
       prompt: "Write a short story about a security-conscious robot"
@@ -173,7 +174,7 @@ steps:
       
   - name: "Generate summary"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4o"
       prompt: "Summarize this report: {{previous_output}}"
@@ -196,16 +197,15 @@ description: "Fetch data from API and analyze"
 steps:
   - name: "Fetch customer data"
     agent: http
-    action: request
+    action: get
     parameters:
       url: "https://api.example.com/customers/{{customer_id}}"
-      method: "GET"
       headers:
         Authorization: "Bearer {{API_TOKEN}}"
       
   - name: "Analyze data"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Analyze this customer profile: {{previous_output}}"
       
@@ -234,7 +234,7 @@ steps:
 steps:
   - name: "Step 1"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Hello"
 ```
@@ -245,14 +245,14 @@ steps:
 ```yaml
 steps:
   - agent: gpt  # Wrong agent name
-    action: generate
+    action: complete
 ```
 
 **✅ Valid:**
 ```yaml
 steps:
   - agent: llm  # Correct agent name
-    action: generate
+    action: complete
 ```
 
 ### Invalid Action for Agent
@@ -277,7 +277,7 @@ steps:
 ```yaml
 steps:
   - agent: llm
-    action: generate
+    action: complete
     # Missing parameters
 ```
 
@@ -285,7 +285,7 @@ steps:
 ```yaml
 steps:
   - agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Hello"
 ```
@@ -304,7 +304,7 @@ steps:
       
   - name: "step2"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Analyze: {{previous_output}}"
       # Or: {{step1.content}}
@@ -363,7 +363,7 @@ steps:
       
   - name: "Process if small"
     agent: llm
-    action: generate
+    action: complete
     skip_if: "$(.size > 1048576)"  # Skip if > 1MB
     parameters:
       prompt: "Analyze: {{file}}"
@@ -377,10 +377,9 @@ Retry failed steps:
 steps:
   - name: "Fetch data"
     agent: http
-    action: request
+    action: get
     parameters:
       url: "https://api.example.com/data"
-      method: "GET"
       retry_count: 3
       retry_delay: 5
 ```
@@ -416,7 +415,7 @@ steps:
     
   - name: "Another clear step"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Specific task: {{previous_output}}"
     # References previous step clearly
@@ -429,7 +428,7 @@ name: "workflow"  # Too vague
 steps:
   - name: "do stuff"  # Unclear
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "do everything"  # Too broad
 ```

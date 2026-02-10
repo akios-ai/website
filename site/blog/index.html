@@ -5,12 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{i18n.blog_index.title}}</title>
   <meta name="description" content="{{i18n.blog_index.description}}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{i18n.blog_index.title}}">
+  <meta property="og:description" content="{{i18n.blog_index.description}}">
+  <meta property="og:site_name" content="AKIOS">
+  <meta name="twitter:card" content="summary">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <link rel="stylesheet" href="{{root}}/assets/css/styles.css">
   <link rel="icon" href="{{root}}/assets/img/favicon.svg" type="image/svg+xml">
 </head>
 <body>
 
   <!-- {{header}} -->
+
+  <main id="main-content">
 
   <!-- Hero -->
   <section class="section section-hero">
@@ -33,10 +41,25 @@
   <section class="section">
     <div class="page">
       <div class="blog-list">
-        <!-- Post 3: v1.0 Release (Featured) -->
+        <!-- Post 7: v1.0.5 Release (Featured) -->
         <article class="post-item post-featured" data-category="release">
           <div class="post-meta">
             <span class="post-featured-label">{{i18n.blog_index.featured_label}}</span>
+            <span class="post-date">{{i18n.blog_index.post_7_date}}</span>
+            <span class="post-category post-category-release">{{i18n.blog_index.post_7_category}}</span>
+            <span class="post-read-time">{{i18n.blog_index.post_7_time}} {{i18n.blog_index.read_time_minutes}}</span>
+          </div>
+          <h2><a href="release-notes-v1-0-5.html">{{i18n.blog_index.post_7_title}}</a></h2>
+          <p>{{i18n.blog_index.post_7_excerpt}}</p>
+          <div class="post-author">
+            <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
+            <span>AJ</span>
+          </div>
+        </article>
+
+        <!-- Post 3: v1.0 Release -->
+        <article class="post-item" data-category="release">
+          <div class="post-meta">
             <span class="post-date">{{i18n.blog_index.post_3_date}}</span>
             <span class="post-category post-category-release">{{i18n.blog_index.post_3_category}}</span>
             <span class="post-read-time">{{i18n.blog_index.post_3_time}} {{i18n.blog_index.read_time_minutes}}</span>
@@ -127,6 +150,8 @@
       </div>
     </div>
   </section>
+
+  </main>
 
   <!-- {{footer}} -->
 

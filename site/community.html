@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{i18n.community_page.title}}</title>
   <meta name="description" content="{{i18n.community_page.description}}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{i18n.community_page.title}}">
+  <meta property="og:description" content="{{i18n.community_page.description}}">
+  <meta property="og:site_name" content="AKIOS">
+  <meta name="twitter:card" content="summary">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="preconnect" href="https://contrib.rocks" crossorigin>
   <link rel="stylesheet" href="{{root}}/assets/css/styles.css">
   <link rel="icon" href="{{root}}/assets/img/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,6 +19,8 @@
 
   <!-- Header -->
   <!-- {{header}} -->
+
+  <main id="main-content">
 
   <!-- Hero -->
   <section class="section section-hero">
@@ -119,8 +128,19 @@
         </div>
 
       </div>
+
+      <div class="contributors-section">
+        <h3>Contributors</h3>
+        <p class="subtitle" style="margin: 0 auto;">AKIOS is built by its community. Every contribution matters.</p>
+        <a href="https://github.com/akios-ai/akios/graphs/contributors">
+          <img src="https://contrib.rocks/image?repo=akios-ai/akios" alt="AKIOS Contributors" loading="lazy">
+        </a>
+        <p class="contributors-cta">
+          <a href="https://github.com/akios-ai/akios/blob/main/CONTRIBUTING.md">Become a contributor &rarr;</a>
+        </p>
+      </div>
       
-      <div style="margin-top: 4rem; text-align: center; opacity: 0.7;">
+      <div class="community-footer-taglines">
         <p>{{i18n.community_page.footer_tagline_1}}</p>
         <p>{{i18n.community_page.footer_tagline_2}}</p>
         <p>{{i18n.community_page.footer_tagline_3}}</p>
@@ -129,6 +149,8 @@
 
     </div>
   </section>
+
+  </main>
 
   <!-- Footer -->
   <!-- {{footer}} -->

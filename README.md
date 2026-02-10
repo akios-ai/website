@@ -70,7 +70,7 @@ Version numbers are managed via `version.json`:
 
 ```json
 {
-  "version": "1.0.4"
+  "version": "1.0.5"
 }
 ```
 
