@@ -1,0 +1,35 @@
+flowchart LR
+  %% Palette tuned to site theme (Zinc + Cyan)
+  classDef core fill:#06b6d4,stroke:#06b6d4,stroke-width:3,color:#ffffff,font-weight:700
+  classDef layer fill:#ffffff,stroke:#06b6d4,stroke-width:2.25,color:#18181b,font-weight:650
+  classDef input fill:#fafafa,stroke:#a1a1aa,stroke-width:2,color:#52525b,font-weight:600
+  classDef safe fill:#06b6d4,stroke:#0891b2,stroke-width:2.5,color:#ffffff,font-weight:700
+
+  %% Dark arrows for contrast
+  linkStyle default stroke:#18181b,stroke-width:2.25,color:#18181b
+
+  AG["<b>Untrusted Agents</b>\nAI · LLMs · Third-party code"]:::input
+  AG -->|requests| AK
+
+  subgraph AK["<b>AKIOS Security Runtime</b>"]
+    direction TB
+    style AK fill:#ecfeff,stroke:#06b6d4,stroke-width:3,color:#0e7490,font-weight:800
+    
+    P["<b>Policy Engine</b>\nAllowlist verification\nPermission grants"]:::layer
+    S["<b>Kernel Sandbox</b>\nseccomp-bpf + cgroups v2\nnamespace isolation"]:::layer
+    R["<b>PII Redaction</b>\nReal-time pattern matching\nData masking engine"]:::layer
+    B["<b>Budget & Loop Control</b>\nToken limits · Cost tracking\nRunaway detection"]:::layer
+    A["<b>Audit Ledger</b>\nMerkle tree · Signed logs\nTamper-proof trail"]:::layer
+    
+    P --> S
+    S --> R
+    R --> B
+    B --> A
+    
+    P -.->|enforces| R
+    P -.->|enforces| B
+    S -.->|isolates| R
+    S -.->|isolates| B
+  end
+
+  AK -->|verified output| INFRA["<b>Protected Infrastructure</b>\nAPIs · Databases\nCloud services"]:::safe

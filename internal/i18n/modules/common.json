@@ -3,6 +3,7 @@
     "nav": {
       "docs": "Docs",
       "blog": "Blog",
+      "case_studies": "Case Studies",
       "community": "Community",
       "start": "Start Here"
     },
@@ -23,6 +24,9 @@
       "reference": "Reference",
       "config_reference": "Config Reference",
       "policy_schema": "Policy Schema",
+      "workflow_schema": "Workflow Schema",
+      "cli_reference": "CLI Reference",
+      "api_reference": "API Reference",
       "debugging": "Debugging"
     },
     "meta": {
@@ -39,6 +43,7 @@
     "nav": {
       "docs": "Docs",
       "blog": "Blog",
+      "case_studies": "Études de cas",
       "community": "Communauté",
       "start": "Démarrage"
     },
@@ -59,6 +64,9 @@
       "reference": "Référence",
       "config_reference": "Référence Config",
       "policy_schema": "Schéma de politique",
+      "workflow_schema": "Schéma workflow",
+      "cli_reference": "Référence CLI",
+      "api_reference": "Référence API",
       "debugging": "Débogage"
     },
     "meta": {

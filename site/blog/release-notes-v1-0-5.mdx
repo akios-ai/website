@@ -1,0 +1,103 @@
+<header class="post-header">
+  <div class="post-meta">
+    February 7, 2026 &bull; <span>4 min read</span>
+  </div>
+  <h1>AKIOS v1.0.5: Rich UI, Accessibility, and Critical Fixes</h1>
+  <div class="post-author">
+    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
+    <span>AJ</span>
+  </div>
+</header>
+
+<div class="post-content">
+  <p class="lead">
+    AKIOS v1.0.5 brings a rich terminal UI, environment auto-detection, full accessibility support, and a critical fix for the SIGTRAP crash when running with <code>sudo</code>.
+  </p>
+
+  <h2>What's New</h2>
+
+  <h3>🎨 Rich Terminal UI</h3>
+  <p>
+    The CLI now uses semantic colors and structured output. Status dashboards, security reports, and workflow results are clearer and easier to scan. Powered by Rich, with full fallback for plain terminals.
+  </p>
+  <pre><code>akios status
+akios status --security
+akios status --budget</code></pre>
+
+  <h3>🔍 Environment Auto-Detection</h3>
+  <p>
+    AKIOS now automatically detects its runtime environment at startup (&lt;5ms):
+  </p>
+  <ul>
+    <li>Container type: native, Docker, Kubernetes, Podman</li>
+    <li>CI/CD: GitHub Actions, GitLab CI, Jenkins</li>
+    <li>Terminal capabilities: Unicode support, color depth, TTY</li>
+  </ul>
+  <p>
+    The runtime adjusts symbol modes, colors, and output format automatically. No configuration needed.
+  </p>
+
+  <h3>♿ Accessibility</h3>
+  <p>
+    Full accessibility support for all users:
+  </p>
+  <ul>
+    <li><strong>Symbol modes:</strong> Unicode (default), ASCII (CI/log-safe), Minimal (screen readers)</li>
+    <li><strong>Colorblind modes:</strong> protanopia, deuteranopia, tritanopia, achromatopsia</li>
+    <li><strong>7 built-in themes:</strong> default, dark, light, nord, solarized-dark/light, high-contrast</li>
+    <li><strong>Standards:</strong> Respects <code>NO_COLOR</code>, <code>CLICOLOR_FORCE</code>, <code>FORCE_COLOR</code></li>
+  </ul>
+  <pre><code># Colorblind mode
+export AKIOS_COLORBLIND_MODE=deuteranopia
+
+# Screen reader mode
+export NO_COLOR=1
+export AKIOS_SYMBOL_MODE=minimal
+
+# Change theme
+export AKIOS_THEME=nord</code></pre>
+
+  <h3>🩺 New Commands</h3>
+  <ul>
+    <li><code>akios doctor</code> — Run system diagnostics (kernel, seccomp, cgroups, Docker)</li>
+    <li><code>akios compliance report</code> — Generate compliance reports (basic, detailed, executive)</li>
+    <li><code>akios output</code> — Manage workflow outputs (list, clean, archive)</li>
+  </ul>
+
+  <h3>🐛 Critical Bug Fix: SIGTRAP Crash</h3>
+  <p>
+    Fixed a crash when running <code>sudo akios run</code> on Linux. The seccomp BPF filter was rejecting essential syscalls during privileged execution. Upgrade immediately if you use <code>sudo</code>:
+  </p>
+  <pre><code>sudo pip3 install --upgrade akios</code></pre>
+
+  <h2>Upgrade</h2>
+  <pre><code># Pip
+pip install akios==1.0.5
+
+# Docker
+docker pull akiosai/akios:v1.0.5</code></pre>
+
+  <h2>Full Changelog</h2>
+  <ul>
+    <li>Rich terminal UI with semantic colors</li>
+    <li>Environment auto-detection (Docker, K8s, Podman, CI/CD)</li>
+    <li>Accessibility: colorblind modes, symbol modes, themes</li>
+    <li><code>akios doctor</code> diagnostics command</li>
+    <li><code>akios compliance report</code> command</li>
+    <li><code>akios output</code> management command</li>
+    <li>SIGTRAP crash fix for <code>sudo</code> execution</li>
+    <li>Configuration corruption auto-detection</li>
+    <li><code>pii_redaction_outputs</code> and <code>pii_redaction_aggressive</code> config options</li>
+    <li><code>max_tokens_per_call</code> default reduced from 1000 to 500 for cost safety</li>
+  </ul>
+</div>
+
+<div class="post-footer">
+  <div class="share-links">
+    <span>Share this post:</span>
+    <a href="#" target="_blank">Twitter</a>
+    <a href="#" target="_blank">LinkedIn</a>
+    <a href="#" target="_blank">Hacker News</a>
+  </div>
+  <a href="./">← Back to Blog</a>
+</div>

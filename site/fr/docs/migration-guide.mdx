@@ -17,7 +17,8 @@ akios run templates/hello-workflow.yml
 
 ## Voie wrapper Docker
 ```bash
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 chmod +x akios
 ./akios run templates/hello-workflow.yml
 ```

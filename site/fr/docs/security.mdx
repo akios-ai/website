@@ -1,6 +1,6 @@
 # Fonctionnalités de sécurité (AKIOS V1.0)
 
-Défense en profondeur à chaque exécution : sandbox, rédaction PII, piste d’audit, coupe-circuits coût/boucle.
+Défense en profondeur à chaque exécution : cage de sécurité, sandbox, rédaction PII, piste d'audit, coupe-circuits coût/boucle.
 
 ## Versions supportées
 | Version | Support | Mises à jour sécu |
@@ -9,14 +9,89 @@ Défense en profondeur à chaque exécution : sandbox, rédaction PII, piste d�
 | <1.0    | ❌ Fin de vie | ❌ Non |
 
 ## Signaler une vulnérabilité
-Canal privé uniquement : **hello@akios.ai**  
+Canal privé uniquement : **security@akioud.ai**  
 Inclure : description, étapes de repro, version affectée, impact (contournement sandbox, fuite PII, dépassement budget), correctif suggéré, contact.  
-Cible de réponse : accusé ≤24h, triage ≤72h, correctif 2–4 semaines avec divulgation coordonnée.
+Cible de réponse : accusé ≤24h, triage ≤72h, correctifs critiques ≤7 jours, sévérité haute ≤30 jours, divulgation coordonnée, crédit public (Hall of Fame).
 
-## Ce que la V1.0 applique
+## Les quatre couches de sécurité
+
+### 0. Cage de sécurité
+
+La cage de sécurité est l'abstraction centrale — un environnement contrôlé où les workflows IA s'exécutent avec toutes les protections actives.
+
+**Activer la cage :**
+```bash
+# Activer la sécurité complète : rédaction PII, verrou réseau, sandbox, audit
+akios cage up
+
+# Vérifier la posture de sécurité actuelle
+akios cage status
+
+# Exécuter les diagnostics
+akios doctor
+```
+
+Quand la cage est **ACTIVE**, ces protections sont appliquées :
+- **Rédaction PII** — Toutes les entrées/sorties automatiquement analysées et rédigées
+- **Verrou réseau** — Seuls les endpoints LLM + `allowed_domains` configurés passent
+- **Sandbox** — Isolation de processus via cgroups v2 + seccomp-bpf (natif) ou politique conteneur (Docker)
+- **Journalisation d'audit** — Chaque action journalisée cryptographiquement avec chaînes de Merkle
+- **Contrôles de coût** — Kill-switches budget arrêtent l'exécution si les limites sont dépassées
+
+**Désactiver la cage :**
+```bash
+# Cage down complète — détruire TOUTES les données de session (défaut)
+akios cage down
+
+# Mode dev — relâcher les protections mais garder les données pour le débogage
+akios cage down --keep-data
+```
+
+> **Avertissement :** `cage down` détruit définitivement `audit/`, `data/output/` et `data/input/`. C'est la promesse de sécurité fondamentale de la cage : zéro résidu de données. Utilisez `--keep-data` uniquement pendant le développement actif.
+
+### 1. Sandbox & Isolation
+
+Ce que la V1.0 applique :
 - Isolation conteneur : listes blanches commandes/chemins, quotas cgroups, isolation de processus, réseau deny par défaut.
 - Protections IA : >50 motifs PII (entrées/sorties), détection de boucle, coupe-circuits budget/tokens, limites de taille et validation, retry/backoff.
 - Audit & conformité : logs inviolables type Merkle, PII-safe par défaut, export JSON pour revues.
+
+### 2. Rédaction PII
+
+Suppression automatique des données sensibles (>50 motifs) : emails, téléphones, numéros de sécurité sociale, cartes de crédit, clés API, mots de passe, adresses IP, données médicales, comptes financiers.
+
+Appliquée deux fois : avant l'envoi aux fournisseurs IA (entrées) et après réception (sorties).
+
+**Format des marqueurs PII :** Les PII détectés sont remplacés par des marqueurs typés en notation guillemet :
+
+| Type PII | Marqueur | Exemple |
+|----------|----------|---------|
+| Email | `«EMAIL»` | john@example.com → `«EMAIL»` |
+| SSN | `«SSN»` | 442-01-9821 → `«SSN»` |
+| Téléphone | `«PHONE»` | (319) 555-1701 → `«PHONE»` |
+| Nom | `«NAME»` | James T. Kirk → `«NAME»` |
+| Adresse | `«ADDRESS»` | 1701 Enterprise Way → `«ADDRESS»` |
+| Carte de crédit | `«CREDIT_CARD»` | 4111-1111-1111-1111 → `«CREDIT_CARD»` |
+
+**Analyser les fichiers avant traitement :**
+```bash
+akios protect scan data/input/document.txt
+akios protect preview templates/workflow.yml
+```
+
+### 3. Coupe-circuits coût
+
+- **Budget par défaut :** 1,00 $ par workflow
+- **Limites tokens :** 1000 tokens par appel API (défaut)
+- **Terminaison automatique :** Le workflow s'arrête si le budget est dépassé
+- **Détection de boucle :** Capture les boucles infinies avant que les coûts n'explosent
+
+### 4. Piste d'audit
+
+- **Intégrité cryptographique** — Chaînes de hachage type Merkle
+- **Couverture complète** — Chaque action journalisée
+- **PII-safe** — Données sensibles rédigées dans les logs
+- **Prêt conformité** — Export pour SOX/HIPAA/RGPD
 
 ## Vérifier maintenant
 ```bash
@@ -27,7 +102,7 @@ Si différent, voir [Installation](installation.html) et [Référence de configu
 
 
 ## Spécificités plateforme
-- **Linux natif** : kernel-hard (cgroups v2 + seccomp-bpf), meilleure isolation/perf.
+- **Linux natif (pip)** : kernel-hard (cgroups v2 + seccomp-bpf), meilleure isolation/perf. **Prérequis :** kernel ≥5.4, paquets système `libseccomp-dev` et `python3-seccomp`, sudo pour la protection kernel-hard complète.
 - **Docker (macOS/Windows/Linux)** : isolation forte par politiques et rédaction; permissions FS hôte et strictesse seccomp dépendent de l’hôte — privilégier Linux natif pour le haut niveau d’assurance.
 
 ## Vérifier votre posture
@@ -39,7 +114,64 @@ akios status --security --json   # format machine
 Affiche : niveau de sécurité (Full/Strong), protection PII, réseau autorisé/bloqué, statut audit, limites coût/token, indicateurs conformité.
 
 **Rappel :** aucun logiciel n’est sûr à 100 % ; exécutez AKIOS dans des environnements isolés et validez les sorties.
+## Sortie déployable
 
+Chaque exécution de workflow produit un artefact structuré `output.json` :
+
+```bash
+akios output latest
+```
+
+Inclut : métadonnées (version, nom du workflow, ID, horodatage), détails d'exécution (statut, étapes, timing), état de sécurité (rédaction PII, audit, sandbox), ventilation des coûts (total, budget, restant), et résultats par étape. Conçu pour l'intégration CI/CD.
+
+## Cycle de vie des données
+
+La cage applique un cycle de vie strict des données :
+
+```
+cage up → protections activées → workflows exécutés → données générées
+                                                           ↓
+cage down → audit/ détruit → data/output/ détruit → data/input/ détruit
+                                                           ↓
+                                                    ZÉRO RÉSIDU DE DONNÉES
+```
+
+Chaque session démarre propre et se termine propre. Aucun artefact sensible ne survit à une session de cage.
+
+## Sécurité réseau & liste blanche HTTPS
+
+Par défaut, **tout accès réseau externe est bloqué** (sécurité d'abord). Les endpoints LLM (OpenAI, Anthropic, Grok, Mistral, Gemini) passent toujours quel que soit ce paramètre — `network_access_allowed` contrôle uniquement l'agent HTTP.
+
+**Configurer une liste blanche HTTPS pour l'agent HTTP :**
+
+```yaml
+# config.yaml
+network_access_allowed: true
+allowed_domains:
+  - "api.salesforce.com"
+  - "api.mycompany.com"
+```
+
+Ou via variable d'environnement :
+```bash
+AKIOS_ALLOWED_DOMAINS="api.salesforce.com,api.mycompany.com"
+```
+
+Les sous-domaines doivent être ajoutés explicitement — ils ne sont pas automatiquement autorisés.
+
+## Cadres de conformité
+
+Les exports d'audit AKIOS sont conçus pour l'examen réglementaire transversal :
+
+| Secteur | Réglementation | Fonctionnalités de conformité |
+|---------|---------------|-------------------------------|
+| Santé | HIPAA, HITECH | Rédaction PHI, journalisation d'accès, preuve d'audit |
+| Banque | PCI-DSS, BSA-AML, GLBA | Rédaction PII financières, audit de transactions |
+| Assurance | NAIC, State DOI | Protection des données de sinistres, audit détection fraude |
+| Comptabilité | SOX 302/404, PCAOB | Piste d'audit financière, vérification des contrôles |
+| Gouvernement | FISMA, FedRAMP, Privacy Act | Protection données classifiées, audit d'accès |
+| Juridique | ABA Rule 1.6, FRE 502 | Protection du privilège, rédaction données affaires |
+| UE/France | RGPD, CNIL, ANSSI | Rédaction DCP, conformité RGS, cycle de vie des données |
 ## Related
 - [Référence de configuration](config-reference.html)
 - [Débogage](debugging.html)

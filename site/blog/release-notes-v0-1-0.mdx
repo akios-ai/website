@@ -11,11 +11,11 @@
 
 <div class="post-content">
   <p class="lead">
-    AKIOS v1.0 is the security cage you've been waiting for. Run AI agents with confidence — they can't leak data, burn budgets, or escape their sandbox. Everything is auditable, provable, and production-ready.
+    AKIOS v1.0 is the security runtime you've been waiting for. Run AI agents with confidence — they can't leak data, burn budgets, or escape their sandbox. Everything is auditable, provable, and production-ready.
   </p>
 
   <p>
-    This isn't a general-purpose AI framework. It's <strong>the unbreakable cage</strong>: kernel-level isolation, real-time PII redaction, tamper-proof audit trails, and enforced budget controls.
+    This isn't a general-purpose AI framework. It's <strong>the secure runtime</strong>: kernel-level isolation, real-time PII redaction, tamper-proof audit trails, and enforced budget controls.
   </p>
 
   <h2>What's New in v1.0</h2>
@@ -81,35 +81,34 @@
     <li><strong>Tool Executor:</strong> Whitelisted commands in sandboxed subprocess</li>
   </ul>
 
-  <h3>Enhanced CLI (7 Commands)</h3>
+  <h3>Enhanced CLI</h3>
   <pre><code>akios init        # Initialize new project
+akios setup       # Configure API keys & settings
 akios run         # Execute workflow
 akios files       # Discover project files
 akios audit       # Export audit reports
 akios logs        # View execution logs
 akios status      # Check system status
-akios templates   # List available templates</code></pre>
+akios templates   # List available templates
+akios doctor      # Run diagnostics
+akios clean       # Clean old runs
+akios compliance  # Generate compliance reports
+akios output      # Manage workflow outputs</code></pre>
 
   <h2>Choose Your Installation Method</h2>
   <p>
     Pick the option that best fits your workflow:
   </p>
 
-  <h3>🐍 Pip Package (Recommended for Most Users)</h3>
-  <p><strong>Best for:</strong> Python developers, CI/CD pipelines, quick testing</p>
+  <h3>🐍 Pip Package (Recommended for Linux)</h3>
+  <p><strong>Best for:</strong> Python developers, CI/CD pipelines, maximum kernel-hard security</p>
   <pre><code>pip install akios
 akios init my-project
 cd my-project
 akios run templates/hello-workflow.yml</code></pre>
 
-  <h3>📦 Standalone Binary (No Python Required)</h3>
-  <p><strong>Best for:</strong> Production servers, air-gapped environments, maximum control</p>
-  <pre><code># Download from github.com/akios-ai/akios/releases
-chmod +x akios-linux-x64
-./akios-linux-x64 init my-project</code></pre>
-
   <h3>🐳 Docker (Cross-Platform Teams)</h3>
-  <p><strong>Best for:</strong> macOS/Windows development, consistent environments</p>
+  <p><strong>Best for:</strong> macOS/Windows development, consistent environments, teams</p>
   <pre><code>curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
 chmod +x akios
 ./akios init my-project</code></pre>

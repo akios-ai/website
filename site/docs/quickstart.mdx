@@ -4,6 +4,8 @@
 
 Go from zero to your first secure AI workflow in 15 minutes. This guide walks you through everything step-by-step.
 
+> **New in v1.0.5:** Rich terminal UI, environment auto-detection, accessibility modes, `akios doctor` diagnostics, and a critical SIGTRAP crash fix for `sudo` users.
+
 ## What You'll Build
 
 By the end of this guide, you'll have:
@@ -29,7 +31,8 @@ pip install akios>={{version}}
 
 **macOS/Windows users or teams:**
 ```bash
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 chmod +x akios
 ```
 
@@ -114,11 +117,41 @@ You just ran your first secure AI workflow! 🎉
 akios status
 ```
 
-Shows security level, PII redaction, budget remaining, and audit status.
+Shows security level, PII redaction, budget remaining, and audit status — now with a rich terminal UI.
+
+**Activate the security cage:**
+```bash
+akios cage up
+akios cage status
+```
+
+**Scan files for PII before processing:**
+```bash
+akios protect scan data/input/document.txt
+akios protect preview templates/hello-workflow.yml
+```
+
+**Run diagnostics:**
+```bash
+akios doctor
+```
+
+Checks your system for compatibility issues (kernel, seccomp, cgroups, Docker).
+
+**View the execution timeline:**
+```bash
+akios timeline
+```
+
+**Get the latest output as deployable JSON (for CI/CD):**
+```bash
+akios output latest
+```
 
 **View audit logs:**
 ```bash
 akios logs --limit 10
+akios audit verify
 ```
 
 Every action is cryptographically logged for compliance.
@@ -126,6 +159,11 @@ Every action is cryptographically logged for compliance.
 **See available templates:**
 ```bash
 akios templates list
+```
+
+**Generate a compliance report:**
+```bash
+akios compliance report templates/hello-workflow.yml
 ```
 
 ## Create Your Own Workflow
@@ -156,6 +194,8 @@ akios clean --old-runs
 **"API key not valid"** → Run `akios setup --force`
 
 **"Permission denied"** → Linux: `sudo usermod -aG docker $USER` then logout/login
+
+**"SIGTRAP crash with sudo"** → Fixed in v1.0.5. Upgrade: `sudo pip3 install --upgrade akios`
 
 **"Workflow failed"** → Check `akios logs --limit 5` or see [Debugging](debugging.html)
 

@@ -110,6 +110,10 @@ const build = async () => {
         [path.join('blog', 'index.html')]: [
             path.join('blog', 'index.html'),
             path.join('fr', 'blog', 'index.html')
+        ],
+        [path.join('case-studies', 'index.html')]: [
+            path.join('case-studies', 'index.html'),
+            path.join('fr', 'case-studies', 'index.html')
         ]
     };
 
@@ -121,7 +125,8 @@ const build = async () => {
         path.join('fr', 'privacy.html'),
         path.join('fr', 'cookies.html'),
         path.join('fr', 'disclosure.html'),
-        path.join('fr', 'blog', 'index.html')
+        path.join('fr', 'blog', 'index.html'),
+        path.join('fr', 'case-studies', 'index.html')
     ]);
 
     // Helper to process a file
@@ -229,6 +234,7 @@ const build = async () => {
 
             const isDocs = relPath.startsWith('docs/') || relPath.startsWith('fr/docs/');
             const isBlog = relPath.startsWith('blog/') || relPath.startsWith('fr/blog/');
+            const isCaseStudy = relPath.startsWith('case-studies/') || relPath.startsWith('fr/case-studies/');
 
             // Define header and footer for both docs and blog
             const header = injectI18n(headerTemplate, locale);
@@ -256,9 +262,10 @@ const build = async () => {
                     <ul>
                         <li><a href="{{ROOT}}/docs/config-reference.html">${t('sidebar.config_reference', locale)}</a></li>
                         <li><a href="{{ROOT}}/docs/policy-schema.html">${t('sidebar.policy_schema', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/cli-reference.html">CLI Reference</a></li>
+                        <li><a href="{{ROOT}}/docs/workflow-schema.html">${t('sidebar.workflow_schema', locale)}</a></li>
+                        <li><a href="{{ROOT}}/docs/cli-reference.html">${t('sidebar.cli_reference', locale)}</a></li>
                         <li><a href="{{ROOT}}/docs/debugging.html">${t('sidebar.debugging', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/api-reference.html">API Reference</a></li>
+                        <li><a href="{{ROOT}}/docs/api-reference.html">${t('sidebar.api_reference', locale)}</a></li>
                         <li><a href="{{ROOT}}/docs/faq-glossary.html">FAQ & Glossary</a></li>
                     </ul>
 
@@ -376,94 +383,66 @@ const build = async () => {
                     await fs.outputFile(htmlDistPath, adjusted);
                     console.log(`Built MDX docs -> HTML (${locale}): ${htmlDistPath}`);
                 }
-            } else if (isBlog) {
+            } else if (isBlog || isCaseStudy) {
                 let pageContent = `
 <!DOCTYPE html>
 <html lang="${locale}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKIOS — ${t('nav.blog', locale)}</title>
+    <title>AKIOS — ${isCaseStudy ? t('nav.case_studies', locale) : t('nav.blog', locale)}</title>
     <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
     <link rel="icon" href="{{ROOT}}/assets/img/favicon.svg" type="image/svg+xml">
 </head>
 <body>
     ${header.replace(/{{root}}/g, '{{ROOT}}')}
     
-    <article class="section">
+    <article class="section" id="main-content">
         <div class="page">
             <div class="blog-post-wrapper">
                 <div class="blog-post-main">
                     ${htmlBody}
                 </div>
-                <!-- TOC DISABLED - Commented out for future use
-                <aside class="blog-toc">
-                    <div class="blog-toc-sticky">
-                        <h4>${t('blog_post.table_of_contents', locale)}</h4>
-                        <nav class="toc-nav"></nav>
-                    </div>
-                </aside>
-                -->
             </div>
         </div>
     </article>
 
     ${footer.replace(/{{root}}/g, '{{ROOT}}')}
-    
-    <!-- TOC DISABLED - Commented out for future use
+
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <script>
-        // Generate TOC from headings
-        (function() {
-            const content = document.querySelector('.blog-post-main .post-content');
-            const tocNav = document.querySelector('.toc-nav');
-            if (!content || !tocNav) return;
-            
-            const headings = content.querySelectorAll('h2');
-            if (headings.length === 0) {
-                document.querySelector('.blog-toc').style.display = 'none';
-                return;
-            }
-            
-            const tocList = document.createElement('ul');
-            headings.forEach((heading, index) => {
-                const id = 'heading-' + index;
-                heading.id = id;
-                
-                const li = document.createElement('li');
-                li.className = heading.tagName.toLowerCase();
-                const a = document.createElement('a');
-                a.href = '#' + id;
-                a.textContent = heading.textContent;
-                a.onclick = (e) => {
-                    e.preventDefault();
-                    heading.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                };
-                li.appendChild(a);
-                tocList.appendChild(li);
-            });
-            
-            tocNav.appendChild(tocList);
-            
-            // Highlight current section on scroll
-            let currentActive = null;
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const id = entry.target.id;
-                        const link = tocNav.querySelector('a[href="#' + id + '"]');
-                        if (link) {
-                            if (currentActive) currentActive.classList.remove('active');
-                            link.classList.add('active');
-                            currentActive = link;
-                        }
-                    }
-                });
-            }, { rootMargin: '0px 0px -80% 0px' });
-            
-            headings.forEach(heading => observer.observe(heading));
-        })();
+    (function() {
+      var blocks = document.querySelectorAll('pre code.language-mermaid');
+      if (!blocks.length) return;
+      blocks.forEach(function(el) {
+        var pre = el.parentElement;
+        var div = document.createElement('div');
+        div.className = 'mermaid';
+        div.textContent = el.textContent;
+        pre.replaceWith(div);
+      });
+      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'base',
+        themeVariables: {
+          primaryColor: isDark ? '#164e63' : '#ecfeff',
+          primaryBorderColor: '#06b6d4',
+          primaryTextColor: isDark ? '#fafafa' : '#18181b',
+          lineColor: '#06b6d4',
+          secondaryColor: isDark ? '#14532d' : '#f0fdf4',
+          tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
+          background: isDark ? '#09090b' : '#ffffff',
+          mainBkg: isDark ? '#164e63' : '#ecfeff',
+          nodeBorder: '#06b6d4',
+          clusterBkg: isDark ? '#131316' : '#fafafa',
+          clusterBorder: isDark ? '#27272a' : '#e4e4e7',
+          titleColor: isDark ? '#fafafa' : '#18181b',
+          edgeLabelBackground: isDark ? '#131316' : '#ffffff'
+        }
+      });
+    })();
     </script>
-    -->
 </body>
 </html>`;
 

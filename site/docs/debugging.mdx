@@ -22,6 +22,16 @@ akios --debug status
 
 ## Installation Issues
 
+### SIGTRAP Crash When Running with sudo (Fixed in v1.0.5)
+
+If you experience a SIGTRAP crash when running `sudo akios run`, upgrade to v1.0.5:
+
+```bash
+sudo pip3 install --upgrade akios
+```
+
+**Cause:** The seccomp BPF filter was rejecting essential syscalls during privileged execution. This is fixed in v1.0.5.
+
 ### "akios: command not found"
 
 **Pip installation:**
@@ -88,11 +98,11 @@ akios status --verbose
 ### "Invalid provider/model combination"
 
 **Supported combinations:**
-- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4o`
+- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini`
 - Anthropic: `claude-3.5-haiku`, `claude-3.5-sonnet`
 - Grok: `grok-3`
-- Mistral: `mistral-large`
-- Gemini: `gemini-1.5-pro`
+- Mistral: `mistral-small`, `mistral-medium`, `mistral-large`
+- Gemini: `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`
 
 ```bash
 # Fix in .env
@@ -209,6 +219,19 @@ akios --debug run workflow.yml
 - Update Docker Desktop to latest version
 - Check Docker resource settings
 - Consider native Linux for maximum performance
+- **Expected performance:** Docker startup 0.5–0.8s (vs 0.4–0.5s native), memory 60–80MB (vs 40–60MB native)
+
+### "Audit logs not persisting in Docker"
+
+Docker containers use memory-buffered writes. To ensure persistence:
+
+```bash
+# Mount a host directory for audit logs
+docker run --rm -v $(pwd)/audit:/app/audit akiosai/akios:v{{version}} run workflow.yml
+
+# Or use tmpfs for better performance
+docker run --rm --tmpfs /app/audit akiosai/akios:v{{version}} run workflow.yml
+```
 
 ## Security Issues
 
@@ -238,7 +261,7 @@ akios status --security
 # Should show: PII Protection: Active
 ```
 
-If PII is leaking, report to **hello@akios.ai**
+If PII is leaking, report to **security@akioud.ai**
 
 ## Performance Issues
 
@@ -325,7 +348,7 @@ akios doctor --json > diagnostics.json
 
 - Check [GitHub Issues](https://github.com/akios-ai/akios/issues)
 - Ask in [GitHub Discussions](https://github.com/akios-ai/akios/discussions)
-- Email: **hello@akios.ai**
+- Email: **hello@akioud.ai**
 
 **Include in bug reports:**
 - `akios --version`

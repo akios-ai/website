@@ -28,7 +28,7 @@ fi
 
 # Temporarily park .git to protect it from rsync --delete
 GIT_SAFE_BACKUP="$(mktemp -d "${DEST%/}.gitbak.XXXX")"
-trap 'rm -rf "$GIT_SAFE_BACKUP"' EXIT
+trap '[[ -d "$GIT_SAFE_BACKUP/.git" ]] && mv "$GIT_SAFE_BACKUP/.git" "$DEST/.git"; rm -rf "$GIT_SAFE_BACKUP"' EXIT
 mv "$DEST/.git" "$GIT_SAFE_BACKUP/.git"
 
 # Regenerate diagrams so SVGs stay in sync with source (.mmd) before copying.

@@ -27,7 +27,8 @@ akios --version
 
 ### Docker Wrapper (Cross-Platform)
 ```bash
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 chmod +x akios
 ./akios --version
 ```
@@ -61,7 +62,16 @@ akios init my-project
 
 # Create quietly (no banners)
 akios init --quiet
+
+# Initialize and run setup wizard immediately
+akios init --wizard
 ```
+
+**Options:**
+- `--force` - Overwrite existing files
+- `--quiet` - Suppress welcome message
+- `--json` - Output in JSON format
+- `--wizard` - Run the setup wizard after project initialization
 
 **Creates:**
 - `config.yaml` - Runtime configuration
@@ -290,25 +300,165 @@ akios compliance report workflow.yml --output compliance.json
 - `detailed` - Technical details + audit events
 - `executive` - High-level management summary
 
-### `akios output [options]`
-Manage workflow outputs.
+### `akios output` — Manage Workflow Outputs
+
+Manage and organize workflow outputs with advanced file operations.
 
 ```bash
-# List all outputs
-akios output
+# Get the latest workflow output as deployable JSON
+akios output latest
 
-# List for specific workflow
-akios output --workflow hello-workflow.yml
+# List all workflow outputs
+akios output list
 
-# Clean old outputs (keep last 10)
-akios output clean --keep 10
+# List outputs for specific workflow
+akios output list hello-workflow.yml
 
-# Archive outputs
-akios output archive --output archive-2026-01-24.tar.gz
+# Clean old outputs for a workflow
+akios output clean hello-workflow.yml --max-age 7
 
-# Export output metadata
-akios output export --format json --output outputs.json
+# Archive outputs for a workflow
+akios output archive hello-workflow.yml --name archive.tar.gz
 ```
+
+**Subcommands:**
+
+#### `latest`
+Retrieve the most recent workflow execution result as structured JSON — designed for CI/CD pipeline integration. The output includes metadata (version, workflow name, ID, timestamp), execution details (status, steps, timing), security state (PII, audit, sandbox), cost breakdown (total, budget, remaining), and per-step results.
+
+#### `list`
+List workflow outputs. Optionally filter by workflow name.
+
+#### `clean`
+Clean old workflow outputs. Options: `--max-age` (days, default 30), `--max-count` (default 50), `--dry-run`, `--json`.
+
+#### `archive`
+Archive workflow outputs. Options: `--name` (filename, auto-generated if omitted), `--json`.
+
+### `akios cage` / `akios security` — Security Cage Management
+
+Manage the AKIOS security cage — control PII redaction, network access, sandboxing, and audit logging. `cage` and `security` are interchangeable aliases.
+
+```bash
+# Activate full security (PII redaction, HTTPS lock, sandbox, audit)
+akios cage up
+
+# Relax security for development (destroys session data by default)
+akios cage down
+
+# Dev mode — relax protections, keep data for debugging
+akios cage down --keep-data
+
+# Show current cage posture and protection status
+akios cage status
+
+# Same commands via 'security' alias
+akios security up
+akios security down
+akios security status
+```
+
+**`cage up`** activates: PII Redaction (enabled), HTTPS Network (locked — LLM APIs and `allowed_domains` pass through), Sandbox (enforced), Audit Logging (enabled).
+
+**`cage down`** (default) **destroys all session data** — `audit/`, `data/output/`, `data/input/` are permanently deleted. This is the cage's core promise: zero data residue when the cage goes down.
+
+**`cage down --keep-data`** relaxes protections without wiping data (development convenience only).
+
+**`cage status`** displays current posture (ACTIVE / RELAXED / CUSTOM) and protection table.
+
+### `akios protect` — PII Protection Analysis
+
+Analyze workflows and files for PII exposure before execution.
+
+```bash
+# Preview PII detection on a workflow
+akios protect preview templates/hello-workflow.yml
+
+# Scan a file for PII and show redaction results
+akios protect scan data/input/document.txt
+
+# JSON output for scripting
+akios protect preview --json
+akios protect scan data/input/document.txt --json
+```
+
+**`preview`** scans workflow inputs for PII and shows safe prompt construction.
+
+**`scan`** scans a file for PII and displays detected sensitive data categories.
+
+### `akios audit verify` — Verify Audit Integrity
+
+Verify the Merkle-chain integrity of the cryptographic audit trail.
+
+```bash
+akios audit verify
+akios audit verify --json
+```
+
+Returns chain integrity status, hash verification results, and tamper detection.
+
+### `akios audit log` — View Audit Log
+
+View recent entries from the cryptographic audit log.
+
+```bash
+akios audit log
+akios audit log --limit 20
+```
+
+Options: `--limit, -n` (default 10), `--json`.
+
+### `akios docs` — View Documentation
+
+View AKIOS documentation with Markdown rendering directly in the terminal.
+
+```bash
+akios docs
+akios docs security
+akios docs workflows
+```
+
+### `akios timeline` — Workflow Timeline
+
+View workflow execution timeline with performance analysis and step-by-step timing.
+
+```bash
+akios timeline
+akios timeline --verbose
+akios timeline --json
+```
+
+### `akios testing` — Testing Context
+
+View environment notes and testing context for the current project.
+
+```bash
+akios testing
+```
+
+Displays mock mode status, API key availability, and testing recommendations.
+
+## LLM Provider/Model Validation
+
+AKIOS validates LLM provider and model compatibility at startup to prevent API failures.
+
+| Provider | Models |
+|----------|--------|
+| **OpenAI** | `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini` |
+| **Anthropic** | `claude-3.5-haiku`, `claude-3.5-sonnet` |
+| **Grok** | `grok-3` |
+| **Mistral** | `mistral-small`, `mistral-medium`, `mistral-large` |
+| **Gemini** | `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash` |
+
+Validation is case-insensitive. Invalid combinations fail early with clear error messages:
+
+```bash
+# Invalid — wrong provider for model
+AKIOS_LLM_PROVIDER=openai AKIOS_LLM_MODEL=grok-3 akios status
+# Error: "Model 'grok-3' is not valid for provider 'openai'"
+```
+
+Use `AKIOS_JSON_MODE=1` for structured error output in CI/CD.
 
 ## Environment Variables
 

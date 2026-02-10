@@ -11,10 +11,10 @@ pip install akios>={{version}}
 ## Quick Example
 
 ```python
-from akios.core.runtime.engine import WorkflowEngine
+from akios.core.runtime.engine import RuntimeEngine
 
 # Create engine
-engine = WorkflowEngine()
+engine = RuntimeEngine()
 
 # Run workflow
 result = engine.run(
@@ -30,21 +30,21 @@ print(f"Output: {result['output_directory']}")
 
 ## Core API
 
-### WorkflowEngine
+### RuntimeEngine
 
 The main engine for running workflows.
 
 **Import:**
 ```python
-from akios.core.runtime.engine import WorkflowEngine
+from akios.core.runtime.engine import RuntimeEngine
 ```
 
 **Create engine:**
 ```python
-engine = WorkflowEngine()
+engine = RuntimeEngine()
 
 # Or with custom config path
-engine = WorkflowEngine(config_path="./custom-config.yaml")
+engine = RuntimeEngine(config_path="./custom-config.yaml")
 ```
 
 **Run workflow:**
@@ -162,7 +162,7 @@ llm = LlmAgent({
 # Generate completion
 response = llm.complete(
     prompt="Summarize this document",
-    max_tokens=500
+    max_tokens=1000
 )
 print(response["text"])
 print(f"Cost: ${response['cost']}")
@@ -176,8 +176,8 @@ response = llm.chat(
 ```
 
 **Available methods:**
-- `complete(prompt, max_tokens=500)` → dict
-- `chat(messages, max_tokens=500)` → dict
+- `complete(prompt, max_tokens=1000)` → dict
+- `chat(messages, max_tokens=1000)` → dict
 
 ### ToolExecutorAgent
 
@@ -207,7 +207,7 @@ print(result["stdout"])
 AKIOS raises clear exceptions when something goes wrong.
 
 ```python
-from akios.core.runtime.engine import WorkflowEngine
+from akios.core.runtime.engine import RuntimeEngine
 from akios.exceptions import (
     WorkflowValidationError,
     AgentError,
@@ -215,7 +215,7 @@ from akios.exceptions import (
     BudgetExceededError
 )
 
-engine = WorkflowEngine()
+engine = RuntimeEngine()
 
 try:
     result = engine.run("workflows/my-workflow.yml")
@@ -279,9 +279,9 @@ audit.export("audit-report.json", format="json")
 Override config programmatically:
 
 ```python
-from akios.core.runtime.engine import WorkflowEngine
+from akios.core.runtime.engine import RuntimeEngine
 
-engine = WorkflowEngine()
+engine = RuntimeEngine()
 
 result = engine.run(
     "workflows/my-workflow.yml",
@@ -293,20 +293,104 @@ result = engine.run(
 )
 ```
 
+## Settings Management
+
+Access and manage runtime settings programmatically:
+
+```python
+from akios.config import get_settings, Settings
+
+# Get current settings
+settings = get_settings()
+print(f"Audit path: {settings.audit_storage_path}")
+print(f"Sandbox enabled: {settings.sandbox_enabled}")
+print(f"Max tokens: {settings.max_tokens_per_call}")
+print(f"PII redaction: {settings.pii_redaction_enabled}")
+
+# Create custom settings (for testing)
+custom_settings = Settings(
+    mock_llm=True,
+    audit_storage_path="./custom_audit"
+)
+```
+
+## Error Classification
+
+Classify errors programmatically for better handling:
+
+```python
+from akios.core.error.classifier import classify_error
+
+try:
+    result = engine.run("invalid-workflow.yml")
+except Exception as e:
+    fingerprint = classify_error(str(e), type(e).__name__)
+    print(f"Category: {fingerprint.category}")
+    print(f"Severity: {fingerprint.severity}")
+    print(f"Message: {fingerprint.get_user_friendly_message()}")
+    for suggestion in fingerprint.recovery_suggestions:
+        print(f"  - {suggestion}")
+```
+
+## Performance Monitoring
+
+Track and measure workflow performance:
+
+```python
+from akios.core.performance.monitor import (
+    get_performance_monitor,
+    measure_performance
+)
+
+monitor = get_performance_monitor()
+
+# Manual timing
+with monitor.measure_time("custom_operation"):
+    # Your code here
+    pass
+
+# Get performance report
+report = monitor.get_performance_report()
+print(f"Memory usage: {report['memory_usage']['rss_mb']:.1f} MB")
+print(f"Recommendations: {report['recommendations']}")
+
+# Decorator for automatic timing
+@measure_performance("my_function")
+def my_function():
+    pass
+```
+
+## Security Validation
+
+Validate security posture at runtime:
+
+```python
+from akios.security.validation import (
+    validate_startup_security,
+    validate_all_security
+)
+
+try:
+    validate_startup_security()
+    print("Security validation passed")
+except Exception as e:
+    print(f"Security validation failed: {e}")
+```
+
 ## Legacy Compatibility
 
 For backward compatibility:
 
 ```python
-# Old name (deprecated)
-from akios.core.runtime.engine import RuntimeEngine
-
-# New name (preferred)
+# Old name (still works as alias)
 from akios.core.runtime.engine import WorkflowEngine
 
+# New name (preferred in v1.0+)
+from akios.core.runtime.engine import RuntimeEngine
+
 # Both work the same way
-engine = RuntimeEngine()  # Works but deprecated
-engine = WorkflowEngine()  # Preferred
+engine = WorkflowEngine()  # Works (alias)
+engine = RuntimeEngine()   # Preferred
 ```
 
 ## Security Notes
@@ -330,12 +414,12 @@ Complete example integrating AKIOS into an application:
 
 ```python
 import os
-from akios.core.runtime.engine import WorkflowEngine
+from akios.core.runtime.engine import RuntimeEngine
 from akios.exceptions import WorkflowValidationError, BudgetExceededError
 
 class DocumentProcessor:
     def __init__(self):
-        self.engine = WorkflowEngine()
+        self.engine = RuntimeEngine()
         
     def process_document(self, input_file, user_id):
         """Process a document using AKIOS workflow"""

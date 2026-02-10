@@ -26,6 +26,16 @@ docker run --rm -v $(pwd)/templates:/app/templates akios:latest
 - Audit toujours actif; config/workflow invalide échoue immédiatement.
 
 ## Dépannage
-- Kernel/seccomp (Linux) : kernel ≥5.4 avec seccomp + cgroups v2 requis.
+- Kernel/seccomp (Linux) : kernel ≥5.4 avec seccomp + cgroups v2 requis. Paquets système : `libseccomp-dev` et `python3-seccomp`.
+
+```bash
+# Installer les paquets requis (Debian/Ubuntu)
+sudo apt install libseccomp-dev python3-seccomp
+```
+
 - Image obsolète : `AKIOS_FORCE_PULL=1 ./akios status`.
 - Non supporté : toute stack multi-services — voir les versions futures si besoin.
+
+## Notes juridiques & conformité
+
+AKIOS est un outil de sécurité, pas une garantie. Les utilisateurs sont responsables de la conformité aux lois et réglementations applicables dans leur juridiction. La cage de sécurité réduit les risques mais ne les élimine pas. Validez toujours les sorties et exécutez AKIOS dans des environnements appropriés à vos besoins de sécurité. Voir la page [Sécurité](security.html) pour les cadres de conformité supportés par les exports d'audit.

@@ -117,6 +117,12 @@ network_access_allowed: true
 - Conservative patterns for generated content
 - **Recommended:** Always `true`
 
+**`pii_redaction_aggressive: false`**
+- Enables stricter PII patterns with more false positives
+- Use when handling highly sensitive data (healthcare, finance)
+- **Default:** `false`
+- **Recommended:** Enable for regulated environments
+
 **`redaction_strategy: "mask"`**
 - How to handle PII: `mask`, `hash`, or `remove`
 - `mask` replaces with `[REDACTED]`
@@ -149,6 +155,23 @@ network_access_allowed: true
 - **Default:** `false` (deny by default)
 - Set to `true` for API integrations
 
+**`allowed_domains: []`**
+- HTTPS whitelist for HTTP agent requests
+- LLM APIs (OpenAI, Anthropic, Grok, Mistral, Gemini) always pass through regardless
+- Controls only the HTTP agent for custom API calls
+- **Default:** `[]` (empty — only LLM APIs allowed)
+
+```yaml
+network_access_allowed: true
+allowed_domains:
+  - "api.salesforce.com"
+  - "api.mycompany.com"
+```
+
+Or via environment variable: `AKIOS_ALLOWED_DOMAINS="api.salesforce.com,api.mycompany.com"`
+
+Subdomains must be added explicitly — they are not automatically allowed.
+
 ### Cost Controls
 
 **`cost_kill_enabled: true`**
@@ -160,9 +183,9 @@ network_access_allowed: true
 - **Default:** $1.00
 - Increase for complex workflows
 
-**`max_tokens_per_call: 500`**
+**`max_tokens_per_call: 1000`**
 - Token limit per LLM API call
-- **Default:** 500 tokens
+- **Default:** 1000 tokens
 - Increase for longer generations
 
 ### Audit Settings
@@ -278,11 +301,11 @@ akios setup --force
 ```
 
 **Invalid provider/model:**
-- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4o`
+- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini`
 - Anthropic: `claude-3.5-haiku`, `claude-3.5-sonnet`
 - Grok: `grok-3`
-- Mistral: `mistral-large`
-- Gemini: `gemini-1.5-pro`
+- Mistral: `mistral-small`, `mistral-medium`, `mistral-large`
+- Gemini: `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`
 
 **API key issues:**
 ```bash

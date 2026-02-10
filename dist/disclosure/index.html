@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vulnerability Disclosure — AKIOS</title>
+  <meta name="description" content="Vulnerability Disclosure Policy for reporting security issues to AKIOS.">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+    <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);else if(window.matchMedia('(prefers-color-scheme:dark)').matches)document.documentElement.setAttribute('data-theme','dark');})();</script>
+
+  <a href="#main-content" class="skip-to-content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="page">
+      <a href="../" class="brand">
+        <img src="../assets/img/logo.svg" alt="AKIOS Logo" style="height: 32px; width: auto;">
+        AKIOS
+      </a>
+      <nav class="nav-links" id="nav-menu">
+        <a href="../docs/quickstart.html">Quickstart</a>
+        <a href="../docs/index.html">Docs</a>
+        <a href="../blog/index.html">Blog</a>
+        <a href="../case-studies/index.html">Case Studies</a>
+        <a href="../community.html">Community</a>
+        <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
+      </nav>
+      <div class="header-actions">
+        <button class="search-trigger" id="search-trigger" aria-label="Search docs" title="Search (⌘K)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span class="search-shortcut">⌘K</span>
+        </button>
+        <div class="lang-toggle" id="lang-toggle">
+          <a href="../index.html" class="lang-btn" data-lang="en">EN</a>
+          <span class="lang-sep">|</span>
+          <a href="../fr/index.html" class="lang-btn" data-lang="fr">FR</a>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
+          <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </button>
+        <button class="menu-toggle" id="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+          <svg class="icon-menu" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+          <svg class="icon-close" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+  <section class="section">
+    <div class="page">
+      <h1>Vulnerability Disclosure Policy</h1>
+      <p><strong>Last updated: 2026-01-26</strong></p>
+
+      <p>Email: security@akioud.ai</p>
+      <p>Please include: component/URL, reproduction steps, impact, logs or PoC, and secure contact method.</p>
+
+      <h2>Our Commitments</h2>
+      <ul>
+        <li>Acknowledgment within 5 business days.</li>
+        <li>Confidentiality; disclosure timeline coordination.</li>
+        <li>Good faith remediation effort and status updates.</li>
+      </ul>
+
+      <h2>Safe Harbor</h2>
+      <p>If you test and report in good faith without exploiting data or disrupting service, we will not pursue legal action.</p>
+
+      <h2>Out of Scope</h2>
+      <ul>
+        <li>Physical attacks, social engineering, spam.</li>
+        <li>DoS by massive or automated traffic.</li>
+      </ul>
+      
+      <p>Thank you for contributing to AKIOS user security.</p>
+
+      <!-- Links to other legal pages -->
+      <hr style="margin: 2rem 0;">
+      <h3>Policies</h3>
+      <ul>
+        <li><a href="../legal.html">Legal</a></li>
+        <li><a href="../terms.html">Terms of Use</a></li>
+        <li><a href="../privacy.html">Privacy Policy</a></li>
+        <li><a href="../cookies.html">Cookie Policy</a></li>
+      </ul>
+    </div>
+  </section>
+  </main>
+    <!-- Search Overlay -->
+  <div class="search-overlay" id="search-overlay">
+    <div class="search-modal">
+      <div class="search-header">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Search documentation..." autocomplete="off" spellcheck="false">
+        <kbd>ESC</kbd>
+      </div>
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="page footer-inner">
+      <div class="footer-left">
+        <div>© 2026 AKIOS</div>
+        <div class="footer-tagline">Secure runtime for untrusted AI agents. Open source (GPL-3.0-only), native Unix first.</div>
+      </div>
+      <div class="footer-links footer-links-fixed">
+        <div class="footer-row">
+          <a href="../docs/index.html">Docs</a>
+          <a href="../blog/index.html">Blog</a>
+          <a href="../community.html">Community</a>
+          <a href="../docs/faq-glossary.html">FAQ</a>
+          <a href="../legal.html">Legal</a>
+        </div>
+        <div class="footer-row footer-social">
+          <a href="https://github.com/akios-ai/akios" aria-label="GitHub" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          </a>
+          <a href="https://www.linkedin.com/showcase/akios-ai" aria-label="LinkedIn" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+          </a>
+          <a href="https://x.com/akios_ai" aria-label="X" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg>
+          </a>
+          <a href="https://discord.gg/PHDds4XK" aria-label="Discord" rel="noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.369c-1.889-.898-3.915-1.516-6.019-1.825a.102.102 0 0 0-.107.052c-.261.503-.551 1.16-.754 1.679-2.302-.344-4.604-.344-6.859 0-.203-.534-.501-1.176-.765-1.679a.106.106 0 0 0-.107-.052c-2.1.309-4.126.927-6.019 1.825a.098.098 0 0 0-.046.041C.878 7.896.7 11.318 1.451 14.625c.036.062.089.124.161.157 1.876 1.389 3.7 2.209 5.499 2.77.068.021.14.01.183-.048.405-.584.765-1.201 1.07-1.847a.109.109 0 0 0-.06-.152c-.604-.229-1.18-.506-1.735-.84a.11.11 0 0 1-.011-.183c.116-.088.232-.179.343-.271a.107.107 0 0 1 .112-.014c3.642 1.665 7.589 1.665 11.177 0a.107.107 0 0 1 .112.015c.112.092.227.183.344.27a.11.11 0 0 1-.01.184c-.556.334-1.131.612-1.736.84a.109.109 0 0 0-.059.152c.305.646.665 1.263 1.07 1.847a.108.108 0 0 0 .183.048c1.806-.562 3.629-1.383 5.505-2.77.072-.033.125-.095.161-.157 1.004-3.306.675-6.729-2.842-10.216a.08.08 0 0 0-.046-.041zm-12.514 8.185c-.918 0-1.675-.86-1.675-1.916s.747-1.916 1.675-1.916c.933 0 1.684.86 1.675 1.916 0 1.056-.747 1.916-1.675 1.916zm8.139 0c-.918 0-1.675-.86-1.675-1.916s.747-1.916 1.675-1.916c.933 0 1.684.86 1.675 1.916 0 1.056-.742 1.916-1.675 1.916z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      // Cookie banner logic
+      const cookieBanner = document.getElementById('cookie-banner');
+      const acceptAllBtn = document.getElementById('accept-all-cookies');
+      const refuseAllBtn = document.getElementById('refuse-all-cookies');
+      const customizeBtn = document.getElementById('customize-cookies');
+
+      if (cookieBanner && acceptAllBtn && refuseAllBtn && customizeBtn) {
+        // Check if consent already given
+        if (!localStorage.getItem('cookie-consent')) {
+          cookieBanner.style.display = 'block';
+        }
+
+        acceptAllBtn.addEventListener('click', () => {
+          localStorage.setItem('cookie-consent', 'accepted');
+          cookieBanner.style.display = 'none';
+          // Enable analytics if any
+        });
+
+        refuseAllBtn.addEventListener('click', () => {
+          localStorage.setItem('cookie-consent', 'refused');
+          cookieBanner.style.display = 'none';
+          // Disable analytics
+        });
+
+        customizeBtn.addEventListener('click', () => {
+          // Redirect to cookie settings page
+          window.location.href = '../cookies.html';
+        });
+
+        // Add cookie settings link to footer
+        const footerLinks = document.querySelector('.footer-links-fixed .footer-row');
+        if (footerLinks) {
+          const cookieLink = document.createElement('a');
+          cookieLink.href = '../cookies.html';
+          cookieLink.textContent = 'Cookie settings';
+          footerLinks.appendChild(cookieLink);
+        }
+      }
+
+      const path = window.location.pathname;
+      
+      // Get all links that start with ./, ../, or /
+      const allLinks = Array.from(document.querySelectorAll('a[href]')).filter(link => {
+        const href = link.getAttribute('href');
+        return href && (href.startsWith('/') || href.startsWith('./') || href.startsWith('../'));
+      });
+      
+      // Also include nav and footer links for active state styling
+      const links = allLinks;
+
+      const normalize = (p) => {
+        let v = p.replace(/^(\.\.\/|\.\/)+/, '').replace(/^\//, '');
+        v = v.replace(/\/index\.html$/i, '');
+        v = v.replace(/index\.html$/i, '');
+        if (v.endsWith('/')) v = v.slice(0, -1);
+        return v;
+      };
+      const normPath = normalize(path);
+
+      links.forEach(link => {
+        const href = link.getAttribute('href');
+        if (!href) return;
+
+        const normHref = normalize(href);
+
+        if (normPath === normHref || (normPath === '' && normHref === '')) {
+          link.classList.add('active');
+          return;
+        }
+
+        if (normPath.startsWith('docs') && normHref === 'docs') {
+          link.classList.add('active');
+          return;
+        }
+
+        if (normPath.startsWith('blog') && normHref === 'blog') {
+          link.classList.add('active');
+          return;
+        }
+
+        const legalPages = ['terms', 'privacy', 'cookies', 'disclosure'];
+        if (legalPages.some(page => normPath.endsWith(page)) && normHref === 'legal') {
+          link.classList.add('active');
+          return;
+        }
+      });
+
+      document.querySelectorAll('pre:not(.hero-install-cmd)').forEach((block, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'copy-btn';
+        btn.textContent = 'Copy';
+        btn.setAttribute('aria-label', 'Copy code to clipboard');
+        btn.type = 'button';
+
+        block.appendChild(btn);
+
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const code = block.querySelector('code');
+          if (!code) {
+            btn.textContent = 'Error';
+            return;
+          }
+
+          try {
+            const text = code.textContent;
+            
+            // Try navigator.clipboard first (modern browsers, HTTPS or localhost)
+            if (navigator.clipboard && window.isSecureContext) {
+              await navigator.clipboard.writeText(text);
+            } else if (navigator.clipboard) {
+              // Handle HTTP (non-secure context)
+              await navigator.clipboard.writeText(text);
+            } else {
+              // Fallback for older browsers
+              const textarea = document.createElement('textarea');
+              textarea.value = text;
+              textarea.style.position = 'fixed';
+              textarea.style.left = '-9999px';
+              textarea.style.top = '-9999px';
+              document.body.appendChild(textarea);
+              textarea.select();
+              const success = document.execCommand('copy');
+              document.body.removeChild(textarea);
+              if (!success) throw new Error('Copy command failed');
+            }
+
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => {
+              btn.textContent = originalText;
+            }, 2000);
+          } catch (err) {
+            console.error('Failed to copy:', err);
+            btn.textContent = 'Error';
+            setTimeout(() => {
+              btn.textContent = 'Copy';
+            }, 2000);
+          }
+        });
+      });
+
+      const htmlLang = document.documentElement.getAttribute('lang') || 'en';
+
+      if (htmlLang === 'fr') {
+        links.forEach(link => {
+          const href = link.getAttribute('href');
+          if (!href) return;
+
+          try {
+            const url = new URL(href, window.location.origin + path);
+
+            if (!url.pathname.startsWith('/fr/')) {
+              if (url.pathname.startsWith('/docs/')) {
+                url.pathname = '/fr' + url.pathname;
+              } else if (url.pathname.startsWith('/blog/')) {
+                url.pathname = '/fr' + url.pathname;
+              } else if (url.pathname === '/community.html' || url.pathname === '/community/') {
+                url.pathname = '/fr/community/';
+              } else if (url.pathname === '/legal.html' || url.pathname === '/legal/' || 
+                         url.pathname === '/terms.html' || url.pathname === '/terms/' ||
+                         url.pathname === '/privacy.html' || url.pathname === '/privacy/' ||
+                         url.pathname === '/cookies.html' || url.pathname === '/cookies/' ||
+                         url.pathname === '/disclosure.html' || url.pathname === '/disclosure/') {
+                url.pathname = '/fr' + url.pathname;
+              } else if (url.pathname === '/' || url.pathname === '/index.html') {
+                url.pathname = '/fr/';
+              }
+
+              link.setAttribute('href', url.pathname + url.search + url.hash);
+            }
+          } catch (e) {
+          }
+        });
+      }
+
+      const langLink = document.querySelector('.lang-link');
+
+      if (langLink) {
+        langLink.addEventListener('click', (e) => {
+          e.preventDefault();
+
+          const currentPath = window.location.pathname;
+          let targetPath = currentPath;
+
+          if (htmlLang === 'en') {
+            if (currentPath.startsWith('/docs/')) {
+              targetPath = '/fr' + currentPath;
+            } else if (currentPath.startsWith('/blog/')) {
+              targetPath = '/fr' + currentPath;
+            } else if (currentPath === '/community.html' || currentPath === '/community/') {
+              targetPath = '/fr/community/';
+            } else if (currentPath === '/legal.html' || currentPath === '/legal/') {
+              targetPath = '/fr/legal/';
+            } else if (['/terms.html', '/terms/', '/privacy.html', '/privacy/', '/cookies.html', '/cookies/', '/disclosure.html', '/disclosure/'].includes(currentPath)) {
+              targetPath = '/fr' + currentPath;
+            } else if (currentPath === '/' || currentPath === '/index.html') {
+              targetPath = '/fr/';
+            } else {
+              targetPath = '/fr/';
+            }
+          } else {
+            if (currentPath.startsWith('/fr/docs/')) {
+              targetPath = currentPath.replace(/^\/fr/, '');
+            } else if (currentPath.startsWith('/fr/blog/')) {
+              targetPath = currentPath.replace(/^\/fr/, '');
+            } else if (currentPath === '/fr/community.html' || currentPath === '/fr/community/') {
+              targetPath = '/community/';
+            } else if (currentPath === '/fr/legal.html' || currentPath === '/fr/legal/') {
+              targetPath = '/legal/';
+            } else if (['/fr/terms.html', '/fr/terms/', '/fr/privacy.html', '/fr/privacy/', '/fr/cookies.html', '/fr/cookies/', '/fr/disclosure.html', '/fr/disclosure/'].includes(currentPath)) {
+              targetPath = currentPath.replace(/^\/fr/, '');
+            } else if (currentPath === '/fr/' || currentPath === '/fr/index.html') {
+              targetPath = '/';
+            } else {
+              targetPath = '/';
+            }
+          }
+
+          window.location.href = targetPath;
+        });
+      }
+
+      // Share links logic
+      const shareLinks = document.querySelectorAll('.share-links a');
+      if (shareLinks.length > 0) {
+        const url = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent(document.title);
+        
+        shareLinks.forEach(link => {
+          const text = link.textContent.trim().toLowerCase();
+          
+          if (text.includes('twitter') || text.includes('x')) {
+            link.href = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+          } else if (text.includes('linkedin')) {
+            link.href = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+          } else if (text.includes('hacker news')) {
+            link.href = `https://news.ycombinator.com/submitlink?u=${url}&t=${title}`;
+          }
+        });
+      }
+    })();
+  </script>
+
+  <!-- Syntax Highlighting -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" defer></script>
+
+  <script>
+    (function() {
+      // === THEME TOGGLE ===
+      var themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        themeToggle.addEventListener('click', function() {
+          var current = document.documentElement.getAttribute('data-theme');
+          var next = (current === 'dark') ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('theme', next);
+        });
+      }
+
+      // === HAMBURGER MENU ===
+      var menuToggle = document.getElementById('menu-toggle');
+      var navMenu = document.getElementById('nav-menu');
+      if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', function() {
+          var expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+          menuToggle.setAttribute('aria-expanded', String(!expanded));
+          navMenu.classList.toggle('open');
+        });
+      }
+
+      // === LANGUAGE TOGGLE ACTIVE STATE ===
+      var langBtns = document.querySelectorAll('.lang-btn');
+      var isLangFr = window.location.pathname.includes('/fr/');
+      langBtns.forEach(function(btn) {
+        if ((btn.dataset.lang === 'fr' && isLangFr) || (btn.dataset.lang === 'en' && !isLangFr)) {
+          btn.classList.add('active');
+        }
+      });
+
+      // Smart language links: navigate to equivalent page in other language
+      langBtns.forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          var currentPath = window.location.pathname;
+          var targetPath;
+          if (btn.dataset.lang === 'fr' && !isLangFr) {
+            if (currentPath.startsWith('/docs/')) targetPath = '/fr' + currentPath;
+            else if (currentPath.startsWith('/blog/')) targetPath = '/fr' + currentPath;
+            else if (currentPath === '/' || currentPath === '/index.html') targetPath = '/fr/';
+            else targetPath = '/fr' + currentPath;
+          } else if (btn.dataset.lang === 'en' && isLangFr) {
+            targetPath = currentPath.replace(/^\/fr/, '') || '/';
+          } else {
+            return; // Already on this language
+          }
+          window.location.href = targetPath;
+        });
+      });
+
+      // === SEARCH (⌘K / Ctrl+K) ===
+      var searchOverlay = document.getElementById('search-overlay');
+      var searchInput = document.getElementById('search-input');
+      var searchResults = document.getElementById('search-results');
+      var searchTrigger = document.getElementById('search-trigger');
+
+      var docPages = [
+        { title: 'Quickstart', url: 'quickstart.html', section: 'Getting Started' },
+        { title: 'Installation', url: 'installation.html', section: 'Getting Started' },
+        { title: 'Concepts', url: 'concepts.html', section: 'Getting Started' },
+        { title: 'CLI Reference', url: 'cli-reference.html', section: 'Reference' },
+        { title: 'Configuration', url: 'config-reference.html', section: 'Reference' },
+        { title: 'API Reference', url: 'api-reference.html', section: 'Reference' },
+        { title: 'Policy Schema', url: 'policy-schema.html', section: 'Reference' },
+        { title: 'Workflow Schema', url: 'workflow-schema.html', section: 'Reference' },
+        { title: 'Security', url: 'security.html', section: 'Security' },
+        { title: 'Best Practices', url: 'best-practices.html', section: 'Guides' },
+        { title: 'Deployment', url: 'deployment.html', section: 'Guides' },
+        { title: 'EC2 Deployment', url: 'ec2-deployment.html', section: 'Guides' },
+        { title: 'Migration Guide', url: 'migration-guide.html', section: 'Guides' },
+        { title: 'Debugging', url: 'debugging.html', section: 'Guides' },
+        { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
+        { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
+        { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+      ];
+
+      function getDocsBase() {
+        var p = window.location.pathname;
+        if (p.includes('/fr/')) {
+          var frIdx = p.indexOf('/fr/');
+          return p.substring(0, frIdx) + '/fr/docs/';
+        }
+        var docsIdx = p.indexOf('/docs/');
+        if (docsIdx !== -1) return p.substring(0, docsIdx) + '/docs/';
+        if (p.includes('/fr/')) return '/fr/docs/';
+        return '/docs/';
+      }
+
+      function renderResults(query) {
+        var base = getDocsBase();
+        var pages = docPages;
+        if (query) {
+          var q = query.toLowerCase();
+          pages = docPages.filter(function(p) {
+            return p.title.toLowerCase().includes(q) || p.section.toLowerCase().includes(q);
+          });
+        }
+        if (pages.length === 0) {
+          searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
+          return;
+        }
+        var heading = query ? '' : '<div class="search-hint">Top docs &middot; use &uarr;&darr; to navigate</div>';
+        searchResults.innerHTML = heading + pages.map(function(p) {
+          return '<a class="search-result" href="' + base + p.url + '">' +
+            '<span class="search-result-title">' + p.title + '</span>' +
+            '<span class="search-result-section">' + p.section + '</span></a>';
+        }).join('');
+      }
+
+      function openSearch() {
+        if (!searchOverlay) return;
+        searchOverlay.classList.add('open');
+        if (searchInput) {
+          searchInput.value = '';
+          renderResults('');
+          setTimeout(function() { searchInput.focus(); }, 50);
+        }
+      }
+
+      function closeSearch() {
+        if (searchOverlay) searchOverlay.classList.remove('open');
+      }
+
+      if (searchTrigger) searchTrigger.addEventListener('click', openSearch);
+      if (searchOverlay) searchOverlay.addEventListener('click', function(e) {
+        if (e.target === searchOverlay) closeSearch();
+      });
+      if (searchInput) {
+        searchInput.addEventListener('input', function(e) { renderResults(e.target.value); });
+        searchInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') closeSearch();
+        });
+      }
+
+      document.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          searchOverlay && searchOverlay.classList.contains('open') ? closeSearch() : openSearch();
+        }
+        if (e.key === 'Escape') closeSearch();
+      });
+
+      // === MOBILE DOCS NAV TOGGLE ===
+      var docsSidebar = document.querySelector('.docs-sidebar');
+      var docsWrapper = document.querySelector('.docs-wrapper');
+      if (docsSidebar && docsWrapper && window.innerWidth <= 768) {
+        var toggle = document.createElement('button');
+        toggle.className = 'docs-mobile-toggle';
+        toggle.textContent = 'Navigation';
+        toggle.addEventListener('click', function() {
+          docsSidebar.classList.toggle('mobile-open');
+          toggle.textContent = docsSidebar.classList.contains('mobile-open') ? 'Hide navigation' : 'Navigation';
+        });
+        docsWrapper.insertBefore(toggle, docsWrapper.firstChild);
+      }
+
+      // === BACK-TO-TOP BUTTON ===
+      var btt = document.createElement('button');
+      btt.className = 'back-to-top';
+      btt.setAttribute('aria-label', 'Back to top');
+      btt.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>';
+      document.body.appendChild(btt);
+      btt.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      var bttTimeout;
+      window.addEventListener('scroll', function() {
+        if (bttTimeout) return;
+        bttTimeout = setTimeout(function() {
+          bttTimeout = null;
+          if (window.scrollY > 600) btt.classList.add('visible');
+          else btt.classList.remove('visible');
+        }, 100);
+      }, { passive: true });
+
+      // === SEARCH KEYBOARD NAVIGATION (Arrow keys) ===
+      if (searchInput && searchResults) {
+        var selectedIdx = -1;
+
+        searchInput.addEventListener('keydown', function(e) {
+          var items = searchResults.querySelectorAll('.search-result');
+          if (!items.length) return;
+
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedIdx = Math.min(selectedIdx + 1, items.length - 1);
+            items.forEach(function(el, i) {
+              el.classList.toggle('selected', i === selectedIdx);
+            });
+            items[selectedIdx].scrollIntoView({ block: 'nearest' });
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedIdx = Math.max(selectedIdx - 1, 0);
+            items.forEach(function(el, i) {
+              el.classList.toggle('selected', i === selectedIdx);
+            });
+            items[selectedIdx].scrollIntoView({ block: 'nearest' });
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedIdx >= 0 && items[selectedIdx]) {
+              window.location.href = items[selectedIdx].href;
+            } else if (items[0]) {
+              window.location.href = items[0].href;
+            }
+          }
+        });
+
+        // Reset selection when input changes
+        searchInput.addEventListener('input', function() {
+          selectedIdx = -1;
+        });
+      }
+
+      // === SYNTAX HIGHLIGHTING (highlight.js) ===
+      function initHighlight() {
+        if (typeof hljs !== 'undefined') {
+          hljs.configure({ ignoreUnescapedHTML: true });
+          hljs.highlightAll();
+        } else {
+          setTimeout(initHighlight, 100);
+        }
+      }
+      if (document.readyState === 'complete') initHighlight();
+      else window.addEventListener('load', initHighlight);
+    })();
+  </script>
+
+</body>
+</html>

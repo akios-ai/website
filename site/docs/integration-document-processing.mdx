@@ -53,7 +53,7 @@ steps:
       
   - name: "Extract key information"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4o"
       prompt: |
@@ -110,7 +110,7 @@ steps:
       
   - name: "Process each document"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Summarize this document: {{file_content}}"
     for_each: "{{files}}"
@@ -146,7 +146,7 @@ steps:
       
   - name: "Classify"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       model: "gpt-4o"
       prompt: |
@@ -186,7 +186,7 @@ steps:
     
   - name: "Analyze redacted version"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Analyze: {{previous_output}}"
     # AI sees redacted version
@@ -224,25 +224,25 @@ steps:
       
   - name: "Extract entities"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Extract all people, companies, dates: {{document}}"
       
   - name: "Summarize"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Summarize main points: {{document}}"
       
   - name: "Sentiment analysis"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Analyze sentiment (positive/negative/neutral): {{document}}"
       
   - name: "Generate report"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: |
         Create final report:
@@ -273,14 +273,14 @@ steps:
       
   - name: "Process if small"
     agent: llm
-    action: generate
+    action: complete
     skip_if: "$(.size > 1048576)"  # Skip if > 1MB
     parameters:
       prompt: "Full analysis: {{document}}"
       
   - name: "Summarize if large"
     agent: llm
-    action: generate
+    action: complete
     skip_if: "$(.size <= 1048576)"  # Only if > 1MB
     parameters:
       prompt: "Brief summary only: {{document}}"
@@ -302,7 +302,7 @@ steps:
     
   - name: "Combine results"
     agent: llm
-    action: generate
+    action: complete
     parameters:
       prompt: "Combine these analyses: {{chunk_results}}"
 ```

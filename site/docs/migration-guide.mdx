@@ -42,7 +42,8 @@ akios status
 
 ```bash
 # Download latest wrapper
-curl -O https://raw.githubusercontent.com/akios-ai/akios/main/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 chmod +x akios
 
 # Force pull latest image
@@ -292,7 +293,8 @@ cp config.yaml.backup config.yaml
 docker pull akiosai/akios:v0.9.5
 
 # Update wrapper
-curl -O https://raw.githubusercontent.com/akios-ai/akios/v0.9.5/akios
+curl -O https://raw.githubusercontent.com/akios-ai/akios/v0.9.5/src/akios/cli/data/wrapper.sh
+mv wrapper.sh akios
 ```
 
 ## Getting Help
@@ -311,7 +313,7 @@ akios logs --level ERROR
 
 **3. Ask for help:**
 - GitHub Issues: https://github.com/akios-ai/akios/issues
-- Email: hello@akios.ai
+- Email: hello@akioud.ai
 
 **Include:**
 - `akios --version` output
