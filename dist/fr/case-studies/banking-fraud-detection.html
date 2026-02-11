@@ -57,55 +57,149 @@
                     <header class="post-header">
   <div class="post-meta">8 Février 2026 · Ingénierie / Banque · 5 min de lecture</div>
   <h1>IA Sandboxée pour la Banque : Détection de Fraude sans Exposition de Données</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Auteur" class="avatar">
-    <span>AJ</span>
-  </div>
 </header>
 
 <div class="post-content">
 
 <p>Les banques traitent des millions de transactions par jour. L&#39;IA peut détecter des schémas de fraude invisibles à l&#39;œil humain — mais seulement si elle accède aux données transactionnelles. Le problème : <strong>comment donner à un agent IA accès aux enregistrements financiers sans créer une nouvelle surface d&#39;attaque ?</strong></p>
 <p>AKIOS résout cela avec la Cage de Sécurité : un runtime éphémère et sandboxé où l&#39;IA traite les données sous des politiques strictes définies par le code.</p>
+<h2>Le Problème</h2>
+<p>La détection de fraude est une course aux armements. Les équipes de revue manuelle ne suivent pas le volume de transactions, et les systèmes à règles génèrent trop de faux positifs. L&#39;IA peut scanner des millions de transactions en minutes — mais connecter un modèle au système bancaire central crée une catégorie de risque entièrement nouvelle. Si le modèle est compromis, il pourrait exfiltrer les numéros de compte, IBAN et données financières personnelles.</p>
+<p>AKIOS permet de déployer l&#39;IA sur les données transactionnelles <strong>sans lui donner accès aux identifiants bruts</strong>.</p>
 <h2>Le Cadre Réglementaire</h2>
-<p>Les établissements financiers en Europe opèrent sous des cadres réglementaires parmi les plus exigeants au monde :</p>
-<ul>
-<li><strong>RGPD</strong> — Les données financières personnelles sont protégées. Tout traitement IA doit respecter la minimisation des données, la limitation des finalités et le droit à l&#39;explication.</li>
-<li><strong>DORA (Digital Operational Resilience Act)</strong> — Entré en vigueur en janvier 2025, il impose aux entités financières la résilience opérationnelle numérique, y compris pour les systèmes IA tiers.</li>
-<li><strong>EU AI Act</strong> — Les systèmes IA de scoring de crédit et de détection de fraude sont classés haut risque : supervision humaine, audit complet et évaluation de conformité requis.</li>
-<li><strong>ACPR / AMF</strong> — Les régulateurs français exigent une traçabilité complète des décisions automatisées affectant les clients.</li>
-</ul>
+<p>Les établissements financiers en Europe opèrent sous des cadres réglementaires parmi les plus exigeants :</p>
+<table>
+  <thead>
+    <tr><th>Réglementation</th><th>Périmètre</th><th>Comment AKIOS l'Applique</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>RGPD</strong></td>
+      <td>Les données financières personnelles sont protégées. Minimisation, limitation des finalités, droit à l'explication.</td>
+      <td>Anonymisation à l'ingestion. L'IA ne voit jamais les numéros de compte, IBAN ou NIR bruts.</td>
+    </tr>
+    <tr>
+      <td><strong>DORA</strong></td>
+      <td>Résilience opérationnelle numérique — les entités financières doivent assurer la continuité des systèmes IA tiers.</td>
+      <td>Sandbox déterministe — même entrée produit toujours même sortie. Pas de dérive du modèle dans la cage.</td>
+    </tr>
+    <tr>
+      <td><strong>LCB-FT (6e Directive)</strong></td>
+      <td>Obligations de lutte contre le blanchiment — pistes d'audit complètes pour la détection d'activités suspectes.</td>
+      <td>Chemin de décision complet exporté par lot. Chaque signalement inclut sa provenance.</td>
+    </tr>
+    <tr>
+      <td><strong>ACPR / AMF</strong></td>
+      <td>Les régulateurs français exigent une traçabilité complète des décisions automatisées.</td>
+      <td>Chaîne d'audit Merkle — chaque décision IA signée cryptographiquement et immuable.</td>
+    </tr>
+    <tr>
+      <td><strong>DSP2 / DSP3</strong></td>
+      <td>Sécurité des données de paiement, authentification forte, protection des données de carte.</td>
+      <td>Données de carte anonymisées avant traitement. Isolation réseau empêche l'exfiltration.</td>
+    </tr>
+  </tbody>
+</table>
+
 <p>AKIOS applique ces exigences au niveau du runtime — l&#39;agent IA n&#39;opère jamais en dehors du périmètre de conformité.</p>
+<h2>Le Concept : La Politique en tant que Code</h2>
+<p>AKIOS introduit le concept de &quot;Security Cage&quot; (Cage de Sécurité) : un environnement d&#39;exécution éphémère et cloisonné où les données sont traitées selon des politiques strictes définies par le code. La cage est détruite après chaque exécution. Aucun état persistant. Aucun vecteur de fuite de données.</p>
 <h2>Le Flux de Travail : Analyse de Fraude Transactionnelle</h2>
-<ol>
-<li><strong>Ingestion</strong> : Un lot de transactions est chargé dans la Cage de Sécurité. Les numéros de compte et identifiants personnels sont anonymisés avant que l&#39;IA ne les voie.</li>
-<li><strong>La Cage</strong> : AKIOS s&#39;initialise avec la politique bancaire : isolation réseau, budget plafonné à 0,50 € par lot d&#39;analyse, et journalisation d&#39;audit conforme DORA.</li>
-<li><strong>Analyse</strong> : L&#39;agent IA sandboxé scanne les schémas transactionnels pour détecter les anomalies — contrôles de vélocité, incohérences géographiques, déviations de montants — en utilisant uniquement des données anonymisées.</li>
-<li><strong>Signalement</strong> : Les transactions suspectes sont signalées avec des scores de confiance et des références réglementaires. L&#39;IA ne peut ni modifier ni déplacer de fonds.</li>
-<li><strong>Audit</strong> : Chaque inférence, accès aux données et sortie est signé cryptographiquement dans une chaîne Merkle. Les régulateurs peuvent vérifier le chemin de décision complet.</li>
-</ol>
+<table>
+  <thead>
+    <tr><th>Étape</th><th>Ce qui se passe</th><th>Contrôle de sécurité</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Ingestion</strong></td>
+      <td>Lot de transactions chargé dans la Cage de Sécurité</td>
+      <td>Données entrées via agent filesystem en lecture seule. Aucune copie hors de la cage.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Anonymisation</strong></td>
+      <td>Numéros de compte, IBAN et données de carte anonymisés</td>
+      <td>50+ motifs de DCP remplacés par des jetons. L'original n'atteint jamais le LLM.</td>
+    </tr>
+    <tr>
+      <td><strong>3. Analyse IA</strong></td>
+      <td>Le LLM scanne les schémas transactionnels — contrôles de vélocité, incohérences géographiques</td>
+      <td>Budget plafonné (0,50 €/lot), isolation réseau, aucun stockage persistant.</td>
+    </tr>
+    <tr>
+      <td><strong>4. Signalement</strong></td>
+      <td>Transactions suspectes signalées avec scores de confiance et références réglementaires</td>
+      <td>L'IA ne peut ni modifier ni déplacer de fonds. Sortie en lecture seule uniquement.</td>
+    </tr>
+    <tr>
+      <td><strong>5. Audit</strong></td>
+      <td>Chaque inférence et accès aux données signé cryptographiquement</td>
+      <td>Chaîne Merkle — si une entrée est altérée, toute la chaîne est invalidée.</td>
+    </tr>
+  </tbody>
+</table>
+
 <h3>Architecture</h3>
 <pre><code class="language-mermaid">graph LR
-    CBS[&quot;Système Bancaire&quot;] --&gt;|transactions| FS[&quot;agent filesystem\ningestion lot&quot;]
+    CBS[&quot;Système Bancaire\nCentral&quot;] --&gt;|&quot;lot transactions\n(chiffré)&quot;| FS[&quot;agent filesystem\nlecture seule&quot;]
 
     subgraph CAGE[&quot;Cage de Sécurité AKIOS&quot;]
-        FS --&gt; PII[&quot;Rédaction DCP\n«CB» «NIR» «IBAN»&quot;]
-        PII --&gt; LLM[&quot;agent llm\nanalyse patterns&quot;]
-        LLM --&gt; TE[&quot;tool_executor\nscoring risque&quot;]
-        TE --&gt; MERKLE[&quot;Chaîne Merkle\nSHA-256&quot;]
-        MERKLE --&gt; COST[&quot;Coupe-Circuit Coût\nbudget 1,00 €&quot;]
+        FS --&gt; PII[&quot;Moteur Anonymisation\n«CB» «IBAN» «NIR» «RIB»&quot;]
+        PII --&gt; LLM[&quot;agent llm\nanalyse patterns LCB-FT&quot;]
+        LLM --&gt; TE[&quot;tool_executor\nmoteur scoring risque&quot;]
+        TE --&gt; VALID[&quot;Validation Sortie\nvérification données brutes&quot;]
+        VALID --&gt; MERKLE[&quot;Chaîne Merkle\nSHA-256 signée&quot;]
+        MERKLE --&gt; COST[&quot;Coupe-Circuit Coût\n0,50 € / lot&quot;]
     end
 
-    COST --&gt; Alert[&quot;Alertes&quot;]
-    Alert --&gt; Analyst[&quot;Analyste&quot;]
-    MERKLE --&gt;|export audit| Risk[&quot;Piste Audit DORA&quot;]
+    COST --&gt;|&quot;transactions signalées\n(anonymisées)&quot;| Alert[&quot;Système Alertes\nTableau SOC&quot;]
+    Alert --&gt; Analyst[&quot;Analyste\nLCB-FT&quot;]
+    MERKLE --&gt;|&quot;export audit\n(immuable)&quot;| Compliance[&quot;Piste Audit DORA&quot;]
+    Compliance --&gt; ACPR[&quot;ACPR / AMF\nInspecteurs&quot;]
 </code></pre>
+<h3>Configuration de la Politique</h3>
+<pre><code class="language-yaml"># banking-fraud-policy.yml
+security:
+  sandbox: strict
+  network: isolated
+  allowed_endpoints:
+    - api-bancaire.interne:443
+  pii_redaction:
+    enabled: true
+    patterns: [carte_bancaire, iban, rib, nir, compte_bancaire]
+    mode: aggressive
+  budget:
+    max_cost_per_run: 0.50
+    currency: EUR
+  audit:
+    merkle_chain: true
+    export_format: jsonl
+    retention_days: 1825  # 5 ans — exigence LCB-FT
+</code></pre>
+<h2>Ce que l&#39;Analyste Voit</h2>
+<p>À la fin du flux de travail, l&#39;analyste LCB-FT reçoit un rapport structuré :</p>
+<table>
+  <thead>
+    <tr><th>Champ</th><th>Valeur</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>ID Transaction</td><td>TXN-2026-0208-****9143</td></tr>
+    <tr><td>Score de Risque</td><td>0,91 / 1,00 (Critique)</td></tr>
+    <tr><td>Schéma Détecté</td><td>Fractionnement — 6 dépôts de 9 800 € dans 3 agences en 48 heures</td></tr>
+    <tr><td>Référence Réglementaire</td><td>Art. L561-15 CMF — Déclaration de soupçon Tracfin</td></tr>
+    <tr><td>Confiance</td><td>91%</td></tr>
+    <tr><td>Hash Audit</td><td><code>e7f3b2...a41c</code></td></tr>
+    <tr><td>Données Brutes Exposées</td><td>❌ Aucune — toutes les DCP anonymisées avant analyse</td></tr>
+  </tbody>
+</table>
+
+<p>Pas de numéros de compte. Pas de NIR. Pas de données financières brutes. Juste du renseignement actionnable avec une chaîne de preuve cryptographique.</p>
 <h2>Pourquoi C&#39;est Important</h2>
 <ul>
-<li><strong>Zéro Exposition de Données</strong> : Les numéros de compte et DCP sont anonymisés avant tout traitement IA. Même si le modèle est compromis, il n&#39;y a rien à fuiter.</li>
+<li><strong>Zéro Exposition de Données</strong> : Les numéros de compte et DCP sont anonymisés avant tout traitement IA. Même un modèle compromis ne peut rien fuiter.</li>
 <li><strong>Décisions Auditables</strong> : Chaque signalement de fraude inclut une chaîne de preuve cryptographique. L&#39;ACPR peut tracer exactement comment une décision a été prise.</li>
-<li><strong>Conformité DORA</strong> : La résilience opérationnelle est assurée par l&#39;isolation du runtime et les coupe-circuits automatiques.</li>
-<li><strong>Maîtrise des Coûts</strong> : Les limites budgétaires strictes par lot empêchent les dérapages de coûts API — un vrai sujet quand on scanne des millions de transactions.</li>
+<li><strong>Maîtrise des Coûts</strong> : Les limites budgétaires strictes par lot empêchent les dérapages — un vrai sujet quand on scanne des millions de transactions.</li>
+<li><strong>Gestion du Risque Modèle</strong> : La sandbox empêche l&#39;IA d&#39;agir au-delà de son périmètre. Elle peut signaler, mais ne peut ni déplacer de fonds, ni clôturer de comptes.</li>
+<li><strong>Rétention LCB-FT</strong> : Les logs Merkle sont exportables en JSONL, conformément à l&#39;exigence de conservation de 5 ans.</li>
 </ul>
 <h2>Essayez-le Vous-même</h2>
 <pre><code class="language-bash">pip install akios
@@ -116,6 +210,7 @@ akios run templates/file_analysis.yml
 </div>
 
 <div class="post-footer">
+  <p>Connexe : <a href="banking-security-cage.html">Cage de Sécurité IA Conforme DSP2</a> | <a href="insurance-claims-processing.html">IA Sécurisée pour l'Assurance</a></p>
   <a href="./">← Retour aux études de cas</a>
 </div>
 

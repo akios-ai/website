@@ -55,70 +55,193 @@
             <div class="blog-post-wrapper">
                 <div class="blog-post-main">
                     <header class="post-header">
-  <div class="post-meta">19 janvier 2026</div>
-  <h1>Feuille de route AKIOS : 2026 et au-delà</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
+  <div class="post-meta">
+    19 Janvier 2026 &bull; <span>5 min de lecture</span>
   </div>
+  <h1>Feuille de Route AKIOS : 2026 et Au-delà</h1>
 </header>
 
 <div class="post-content">
-  <p class="lead">
-    Ce document décrit la direction future pour AKIOS Open Runtime (gratuit, GPL-3.0-only). Les calendriers et priorités peuvent évoluer en fonction des retours communautaires.
-  </p>
 
-  <h2>Statut Actuel – V1.0 Open Runtime (Lancement janvier 2026)</h2>
-  <p><strong>Verrouillé et Livré.</strong> La cage de sécurité minimale et digne de confiance.</p>
-  <ul>
-    <li>Sandbox kernel-hard (cgroups + seccomp)</li>
-    <li>Rédaction PII en temps réel</li>
-    <li>Audit Merkle cryptographique inviolable</li>
-    <li>Kill-switches coût & boucle</li>
-    <li>Exécution séquentielle uniquement, 4 agents core</li>
-    <li>CLI minimale et templates polis</li>
-  </ul>
+<p>Cette feuille de route décrit la direction future d&#39;AKIOS Open Runtime (gratuit, GPL-3.0-only). Les délais et priorités peuvent évoluer en fonction des retours de la communauté.</p>
+<h2>Où Nous en Sommes</h2>
+<p>AKIOS v1.0 est sorti en janvier 2026 avec une cage de sécurité minimale et fiable. La fondation est solide :</p>
+<ul>
+<li>Sandbox kernel (cgroups + seccomp-bpf)</li>
+<li>Anonymisation DCP en temps réel (50+ motifs)</li>
+<li>Audit Merkle inviolable cryptographique</li>
+<li>Coupe-circuits de coût et de boucles appliqués</li>
+<li>Quatre agents de base (filesystem, HTTP, LLM, exécuteur d&#39;outils)</li>
+<li>CLI soigné avec templates</li>
+</ul>
+<p>Mais v1.0 n&#39;est que le début. Voici la suite :</p>
+<h2>Chronologie</h2>
+<pre><code class="language-mermaid">gantt
+    title Feuille de Route AKIOS Open Runtime
+    dateFormat  YYYY-MM
+    axisFormat  %b %Y
 
-  <h2>Futures Releases Open (V1.x / V2.0)</h2>
-  <p><strong>Calendrier :</strong> 2026–2028 (piloté par la communauté)</p>
+    section V1.0 (Livré)
+    Cage de Sécurité           :done, v10, 2026-01, 2026-01
 
-  <h3>V1.1 – Usabilité (3–6 mois après V1.0)</h3>
-  <ul>
-    <li>Suite CLI complète (15–23 commandes essentielles)</li>
-    <li>API REST basique (local uniquement)</li>
-    <li>Logging structuré amélioré & messages d’erreur</li>
-    <li>Générateur de référence de configuration</li>
-  </ul>
+    section V1.1 (Ergonomie)
+    CLI Complet                :active, v11a, 2026-04, 2026-06
+    API REST Basique           :v11b, 2026-04, 2026-06
+    Logging Structuré          :v11c, 2026-05, 2026-06
 
-  <h3>V1.2–V1.3 – Orchestration (6–12 mois après V1.0)</h3>
-  <ul>
-    <li>Exécution parallèle simple + conditionnelle</li>
-    <li>Patterns de boucle & retry</li>
-    <li>Fan-out / map-reduce</li>
-    <li>Connecteurs bases de données (PostgreSQL, SQLite)</li>
-    <li>Agent GitHub & Récepteur webhooks</li>
-  </ul>
+    section V1.2-1.3 (Orchestration)
+    Exécution Parallèle       :v12a, 2026-07, 2026-09
+    Boucles + Retry            :v12b, 2026-07, 2026-09
+    Connecteurs BDD            :v13a, 2026-10, 2026-12
+    Agent GitHub + Webhooks    :v13b, 2026-10, 2026-12
 
-  <h3>V2.0 Horizon – Écosystème (12–24 mois après V1.0)</h3>
-  <ul>
-    <li>Intégration Prometheus / Jaeger</li>
-    <li>Système de plugins pour agents communautaires</li>
-    <li>Isolation multi-tenant basique</li>
-    <li>Marketplace communautaire</li>
-  </ul>
+    section V2.0 (Écosystème)
+    Système de Plugins         :v20a, 2027-01, 2027-06
+    Isolation Multi-Tenant     :v20b, 2027-01, 2027-06
+    Marketplace Communautaire  :v20c, 2027-07, 2027-12
+    Observabilité (Prometheus) :v20d, 2027-07, 2027-12
+</code></pre>
+<h2>Feuille de Route par Version</h2>
+<table>
+  <thead>
+    <tr><th>Version</th><th>Calendrier</th><th>Focus</th><th>Fonctionnalités Clés</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>V1.0</strong></td>
+      <td>Jan 2026 ✅</td>
+      <td>Fondation Sécurité</td>
+      <td>Sandbox kernel, anonymisation DCP, audit Merkle, coupe-circuits, 4 agents, CLI</td>
+    </tr>
+    <tr>
+      <td><strong>V1.1</strong></td>
+      <td>T2 2026</td>
+      <td>Ergonomie</td>
+      <td>CLI complet (15–23 commandes), API REST locale, logging structuré, générateur de référence config</td>
+    </tr>
+    <tr>
+      <td><strong>V1.2</strong></td>
+      <td>T3 2026</td>
+      <td>Orchestration I</td>
+      <td>Exécution parallèle, workflows conditionnels, boucles & retry, fan-out / map-reduce</td>
+    </tr>
+    <tr>
+      <td><strong>V1.3</strong></td>
+      <td>T4 2026</td>
+      <td>Intégrations</td>
+      <td>Connecteurs BDD (PostgreSQL, SQLite), agent GitHub, webhooks, agent email</td>
+    </tr>
+    <tr>
+      <td><strong>V2.0</strong></td>
+      <td>2027</td>
+      <td>Écosystème</td>
+      <td>Système de plugins, isolation multi-tenant, marketplace communautaire, Prometheus / Jaeger</td>
+    </tr>
+  </tbody>
+</table>
 
-  <h2>Résumé</h2>
-  <p>
-    <strong>Open Runtime</strong> est la fondation de sécurité technique (gratuit).
-  </p>
-  <p>
-    <em>La cage est prête aujourd’hui. L’avenir est sécurisé.</em>
-  </p>
+<h2>V1.1 — Ergonomie (T2 2026)</h2>
+<p>La version 1.1 se concentre sur l&#39;amélioration de l&#39;utilisation quotidienne :</p>
+<h3>CLI Complet</h3>
+<p>Extension de 12 commandes actuelles à 15–23 :</p>
+<pre><code class="language-bash"># Commandes actuelles v1.0
+akios init | setup | run | files | audit | logs
+akios status | templates | doctor | clean | compliance | output
+
+# À venir en v1.1
+akios policy sign       # Signer les politiques
+akios policy verify     # Vérifier les politiques signées
+akios config validate   # Valider les fichiers de config
+akios agent list        # Lister les agents disponibles
+akios agent inspect     # Inspecter les capacités d&#39;un agent
+akios workflow lint     # Lint des fichiers workflow
+akios version           # Version et infos de build
+</code></pre>
+<h3>API REST Basique</h3>
+<p>Une API REST locale uniquement pour l&#39;intégration avec d&#39;autres outils :</p>
+<pre><code class="language-yaml"># akios-api.yml (à venir en v1.1)
+api:
+  enabled: true
+  host: &quot;127.0.0.1&quot;    # local uniquement — jamais exposé
+  port: 8080
+  auth: &quot;bearer-token&quot;
+  endpoints:
+    - /api/v1/run       # déclencher des workflows
+    - /api/v1/status    # vérifier le statut d&#39;exécution
+    - /api/v1/audit     # récupérer les logs d&#39;audit
+</code></pre>
+<h2>V1.2–V1.3 — Orchestration (T3–T4 2026)</h2>
+<h3>Exécution Parallèle</h3>
+<p>Actuellement, AKIOS exécute les workflows séquentiellement. V1.2 ajoute l&#39;exécution parallèle avec des portes de politique entre les branches :</p>
+<pre><code class="language-yaml"># Workflow parallèle (à venir en v1.2)
+steps:
+  - name: &quot;extraction&quot;
+    agent: &quot;filesystem&quot;
+    parallel:
+      - file: &quot;rapport-t1.pdf&quot;
+      - file: &quot;rapport-t2.pdf&quot;
+      - file: &quot;rapport-t3.pdf&quot;
+    max_parallel: 3
+    policy: &quot;per-branch&quot;  # chaque branche a sa propre cage
+</code></pre>
+<h3>Connecteurs Base de Données</h3>
+<p>Accès sécurisé aux bases de données avec contrôle de politique au niveau requête :</p>
+<pre><code class="language-yaml"># Connecteur BDD (à venir en v1.3)
+database:
+  type: &quot;postgresql&quot;
+  connection: &quot;$DB_URL&quot;  # depuis le coffre-fort
+  allow:
+    - query_type: &quot;SELECT&quot;
+      tables: [&quot;factures&quot;, &quot;paiements&quot;]
+    - query_type: &quot;INSERT&quot;
+      tables: [&quot;journal_audit&quot;]
+  deny:
+    - query_type: &quot;DROP&quot;
+    - query_type: &quot;DELETE&quot;
+  pii_redaction: true
+</code></pre>
+<h2>V2.0 — Écosystème (2027)</h2>
+<h3>Système de Plugins</h3>
+<p>Agents communautaires avec architecture plugin sandboxée :</p>
+<pre><code class="language-yaml"># Manifeste plugin (à venir en v2.0)
+plugin:
+  name: &quot;slack-agent&quot;
+  version: &quot;1.0.0&quot;
+  author: &quot;community&quot;
+  sandbox: strict       # les plugins sont sandboxés aussi
+  capabilities:
+    - &quot;http:hooks.slack.com&quot;
+    - &quot;pii_redaction&quot;
+  audit: required
+</code></pre>
+<h2>Comment Nous Décidons de ce qui Sort</h2>
+<p>Chaque fonctionnalité doit passer la <strong>barre de sécurité</strong> :</p>
+<ol>
+<li><strong>Maintient-elle la posture deny-by-default ?</strong> Si une fonctionnalité ouvre une nouvelle surface d&#39;attaque, elle nécessite des contrôles de politique explicites.</li>
+<li><strong>Est-elle auditable ?</strong> Chaque nouvelle capacité doit produire des entrées d&#39;audit Merkle.</li>
+<li><strong>Peut-elle être sandboxée ?</strong> Si elle ne peut pas tourner dans la cage de sécurité, elle ne sort pas.</li>
+<li><strong>L&#39;anonymisation DCP est-elle intégrée ?</strong> Toute fonctionnalité qui touche des données doit passer par le moteur d&#39;anonymisation.</li>
+</ol>
+<h2>Participez</h2>
+<p>AKIOS est open-source (GPL-3.0). La feuille de route est façonnée par les retours communautaires :</p>
+<ul>
+<li><strong>Demandes de fonctionnalités :</strong> <a href="https://github.com/akios-ai/akios/issues">GitHub Issues</a></li>
+<li><strong>Discussions :</strong> <a href="https://github.com/akios-ai/akios/discussions">GitHub Discussions</a></li>
+<li><strong>Contribuer :</strong> Voir <a href="https://github.com/akios-ai/akios/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a></li>
+</ul>
+<h2>Essayez-le Vous-même</h2>
+<pre><code class="language-bash">pip install akios
+akios init mon-projet
+akios run templates/hello-workflow.yml
+</code></pre>
+<p><strong>Open Runtime</strong> est la fondation technique de sécurité (gratuit). La cage est prête aujourd&#39;hui. L&#39;avenir est sécurisé.</p>
+<p>Sécurisez votre IA. Construisez avec AKIOS.</p>
 </div>
 
 <div class="post-footer">
+  <p>Connexe : <a href="release-notes-v0-1-0.html">Notes de Version AKIOS v1.0</a> | <a href="introducing-akios.html">Présentation d'AKIOS</a></p>
   <div class="share-links">
-    <span>Partager cet article :</span>
+    <span>Partager :</span>
     <a href="#" target="_blank">Twitter</a>
     <a href="#" target="_blank">LinkedIn</a>
     <a href="#" target="_blank">Hacker News</a>

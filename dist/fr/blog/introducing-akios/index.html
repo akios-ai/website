@@ -55,56 +55,164 @@
             <div class="blog-post-wrapper">
                 <div class="blog-post-main">
                     <header class="post-header">
-  <div class="post-meta">14 janvier 2026</div>
-  <h1>Présentation d'AKIOS : un runtime sécurisé pour agents IA non fiables</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Auteur" class="avatar">
-    <span>AJ</span>
+  <div class="post-meta">
+    14 Janvier 2026 &bull; <span>6 min de lecture</span>
   </div>
+  <h1>Présentation d'AKIOS : un Runtime Sécurisé pour Agents IA Non Fiables</h1>
 </header>
 
 <div class="post-content">
-  <p class="lead">
-    Aujourd'hui, nous annonçons AKIOS, un nouveau runtime open source conçu spécifiquement pour exécuter des agents IA non fiables sur des machines locales.
-  </p>
 
-  <h2>Le problème : « curl | sh » pour les agents</h2>
-  <p>
-    Nous entrons dans une ère où les développeurs exécutent couramment des agents IA qui génèrent et exécutent du code. Dans la pratique actuelle, ces agents tournent souvent directement sur la machine hôte ou dans des conteneurs Docker configurés de manière assez lâche.
-  </p>
-  <p>
-    C'est risqué. Les agents peuvent halluciner des commandes destructrices, exfiltrer des identifiants, ou modifier accidentellement des fichiers système critiques. Nous avons besoin d'un runtime qui considère l'agent comme non fiable par défaut.
-  </p>
+<p>Aujourd&#39;hui, nous annonçons <strong>AKIOS</strong>, un nouveau runtime open source conçu spécifiquement pour exécuter des agents IA non fiables sur des machines locales.</p>
+<h2>Le Problème : « curl | sh » pour les Agents</h2>
+<p>Nous entrons dans une ère où les développeurs exécutent couramment des agents IA qui génèrent et exécutent du code. Les pratiques actuelles consistent souvent à les exécuter directement sur la machine hôte ou dans des conteneurs Docker faiblement configurés.</p>
+<p>C&#39;est risqué. Les agents peuvent halluciner des commandes destructrices, exfiltrer des identifiants ou modifier accidentellement des fichiers système critiques. Nous avons besoin d&#39;un runtime qui <strong>considère l&#39;agent comme non fiable par défaut</strong>.</p>
+<p>Les « solutions » typiques — conteneurs Docker, isolation VM, ou l&#39;espoir — laissent des failles critiques :</p>
+<table>
+  <thead>
+    <tr><th>Approche</th><th>Contrôle Réseau</th><th>Anonymisation DCP</th><th>Coupe-Circuit Coût</th><th>Piste d'Audit</th><th>Mise en Place</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Bare Metal</strong></td>
+      <td>❌ Aucun</td>
+      <td>❌ Aucune</td>
+      <td>❌ Aucun</td>
+      <td>❌ Aucune</td>
+      <td>0 sec</td>
+    </tr>
+    <tr>
+      <td><strong>Docker</strong></td>
+      <td>⚠️ iptables manuel</td>
+      <td>❌ Aucune</td>
+      <td>❌ Aucun</td>
+      <td>⚠️ Logs basiques</td>
+      <td>~30 min</td>
+    </tr>
+    <tr>
+      <td><strong>VM (Firecracker)</strong></td>
+      <td>⚠️ Config NAT</td>
+      <td>❌ Aucune</td>
+      <td>❌ Aucun</td>
+      <td>⚠️ Syslog</td>
+      <td>~1 heure</td>
+    </tr>
+    <tr>
+      <td><strong>AKIOS</strong></td>
+      <td>✅ Contrôle par politique</td>
+      <td>✅ 50+ motifs</td>
+      <td>✅ Par workflow</td>
+      <td>✅ Chaîne Merkle</td>
+      <td>15 sec</td>
+    </tr>
+  </tbody>
+</table>
 
-  <h2>AKIOS à la rescousse</h2>
-  <p>
-    AKIOS fournit un sandbox strict basé sur <code>seccomp-bpf</code> et les namespaces utilisateurs. Il suit une philosophie de « refus par défaut » aussi bien pour l'accès réseau que pour le système de fichiers.
-  </p>
+<h2>Découvrez AKIOS</h2>
+<p>AKIOS fournit un sandbox strict basé sur <code>seccomp-bpf</code> et les espaces de noms utilisateur. Il suit une philosophie <strong>« tout interdire par défaut »</strong> pour les accès réseau et filesystem.</p>
+<h3>Vue d&#39;Ensemble de l&#39;Architecture</h3>
+<pre><code class="language-mermaid">graph LR
+    User[&quot;Développeur / CI&quot;] --&gt;|&quot;akios run workflow.yml&quot;| CLI[&quot;CLI AKIOS&quot;]
 
-  <h3>Fonctionnalités clés</h3>
-  <ul>
-    <li><strong>Sandbox strict :</strong> les agents s'exécutent dans des environnements isolés avec des privilèges minimaux.</li>
-    <li><strong>Politiques explicites :</strong> vous définissez précisément quels domaines un agent peut contacter et quels fichiers il peut lire ou écrire.</li>
-    <li><strong>Journalisation vérifiable :</strong> chaque action réalisée par l'agent est journalisée et signée, ce qui fournit une piste d'audit vérifiable.</li>
-  </ul>
+    subgraph RUNTIME[&quot;Runtime Sécurisé AKIOS&quot;]
+        CLI --&gt; PolicyEngine[&quot;Moteur de Politique\n(validation + signature)&quot;]
+        PolicyEngine --&gt; Sandbox[&quot;Sandbox Kernel\nseccomp-bpf + cgroups&quot;]
 
-  <h2>Et ensuite ?</h2>
-  <p>
-    Ce n'est qu'un début. Nous travaillons déjà sur des fonctionnalités avancées comme l'orchestration multi-agents et l'inférence accélérée matériellement à l'intérieur du sandbox.
-  </p>
-  <p>
-    Pour commencer, consultez le guide <a href="../docs/quickstart.html">Démarrage rapide</a> et faites tourner votre premier agent sandboxé.
-  </p>
+        subgraph CAGE[&quot;Cage de Sécurité (éphémère)&quot;]
+            Sandbox --&gt; FS[&quot;Agent Filesystem\nchemins contrôlés&quot;]
+            Sandbox --&gt; HTTP[&quot;Agent HTTP\ndébit limité&quot;]
+            Sandbox --&gt; LLM[&quot;Agent LLM\nbudget contrôlé&quot;]
+            Sandbox --&gt; Tool[&quot;Exécuteur d&#39;Outils\nliste blanche&quot;]
+        end
+
+        FS --&gt; PII[&quot;Anonymisation DCP\n50+ motifs&quot;]
+        HTTP --&gt; PII
+        LLM --&gt; PII
+        Tool --&gt; PII
+        PII --&gt; Audit[&quot;Audit Merkle\nchaîne SHA-256&quot;]
+        Audit --&gt; KillSwitch[&quot;Coupe-Circuit\ncoût + boucles&quot;]
+    end
+
+    KillSwitch --&gt;|&quot;sortie assainie&quot;| Output[&quot;Résultats\n(auditables)&quot;]
+</code></pre>
+<h3>Fonctionnalités Clés</h3>
+<p><strong>Sandboxing Strict</strong> — Les agents s&#39;exécutent dans des environnements isolés avec des privilèges minimaux. Sous Linux, cela utilise des contrôles au niveau kernel (cgroups v2 + seccomp-bpf). Sur les autres plateformes, Docker fournit une isolation conteneur forte.</p>
+<p><strong>Politiques Explicites</strong> — Vous définissez exactement quels domaines un agent peut contacter, quels fichiers il peut lire/écrire, et quelles commandes il peut exécuter. Tout le reste est bloqué.</p>
+<pre><code class="language-yaml"># Exemple : politique minimale pour un agent de résumé
+version: 1
+name: &quot;resume-documents&quot;
+filesystem:
+  allow:
+    - path: &quot;/workspace/docs&quot;
+      mode: &quot;r&quot;
+http:
+  allow:
+    - host: &quot;api.openai.com&quot;
+      methods: [&quot;POST&quot;]
+      rate_limit_per_min: 10
+llm:
+  provider: &quot;openai&quot;
+  model: &quot;gpt-4.1&quot;
+  budget_usd: 0.50
+audit:
+  merkle: true
+  pii_redaction: true
+</code></pre>
+<p><strong>Anonymisation DCP en Temps Réel</strong> — Plus de 50 motifs détectés et anonymisés en moins de 50 ms — NIR, numéros de carte, clés API, emails, téléphones — avant qu&#39;ils n&#39;atteignent l&#39;agent.</p>
+<p><strong>Audit Inviolable</strong> — Chaque action est journalisée cryptographiquement dans une chaîne Merkle. Si un seul octet est modifié, la chaîne se brise. Ce n&#39;est pas du simple logging — c&#39;est une preuve cryptographique.</p>
+<p><strong>Coupe-Circuits de Coût</strong> — Terminaison immédiate en cas de dépassement de budget ou de boucles infinies. Définissez une limite de 1,00 € par workflow et soyez sûr qu&#39;elle sera appliquée.</p>
+<h2>Démo en 30 Secondes</h2>
+<pre><code class="language-bash"># Installer
+pip install akios
+
+# Initialiser un projet
+akios init mon-projet
+cd mon-projet
+
+# Exécuter un workflow sandboxé
+akios run templates/hello-workflow.yml
+</code></pre>
+<p>Ce que vous verrez :</p>
+<pre><code>[akios] sandbox: seccomp-bpf, cgroups v2 (Linux)
+[akios] pii: anonymisation activée (50+ motifs)
+[akios] audit: chaîne Merkle initialisée
+[akios] budget: limite 0,50 € appliquée
+[akios] workflow: terminé avec succès en 1,2s
+[akios] audit: chaîne vérifiée ✓ (hash: a3b7c9...d2e1)
+</code></pre>
+<h2>Ce qui Rend AKIOS Différent</h2>
+<p>Ce n&#39;est pas un autre framework IA. C&#39;est un <strong>runtime de sécurité</strong>.</p>
+<ul>
+<li>Les <strong>frameworks</strong> vous donnent des outils pour construire des agents. AKIOS vous donne une cage pour les exécuter en sécurité.</li>
+<li><strong>Docker</strong> vous donne l&#39;isolation conteneur. AKIOS vous donne une exécution contrôlée par politique, anonymisée, limitée en coût, et auditée cryptographiquement.</li>
+<li>Les <strong>architectures « faites-moi confiance »</strong> reposent sur la bonne volonté des développeurs. AKIOS l&#39;impose au niveau kernel.</li>
+</ul>
+<h2>La Suite</h2>
+<p>Ce n&#39;est que le début. Nous travaillons sur :</p>
+<ul>
+<li><strong>Orchestration multi-agents</strong> — exécution parallèle avec portes de politique inter-agents</li>
+<li><strong>Connecteurs base de données</strong> — PostgreSQL, SQLite avec contrôle de politique au niveau requête</li>
+<li><strong>Système de plugins</strong> — agents communautaires avec architecture plugin sandboxée</li>
+<li><strong>Inférence accélérée</strong> — accès GPU dans le sandbox avec isolation mémoire</li>
+</ul>
+<p>Consultez le guide <a href="../docs/quickstart.html">Quickstart</a> pour essayer, ou parcourez le <a href="https://github.com/akios-ai/akios">code source sur GitHub</a>.</p>
+<h2>Essayez-le Vous-même</h2>
+<pre><code class="language-bash">pip install akios
+akios init mon-projet
+akios run templates/hello-workflow.yml
+</code></pre>
+<p>Sécurisez votre IA. Construisez avec AKIOS.</p>
 </div>
 
 <div class="post-footer">
+  <p>Connexe : <a href="release-notes-v0-1-0.html">Notes de Version AKIOS v1.0</a> | <a href="secure-agent-communication.html">Communication Sécurisée entre Agents</a></p>
   <div class="share-links">
     <span>Partager :</span>
     <a href="#" target="_blank">Twitter</a>
     <a href="#" target="_blank">LinkedIn</a>
     <a href="#" target="_blank">Hacker News</a>
   </div>
-  <a href="./">← Retour au blog</a>
+  <a href="./">← Retour au Blog</a>
 </div>
 
                 </div>

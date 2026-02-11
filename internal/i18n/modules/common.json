@@ -37,6 +37,17 @@
       "copied": "Copied!",
       "error": "Error",
       "copy_label": "Copy code to clipboard"
+    },
+    "case_study_filters": {
+      "all": "All",
+      "healthcare": "Healthcare",
+      "banking": "Banking",
+      "accounting": "Accounting",
+      "legal": "Legal",
+      "government": "Government",
+      "insurance": "Insurance",
+      "pharma": "Pharma",
+      "energy": "Energy"
     }
   },
   "fr": {
@@ -77,6 +88,17 @@
       "copied": "Copié !",
       "error": "Erreur",
       "copy_label": "Copier le code"
+    },
+    "case_study_filters": {
+      "all": "Tous",
+      "healthcare": "Santé",
+      "banking": "Banque",
+      "accounting": "Comptabilité",
+      "legal": "Juridique",
+      "government": "Gouvernement",
+      "insurance": "Assurance",
+      "pharma": "Pharma",
+      "energy": "Énergie"
     }
   }
 }

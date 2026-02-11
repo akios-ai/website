@@ -55,78 +55,213 @@
             <div class="blog-post-wrapper">
                 <div class="blog-post-main">
                     <header class="post-header">
-  <div class="post-meta">January 22, 2026</div>
-  <h1>Policy Schema Deep Dive (v1)</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
+  <div class="post-meta">
+    January 22, 2026 &bull; <span>6 min read</span>
   </div>
+  <h1>Policy Schema Deep Dive (v1)</h1>
 </header>
 
 <div class="post-content">
-  <p class="lead">
-    The v1 policy schema is intentionally small. This post shows the key blocks with copy‑paste examples you can adapt.
-  </p>
 
-  <h2>Filesystem</h2>
-  <pre><code>filesystem:
-  allow:
-    - path: "/srv/akios/readme.md"
-      mode: "r"
-  deny_writes: true</code></pre>
+<p>The v1 policy schema is intentionally small. But small doesn&#39;t mean simple — every key controls a real security boundary. This post explains what each block does, why it exists, and how to use it.</p>
+<h2>Why Policy as Code?</h2>
+<p>Most AI security is enforced by convention: developers promise not to do bad things. AKIOS takes a different approach — security is enforced by <strong>code</strong>, validated before execution, and cryptographically signed. If the policy doesn&#39;t allow it, it doesn&#39;t happen.</p>
+<pre><code class="language-mermaid">graph LR
+    YAML[&quot;Policy YAML&quot;] --&gt;|&quot;parse + validate&quot;| Engine[&quot;Policy Engine&quot;]
+    Engine --&gt;|&quot;sign&quot;| Signed[&quot;Signed Policy\n(SHA-256)&quot;]
+    Signed --&gt;|&quot;load into cage&quot;| Cage[&quot;Security Cage&quot;]
 
-  <h2>HTTP</h2>
-  <pre><code>http:
+    subgraph CAGE_RUNTIME[&quot;Runtime Enforcement&quot;]
+        Cage --&gt; FS_CHECK{&quot;Filesystem\nrequest?&quot;}
+        Cage --&gt; HTTP_CHECK{&quot;HTTP\nrequest?&quot;}
+        Cage --&gt; LLM_CHECK{&quot;LLM\ncall?&quot;}
+        Cage --&gt; TOOL_CHECK{&quot;Tool\nexec?&quot;}
+
+        FS_CHECK --&gt;|&quot;allowed path?&quot;| FS_ALLOW[&quot;✅ Allow&quot;]
+        FS_CHECK --&gt;|&quot;denied&quot;| FS_BLOCK[&quot;❌ Block + Log&quot;]
+        HTTP_CHECK --&gt;|&quot;allowed host?&quot;| HTTP_ALLOW[&quot;✅ Allow&quot;]
+        HTTP_CHECK --&gt;|&quot;denied&quot;| HTTP_BLOCK[&quot;❌ Block + Log&quot;]
+        LLM_CHECK --&gt;|&quot;within budget?&quot;| LLM_ALLOW[&quot;✅ Allow&quot;]
+        LLM_CHECK --&gt;|&quot;over budget&quot;| LLM_KILL[&quot;🛑 Kill-Switch&quot;]
+        TOOL_CHECK --&gt;|&quot;allowlisted?&quot;| TOOL_ALLOW[&quot;✅ Allow&quot;]
+        TOOL_CHECK --&gt;|&quot;denied&quot;| TOOL_BLOCK[&quot;❌ Block + Log&quot;]
+    end
+</code></pre>
+<h2>The Schema Blocks</h2>
+<p>The v1 policy has six top-level blocks. Here&#39;s what each one does:</p>
+<table>
+  <thead>
+    <tr><th>Block</th><th>Controls</th><th>Default</th><th>Security Impact</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>filesystem</strong></td>
+      <td>Which paths agents can read/write</td>
+      <td>Deny all</td>
+      <td>Prevents data exfiltration via local files</td>
+    </tr>
+    <tr>
+      <td><strong>http</strong></td>
+      <td>Which hosts/methods/rates are allowed</td>
+      <td>Deny all</td>
+      <td>Prevents unauthorized network calls</td>
+    </tr>
+    <tr>
+      <td><strong>llm</strong></td>
+      <td>Provider, model, tokens, budget</td>
+      <td>No default provider</td>
+      <td>Prevents cost overruns and model misuse</td>
+    </tr>
+    <tr>
+      <td><strong>tools</strong></td>
+      <td>Which commands can execute</td>
+      <td>Deny all</td>
+      <td>Prevents arbitrary command execution</td>
+    </tr>
+    <tr>
+      <td><strong>audit</strong></td>
+      <td>Merkle chain, PII redaction, export</td>
+      <td>Enabled</td>
+      <td>Provides tamper-evident proof of execution</td>
+    </tr>
+    <tr>
+      <td><strong>pii_redaction</strong></td>
+      <td>Which patterns to detect and redact</td>
+      <td>Enabled (standard)</td>
+      <td>Prevents sensitive data reaching the agent</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Filesystem</h3>
+<p>Controls what the agent can see and modify on disk:</p>
+<pre><code class="language-yaml">filesystem:
   allow:
-    - host: "api.example.com"
-      methods: ["GET"]
+    - path: &quot;/srv/akios/readme.md&quot;
+      mode: &quot;r&quot;           # read-only
+    - path: &quot;/workspace/output&quot;
+      mode: &quot;w&quot;           # write allowed
+  deny_writes: true       # block writes everywhere else
+</code></pre>
+<p><strong>Key rule:</strong> Paths not in the allowlist are invisible to the agent. It can&#39;t even detect they exist.</p>
+<h3>HTTP</h3>
+<p>Controls which external services the agent can contact:</p>
+<pre><code class="language-yaml">http:
+  allow:
+    - host: &quot;api.openai.com&quot;
+      methods: [&quot;POST&quot;]
       rate_limit_per_min: 30
-  redact_headers: ["authorization", "cookie"]</code></pre>
-
-  <h2>LLM</h2>
-  <pre><code>llm:
-  provider: "openai"
-  model: "gpt-4.1"
+    - host: &quot;docs.example.com&quot;
+      methods: [&quot;GET&quot;]
+      rate_limit_per_min: 60
+  redact_headers: [&quot;authorization&quot;, &quot;cookie&quot;, &quot;x-api-key&quot;]
+</code></pre>
+<p><strong>Key rule:</strong> Every request passes through the PII redaction engine. Even allowed requests have sensitive headers stripped.</p>
+<h3>LLM</h3>
+<p>Controls the AI model and spending:</p>
+<pre><code class="language-yaml">llm:
+  provider: &quot;openai&quot;
+  model: &quot;gpt-4.1&quot;
   max_tokens: 1200
   budget_usd: 0.25
-  redact_prompts: true
-  redact_responses: true</code></pre>
-
-  <h2>Tools (commands)</h2>
-  <pre><code>tools:
+  redact_prompts: true     # strip PII from prompts
+  redact_responses: true   # strip PII from responses
+</code></pre>
+<p><strong>Key rule:</strong> When <code>budget_usd</code> is exceeded, the workflow is <strong>killed immediately</strong> — not after the current call finishes. This is a hard kill-switch, not a soft warning.</p>
+<h3>Tools (Commands)</h3>
+<p>Controls what shell commands the agent can execute:</p>
+<pre><code class="language-yaml">tools:
   allow:
-    - name: "jq"
-      args: ["." ]
-    - name: "grep"
-      args: ["-n", "ERROR"]
-  working_dir: "/workspace"
-  timeout_sec: 20</code></pre>
+    - name: &quot;jq&quot;
+      args: [&quot;.&quot;]
+    - name: &quot;grep&quot;
+      args: [&quot;-n&quot;, &quot;ERROR&quot;]
+  working_dir: &quot;/workspace&quot;
+  timeout_sec: 20
+</code></pre>
+<p><strong>Key rule:</strong> Only 17 pre-approved commands are available. Each runs in a sandboxed subprocess with syscall filtering and output size limits (1MB).</p>
+<h3>Audit</h3>
+<p>Controls the tamper-evident logging:</p>
+<pre><code class="language-yaml">audit:
+  merkle: true
+  pii_redaction: true
+  export_format: jsonl     # or json, pdf
+  retention_days: 2555     # 7 years
+</code></pre>
+<p><strong>Key rule:</strong> The Merkle chain is append-only. If any entry is modified, the hash chain breaks and verification fails. This is cryptographic proof, not just a log file.</p>
+<h3>PII Redaction</h3>
+<p>Controls which sensitive data patterns are detected:</p>
+<pre><code class="language-yaml">pii_redaction:
+  enabled: true
+  mode: aggressive         # or standard
+  patterns: [ssn, ein, credit_card, bank_account, email, phone, api_key]
+</code></pre>
+<p><strong>Key rule:</strong> In <code>aggressive</code> mode, the engine errs on the side of redacting more. False positives are better than data leaks.</p>
+<h2>Putting It All Together</h2>
+<p>Here&#39;s a complete production policy:</p>
+<pre><code class="language-yaml">version: 1
+name: &quot;doc-summary&quot;
 
-  <h2>Putting it together</h2>
-  <pre><code>version: 1
-name: "doc-summary"
 filesystem:
   allow:
-    - path: "/workspace/docs"
-      mode: "r"
+    - path: &quot;/workspace/docs&quot;
+      mode: &quot;r&quot;
 http:
   allow:
-    - host: "docs.example.com"
-      methods: ["GET"]
+    - host: &quot;api.openai.com&quot;
+      methods: [&quot;POST&quot;]
+      rate_limit_per_min: 10
+  redact_headers: [&quot;authorization&quot;, &quot;cookie&quot;]
 llm:
-  provider: "openai"
-  model: "gpt-4.1"
+  provider: &quot;openai&quot;
+  model: &quot;gpt-4.1&quot;
   max_tokens: 1500
   budget_usd: 0.30
+  redact_prompts: true
+  redact_responses: true
 tools:
   allow:
-    - name: "jq"
-    - name: "grep"
+    - name: &quot;jq&quot;
+    - name: &quot;grep&quot;
+  working_dir: &quot;/workspace&quot;
+  timeout_sec: 20
 audit:
   merkle: true
-  pii_redaction: true</code></pre>
+  pii_redaction: true
+  export_format: jsonl
+pii_redaction:
+  enabled: true
+  mode: aggressive
+</code></pre>
+<h2>Validating Your Policy</h2>
+<p>Always validate before deploying:</p>
+<pre><code class="language-bash"># Dry-run validates policy without executing
+akios run --dry-run my-workflow.yml
 
-  <p>Keep policies small, explicit, and signed. That’s how the cage stays predictable.</p>
+# Sign the policy for production use
+akios policy sign my-workflow.yml
+
+# Verify a signed policy
+akios policy verify my-workflow.yml.sig
+</code></pre>
+<h2>Try It Yourself</h2>
+<pre><code class="language-bash">pip install akios
+akios init my-project
+akios run templates/hello-workflow.yml
+</code></pre>
+<p>Keep policies small, explicit, and signed. That&#39;s how the cage stays predictable.</p>
+<p>Secure your AI. Build with AKIOS.</p>
+</div>
+
+<div class="post-footer">
+  <p>Related: <a href="hardening-checklist.html">Hardening Checklist</a> | <a href="secure-agent-communication.html">Secure Agent Communication</a></p>
+  <div class="share-links">
+    <span>Share this post:</span>
+    <a href="#" target="_blank">Twitter</a>
+    <a href="#" target="_blank">LinkedIn</a>
+    <a href="#" target="_blank">Hacker News</a>
+  </div>
+  <a href="./">← Back to Blog</a>
 </div>
 
                 </div>

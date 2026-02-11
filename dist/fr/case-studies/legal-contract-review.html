@@ -57,10 +57,6 @@
                     <header class="post-header">
   <div class="post-meta">9 Février 2026 · Ingénierie / Juridique · 5 min de lecture</div>
   <h1>Revue de Contrats par IA sous Secret Professionnel et RGPD</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Auteur" class="avatar">
-    <span>AJ</span>
-  </div>
 </header>
 
 <div class="post-content">
@@ -68,46 +64,147 @@
 <p>Les cabinets d&#39;avocats traitent des montagnes de documents : contrats, mémoires, pièces de procédure. L&#39;IA peut les analyser des ordres de grandeur plus vite qu&#39;un juriste. Mais les documents juridiques portent une obligation qu&#39;aucune autre industrie ne connaît : <strong>le secret professionnel.</strong></p>
 <p>Si un système IA divulgue des communications confidentielles ou envoie des données client à une API tierce, le secret peut être levé — définitivement. Ce n&#39;est pas une amende. Cela peut faire perdre des affaires.</p>
 <p>AKIOS résout cela avec une Cage de Sécurité où l&#39;IA traite les documents juridiques sans jamais exposer le contenu confidentiel en dehors du périmètre.</p>
+<h2>Le Problème</h2>
+<p>La revue documentaire est l&#39;une des activités les plus coûteuses du contentieux. Une seule affaire peut impliquer des milliers de documents. L&#39;IA peut classifier, synthétiser et signaler les documents pertinents en heures au lieu de semaines — mais dès que vous connectez un modèle IA à des communications protégées par le secret, vous créez un risque de levée du secret. Un seul appel API vers un service externe avec du contenu protégé, et la partie adverse plaidera la violation du secret.</p>
+<p>AKIOS garantit que <strong>le contenu confidentiel ne quitte jamais la machine locale</strong>.</p>
 <h2>Le Cadre Réglementaire</h2>
-<p>L&#39;IA juridique en Europe doit naviguer entre :</p>
-<ul>
-<li><strong>RGPD (Art. 6, 9, 22)</strong> — Les données personnelles dans les documents juridiques sont protégées. Le profilage automatisé est soumis au droit à l&#39;explication et à l&#39;intervention humaine.</li>
-<li><strong>EU AI Act</strong> — Les systèmes IA utilisés dans l&#39;administration de la justice ou l&#39;assistance juridique sont classés haut risque : évaluation de conformité, supervision humaine et audit requis.</li>
-<li><strong>Secret Professionnel (Art. 226-13 Code Pénal)</strong> — L&#39;avocat a l&#39;obligation absolue de protéger les informations confidentielles de ses clients, y compris face aux outils IA.</li>
-<li><strong>Règlement Intérieur National (RIN)</strong> — Le Conseil National des Barreaux impose des obligations spécifiques sur l&#39;utilisation d&#39;outils numériques par les avocats.</li>
-<li><strong>CNIL — Recommandations IA</strong> — La CNIL a publié des recommandations spécifiques sur l&#39;utilisation de l&#39;IA dans le traitement de données personnelles.</li>
-</ul>
+<p>L&#39;IA juridique en Europe doit naviguer entre des obligations professionnelles uniques :</p>
+<table>
+  <thead>
+    <tr><th>Réglementation</th><th>Périmètre</th><th>Comment AKIOS l'Applique</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Secret Professionnel (Art. 226-13 CP)</strong></td>
+      <td>L'avocat a l'obligation absolue de protéger les informations confidentielles de ses clients, y compris face aux outils IA.</td>
+      <td>Journal d'audit immuable prouve la supervision humaine de l'outil IA.</td>
+    </tr>
+    <tr>
+      <td><strong>RGPD (Art. 6, 9, 22)</strong></td>
+      <td>Données personnelles dans les documents juridiques protégées. Profilage automatisé soumis au droit à l'explication.</td>
+      <td>Chaque étape de classification signée cryptographiquement. Chaîne de custody défendable.</td>
+    </tr>
+    <tr>
+      <td><strong>RIN (Règlement Intérieur National)</strong></td>
+      <td>Le CNB impose des obligations spécifiques sur l'utilisation d'outils numériques par les avocats.</td>
+      <td>Toutes les DCP anonymisées avant traitement IA. Aucune donnée personnelle retenue par le modèle.</td>
+    </tr>
+    <tr>
+      <td><strong>EU AI Act (Haut Risque)</strong></td>
+      <td>Les systèmes IA dans l'administration de la justice ou l'assistance juridique sont classés haut risque.</td>
+      <td>Chaîne d'audit Merkle satisfait les exigences de preuve pour la revue assistée par IA.</td>
+    </tr>
+    <tr>
+      <td><strong>CNIL — Recommandations IA</strong></td>
+      <td>Recommandations spécifiques sur l'utilisation de l'IA dans le traitement de données personnelles.</td>
+      <td>Transparence totale : la piste d'audit montre exactement ce que l'IA a analysé et produit.</td>
+    </tr>
+  </tbody>
+</table>
+
 <p>AKIOS applique ces exigences au niveau du runtime — le secret ne quitte jamais la cage.</p>
+<h2>Le Concept : La Politique en tant que Code</h2>
+<p>AKIOS introduit le concept de &quot;Security Cage&quot; : un runtime éphémère et sandboxé où les données sont traitées sous des politiques strictes. Pour le juridique, l&#39;innovation clé est l&#39;<strong>isolation réseau totale</strong> : aucune donnée ne quitte la machine locale, rendant la levée du secret par appel API externe physiquement impossible.</p>
 <h2>Le Flux de Travail : Revue de Documents Confidentiels</h2>
-<ol>
-<li><strong>Ingestion</strong> : Un ensemble de contrats ou de pièces de procédure est chargé dans la Cage de Sécurité. Les noms, numéros de compte et identifiants clients sont anonymisés en mémoire.</li>
-<li><strong>La Cage</strong> : AKIOS s&#39;initialise avec la politique juridique : isolation réseau totale (aucune donnée ne quitte la machine), budget plafonné à 0,50 € par lot de documents, et journalisation respectant le secret professionnel.</li>
-<li><strong>Revue</strong> : L&#39;agent IA sandboxé classifie les documents par pertinence, identifie les clauses clés (indemnisation, plafonds de responsabilité, changement de contrôle) et signale les problèmes potentiels — le tout sur du contenu anonymisé.</li>
-<li><strong>Contrôle Secret</strong> : Avant qu&#39;une sortie ne quitte la cage, AKIOS vérifie qu&#39;aucun contenu confidentiel n&#39;est inclus dans les résultats. Les éléments signalés vont en revue humaine.</li>
-<li><strong>Audit</strong> : Chaque accès document, classification et sortie est journalisé avec des signatures cryptographiques. La chaîne complète prouve que la revue a été menée dans les limites du secret professionnel.</li>
-</ol>
+<table>
+  <thead>
+    <tr><th>Étape</th><th>Ce qui se passe</th><th>Contrôle de sécurité</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Ingestion</strong></td>
+      <td>Contrats ou pièces de procédure chargés dans la cage</td>
+      <td>Noms, numéros de compte et identifiants clients anonymisés en mémoire.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Anonymisation</strong></td>
+      <td>DCP clients et marqueurs potentiellement confidentiels supprimés avant traitement IA</td>
+      <td>NIR, email, adresse, codes client remplacés par des jetons. Les originaux n'atteignent jamais le LLM.</td>
+    </tr>
+    <tr>
+      <td><strong>3. Revue IA</strong></td>
+      <td>Le LLM classifie les documents, identifie les clauses clés, signale les problèmes — tout sur contenu anonymisé</td>
+      <td>Isolation réseau totale. Budget plafonné (0,50 €/lot). Aucun stockage persistant.</td>
+    </tr>
+    <tr>
+      <td><strong>4. Contrôle Secret</strong></td>
+      <td>Avant qu'une sortie ne quitte la cage, AKIOS vérifie qu'aucun contenu confidentiel n'est inclus</td>
+      <td>Les éléments signalés vont en revue humaine. L'IA ne peut pas lever le secret.</td>
+    </tr>
+    <tr>
+      <td><strong>5. Audit</strong></td>
+      <td>Chaque accès document, classification et sortie journalisé avec signatures cryptographiques</td>
+      <td>La chaîne prouve que la revue a été menée dans les limites du secret professionnel.</td>
+    </tr>
+  </tbody>
+</table>
+
 <h3>Architecture</h3>
 <pre><code class="language-mermaid">graph LR
-    GED[&quot;GED Cabinet&quot;] --&gt;|contrats| FS[&quot;agent filesystem\npérimètre secret&quot;]
+    GED[&quot;GED Cabinet\n(iManage/NetDocs)&quot;] --&gt;|&quot;contrats\n(chiffré)&quot;| FS[&quot;agent filesystem\npérimètre secret&quot;]
 
     subgraph CAGE[&quot;Cage de Sécurité AKIOS&quot;]
-        FS --&gt; PII[&quot;Rédaction DCP\n«NIR» «EMAIL» «ADDR»&quot;]
+        FS --&gt; PII[&quot;Moteur Anonymisation\n«NIR» «EMAIL» «CLIENT_ID»&quot;]
         PII --&gt; LLM[&quot;agent llm\nanalyse clauses&quot;]
-        LLM --&gt; SCAN[&quot;Rédaction Sortie&quot;]
-        SCAN --&gt; MERKLE[&quot;Chaîne Merkle\nSHA-256&quot;]
-        MERKLE --&gt; COST[&quot;Coupe-Circuit Coût\nbudget 1,00 €&quot;]
+        LLM --&gt; TE[&quot;tool_executor\nscoring pertinence&quot;]
+        TE --&gt; PRIV[&quot;Contrôle Secret\nportail contenu confidentiel&quot;]
+        PRIV --&gt; VALID[&quot;Validation Sortie\npas de contenu protégé&quot;]
+        VALID --&gt; MERKLE[&quot;Chaîne Merkle\nSHA-256 signée&quot;]
+        MERKLE --&gt; COST[&quot;Coupe-Circuit Coût\n0,50 € / lot&quot;]
     end
 
-    COST --&gt; Report[&quot;Rapport Revue&quot;]
-    Report --&gt; Attorney[&quot;Avocat&quot;]
-    MERKLE --&gt;|export audit| DPO[&quot;Journal Secret Pro&quot;]
+    COST --&gt;|&quot;rapport revue\n(sans secret)&quot;| Report[&quot;Tableau de Revue&quot;]
+    Report --&gt; Attorney[&quot;Avocat\nAssocié&quot;]
+    MERKLE --&gt;|&quot;export audit\n(immuable)&quot;| DPO[&quot;Journal Secret Pro&quot;]
+    DPO --&gt; CNB[&quot;CNB / Bâtonnier\nContrôle&quot;]
 </code></pre>
+<h3>Configuration de la Politique</h3>
+<pre><code class="language-yaml"># juridique-secret-policy.yml
+security:
+  sandbox: strict
+  network: blocked  # isolation réseau absolue — aucun appel API
+  allowed_endpoints: []
+  pii_redaction:
+    enabled: true
+    patterns: [nir, email, adresse, telephone, code_client, numero_dossier]
+    mode: aggressive
+  budget:
+    max_cost_per_run: 0.50
+    currency: EUR
+  audit:
+    merkle_chain: true
+    export_format: jsonl
+    retention_days: 3650  # 10 ans — support mise en état
+  constraints:
+    privilege_check: mandatory
+    network_access: blocked_at_kernel
+</code></pre>
+<h2>Ce que l&#39;Avocat Voit</h2>
+<p>À la fin du flux de travail, l&#39;avocat associé reçoit un rapport structuré :</p>
+<table>
+  <thead>
+    <tr><th>Champ</th><th>Valeur</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Lot Documents</td><td>dossier-2026-0209-****7163 (142 documents)</td></tr>
+    <tr><td>Pertinents</td><td>23 documents signalés comme très pertinents pour l'action en inexécution contractuelle</td></tr>
+    <tr><td>Clause Clé</td><td>Plafond d'indemnisation de 5 M€ identifié en Section 8.2 — incohérent avec le plafond de 10 M€ dans l'Avenant 3</td></tr>
+    <tr><td>Alerte Risque</td><td>🔴 Clause de changement de contrôle activée — délai de notification de 30 jours (expire le 12 mars)</td></tr>
+    <tr><td>Signalement Secret</td><td>⚠️ 3 documents contiennent du contenu potentiellement protégé — envoyés en revue avocat</td></tr>
+    <tr><td>Confiance</td><td>92%</td></tr>
+    <tr><td>Hash Audit</td><td><code>b7e4c2...d91a</code></td></tr>
+    <tr><td>Accès Réseau Tenté</td><td>❌ Aucun — tous les syscalls réseau bloqués au niveau kernel</td></tr>
+  </tbody>
+</table>
+
+<p>Pas de noms de clients. Pas de détails de dossier. Pas de contenu protégé dans la sortie. Juste du renseignement contractuel avec une chaîne de preuve défendable.</p>
 <h2>Pourquoi C&#39;est Important</h2>
 <ul>
 <li><strong>Secret Préservé</strong> : L&#39;isolation réseau totale signifie que les documents confidentiels ne quittent jamais la machine locale. Aucune donnée n&#39;est envoyée à des API externes — jamais.</li>
 <li><strong>Conformité EU AI Act</strong> : Le journal d&#39;audit immuable prouve la supervision humaine de l&#39;outil IA, satisfaisant les exigences haut risque.</li>
-<li><strong>eDiscovery Défendable</strong> : Chaque étape du processus de revue est signée cryptographiquement. En cas de contestation, le cabinet peut prouver exactement comment les documents ont été traités.</li>
-<li><strong>Maîtrise des Coûts pour les Clients</strong> : Les limites budgétaires strictes rendent la revue assistée par IA prévisible en coûts — un argument majeur pour des clients fatigués des surprises d&#39;honoraires.</li>
+<li><strong>Procédure Défendable</strong> : Chaque étape du processus de revue est signée cryptographiquement. En cas de contestation, le cabinet peut prouver exactement comment les documents ont été traités.</li>
+<li><strong>Maîtrise des Coûts pour les Clients</strong> : Les limites budgétaires strictes rendent la revue assistée par IA prévisible en coûts — un argument majeur pour les clients.</li>
+<li><strong>Prêt pour le CNB</strong> : La piste d&#39;audit complète montre exactement ce que l&#39;IA a analysé et produit, satisfaisant les exigences de transparence déontologique.</li>
 </ul>
 <h2>Essayez-le Vous-même</h2>
 <pre><code class="language-bash">pip install akios
@@ -118,6 +215,7 @@ akios run templates/file_analysis.yml
 </div>
 
 <div class="post-footer">
+  <p>Connexe : <a href="government-airgap-deployment.html">IA Souveraine pour le Secteur Public</a> | <a href="accounting-document-processing.html">IA Contrôlée pour la Comptabilité</a></p>
   <a href="./">← Retour aux études de cas</a>
 </div>
 

@@ -1,0 +1,337 @@
+# API Integration Guide
+
+Connect AKIOS to external APIs safely. This guide shows you how to integrate with REST APIs, GraphQL, webhooks, and more while maintaining security.
+
+## Quick Start
+
+Get started with API integration:
+
+```bash
+# Initialize API integration project
+akios init api-integration
+
+# Run example workflow
+akios run templates/api-example.yml
+```
+
+## HTTP Agent Overview
+
+The HTTP agent provides secure API access with:
+
+**🔒 Security Features:**
+- PII redaction in requests and responses
+- Rate limiting (configurable)
+- TLS/HTTPS enforcement
+- Complete audit trail
+
+**⚙️ Default Settings:**
+- Rate limit: 10 requests/minute
+- Timeout: 30 seconds
+- Retry: 0 (configure as needed)
+- TLS: Required
+
+**🎯 Supported Methods:**
+- GET - Fetch data
+- POST - Create resources
+- PUT - Update resources
+- DELETE - Remove resources
+- PATCH - Partial updates
+
+## REST API Example
+
+Fetch data from an API, enrich with AI, and save results:
+
+```yaml
+name: "Customer Data Enrichment"
+description: "Fetch customers from API, analyze with AI, save insights"
+
+steps:
+  - name: "Fetch customers"
+    agent: http
+    action: get
+    parameters:
+      url: "https://api.company.com/customers"
+      params:
+        limit: 10
+        status: "active"
+      headers:
+        Authorization: "Bearer {{API_TOKEN}}"
+      timeout: 30
+      retry_count: 3
+      
+  - name: "AI analysis"
+    agent: llm
+    action: complete
+    parameters:
+      model: "gpt-4o"
+      prompt: |
+        Analyze these customer records:
+        
+        {{previous_output}}
+        
+        Provide:
+        1. Customer segments
+        2. Retention strategies
+        3. Upsell opportunities
+      max_tokens: 1000
+      
+  - name: "Save insights"
+    agent: filesystem
+    action: write
+    parameters:
+      path: "data/output/customer_insights.json"
+      content: "{{analysis}}"
+```
+
+**Run it:**
+```bash
+# Set API token in .env
+echo "API_TOKEN=your-token-here" >> .env
+
+# Enable network access
+export AKIOS_NETWORK_ACCESS_ALLOWED=1
+
+# Run workflow
+akios run workflows/customer-enrichment.yml
+```
+
+## GraphQL Integration
+
+Query GraphQL APIs using POST requests:
+
+```yaml
+name: "GraphQL Query"
+description: "Fetch data from GraphQL API"
+
+steps:
+  - name: "GraphQL query"
+    agent: http
+    action: post
+    parameters:
+      url: "https://api.example.com/graphql"
+      headers:
+        Authorization: "Bearer {{API_TOKEN}}"
+        Content-Type: "application/json"
+      json:
+        query: |
+          query {
+            users(limit: 10) {
+              id
+              name
+              email
+            }
+          }
+      timeout: 30
+      
+  - name: "Process results"
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Analyze these users: {{previous_output}}"
+```
+
+## Webhook Integration
+
+### Send Webhook (Outgoing)
+
+Notify external system when workflow completes:
+
+```yaml
+name: "Workflow with Webhook"
+description: "Process data and notify via webhook"
+
+steps:
+  - name: "Process data"
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Analyze: {{input}}"
+      
+  - name: "Send webhook"
+    agent: http
+    action: post
+    parameters:
+      url: "https://hooks.example.com/notify"
+      json:
+        event: "workflow_complete"
+        workflow_id: "{{workflow_id}}"
+        status: "success"
+        result: "{{analysis}}"
+        timestamp: "{{timestamp}}"
+```
+
+### Receive Webhook (Incoming)
+
+Process webhook data received from external systems:
+
+```bash
+# Pass webhook data as context
+akios run workflows/process-webhook.yml \
+  --context '{"webhook_data": {"event": "user_signup", "user_id": "123"}}'
+```
+
+```yaml
+name: "Process Webhook"
+description: "Handle incoming webhook data"
+
+steps:
+  - name: "Validate data"
+    agent: llm
+    action: complete
+    parameters:
+      prompt: "Validate this webhook data: {{webhook_data}}"
+      
+  - name: "Take action"
+    agent: http
+    action: post
+    parameters:
+      url: "https://api.internal.com/process"
+      json:
+        user_id: "{{webhook_data.user_id}}"
+        status: "validated"
+```
+
+## Error Handling
+
+Handle API failures gracefully:
+
+```yaml
+steps:
+  - name: "Fetch with retry"
+    agent: http
+    action: get
+    parameters:
+      url: "https://api.example.com/data"
+      timeout: 30         # Wait 30 seconds max
+      retry_count: 3      # Retry 3 times
+      retry_delay: 5      # Wait 5 seconds between retries
+```
+
+**What happens:**
+1. First request fails → wait 5s
+2. Second request fails → wait 5s
+3. Third request fails → wait 5s
+4. Fourth request fails → workflow fails with error
+
+## Rate Limiting
+
+Control request frequency:
+
+```yaml
+# config.yaml
+http:
+  rate_limit: 60  # Max 60 requests per minute
+```
+
+AKIOS automatically enforces rate limits. Requests beyond the limit are queued.
+
+## Security Best Practices
+
+**✓ Do:**
+- Store API keys in `.env` file
+- Enable network access only when needed
+- Use TLS/HTTPS for all requests
+- Set appropriate timeouts
+- Configure retries for transient failures
+- Enable PII redaction for sensitive APIs
+
+**× Don't:**
+- Hardcode API keys in workflows
+- Disable TLS validation
+- Use unlimited timeouts
+- Ignore rate limits
+- Send sensitive data without redaction
+
+## Configuration
+
+**Enable network access:**
+```bash
+# Environment variable
+export AKIOS_NETWORK_ACCESS_ALLOWED=1
+
+# Or in config.yaml
+network_access_allowed: true
+```
+
+**Configure HTTP settings:**
+```yaml
+# config.yaml
+network_access_allowed: true
+
+http:
+  rate_limit: 60          # requests per minute
+  default_timeout: 30     # seconds
+  max_retries: 3
+  retry_delay: 5          # seconds
+  user_agent: "AKIOS/1.0"
+```
+
+## Batch Processing
+
+Process multiple API calls:
+
+```yaml
+name: "Batch API Calls"
+description: "Fetch data for multiple users"
+
+steps:
+  - name: "Get user IDs"
+    agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/user_ids.txt"
+      
+  - name: "Fetch user data"
+    agent: http
+    action: post
+    parameters:
+      url: "https://api.example.com/users/batch"
+      json:
+        user_ids: "{{user_ids}}"
+      timeout: 60  # Longer timeout for batch
+```
+
+## Tips & Tricks
+
+**Keep secrets in `.env`:**
+```bash
+# .env
+CUSTOMER_API_TOKEN=secret123
+PARTNER_API_KEY=key456
+```
+
+**Reference in workflows:**
+```yaml
+headers:
+  Authorization: "Bearer {{CUSTOMER_API_TOKEN}}"
+```
+
+**Validate payload size:**
+```yaml
+steps:
+  - name: "Check size"
+    agent: filesystem
+    action: stat
+    parameters:
+      path: "data/input/large-file.json"
+    skip_if: "$(.size > 1048576)"  # Skip if > 1MB
+```
+
+**Cache repeated fetches:**
+- Store API responses in `data/cache/`
+- Check cache before making request
+- Set TTL for cache invalidation
+
+**Throttle concurrent requests:**
+```yaml
+# config.yaml
+http:
+  rate_limit: 10  # Max 10/minute
+```
+
+## Related Docs
+
+- **[Concepts](concepts.html)** - Understanding HTTP agent
+- **[Configuration](config-reference.html)** - Network settings
+- **[Use Cases](use-cases.html)** - Real-world examples
+- **[Best Practices](best-practices.html)** - Production patterns 

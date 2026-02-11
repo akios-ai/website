@@ -65,6 +65,17 @@
       <div class="hero hero-simple">
         <h1>Études de cas</h1>
         <p class="subtitle">Comment les industries réglementées déploient des agents IA en toute sécurité avec AKIOS.</p>
+        <div class="case-study-filters">
+          <button class="filter-btn active" data-sector="all">Tous</button>
+          <button class="filter-btn" data-sector="healthcare">Santé</button>
+          <button class="filter-btn" data-sector="banking">Banque</button>
+          <button class="filter-btn" data-sector="accounting">Comptabilité</button>
+          <button class="filter-btn" data-sector="legal">Juridique</button>
+          <button class="filter-btn" data-sector="government">Gouvernement</button>
+          <button class="filter-btn" data-sector="insurance">Assurance</button>
+          <button class="filter-btn" data-sector="pharma">Pharma</button>
+          <button class="filter-btn" data-sector="energy">Énergie</button>
+        </div>
       </div>
     </div>
   </section>
@@ -75,7 +86,7 @@
       <h2 class="section-heading">Publiées</h2>
       <div class="case-studies-list">
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="healthcare">
           <div class="case-study-entry-industry">Santé</div>
           <h3><a href="healthcare-hipaa-security-cage.html">Construire une Cage de Sécurité IA Conforme RGPD en 15 Secondes</a></h3>
           <p>Anonymisation DCP conforme RGPD et EU AI Act avec pistes d'audit pour les données patients traitées par des agents IA.</p>
@@ -86,7 +97,7 @@
           <a href="healthcare-hipaa-security-cage.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="banking">
           <div class="case-study-entry-industry">Banque & Assurance</div>
           <h3><a href="banking-fraud-detection.html">IA Sandboxée pour la Banque : Détection de Fraude sans Exposition de Données</a></h3>
           <p>Workflows IA sandboxés pour la détection de fraude sous contrôles RGPD, DORA et EU AI Act.</p>
@@ -97,7 +108,7 @@
           <a href="banking-fraud-detection.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="accounting">
           <div class="case-study-entry-industry">Comptabilité</div>
           <h3><a href="accounting-document-processing.html">IA Sécurisée pour la Comptabilité : Traitement Automatisé sous Contrôles RGPD</a></h3>
           <p>Traitement sécurisé de documents et extraction financière sous contrôles RGPD et EU AI Act.</p>
@@ -108,7 +119,7 @@
           <a href="accounting-document-processing.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="legal">
           <div class="case-study-entry-industry">Juridique</div>
           <h3><a href="legal-contract-review.html">Revue de Contrats par IA sous Secret Professionnel et RGPD</a></h3>
           <p>Revue de contrats sous secret professionnel avec isolation réseau totale et pistes d'audit conformes EU AI Act.</p>
@@ -119,7 +130,7 @@
           <a href="legal-contract-review.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="government">
           <div class="case-study-entry-industry">Gouvernement</div>
           <h3><a href="government-airgap-deployment.html">IA Souveraine pour le Secteur Public : Conformité RGPD et EU AI Act</a></h3>
           <p>Déploiements IA souverains et auditables conformes RGPD, EU AI Act, ANSSI/RGS et SecNumCloud.</p>
@@ -130,7 +141,7 @@
           <a href="government-airgap-deployment.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="insurance">
           <div class="case-study-entry-industry">Assurance</div>
           <h3><a href="insurance-claims-processing.html">IA Sécurisée pour l'Assurance : Traitement de Sinistres sans Exposition de Données</a></h3>
           <p>IA sandboxée pour le traitement des sinistres avec anonymisation DCP, détection de fraude et audit conforme RGPD/DORA.</p>
@@ -141,7 +152,7 @@
           <a href="insurance-claims-processing.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="pharma">
           <div class="case-study-entry-industry">Pharmaceutique</div>
           <h3><a href="pharma-clinical-trials.html">IA Sandboxée pour la Pharma : Accélérer les Essais Cliniques sous Contrôles Réglementaires</a></h3>
           <p>Analyse d'essais cliniques par IA sous contrôles RGPD Art. 9, EU AI Act et conformité ANSM avec reproductibilité complète.</p>
@@ -152,7 +163,7 @@
           <a href="pharma-clinical-trials.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="energy">
           <div class="case-study-entry-industry">Énergie & Utilities</div>
           <h3><a href="energy-grid-security.html">IA pour l'Énergie : Sécuriser les Infrastructures Critiques avec AKIOS</a></h3>
           <p>IA isolée OT pour la détection d'anomalies réseau sous NIS2 et ANSSI avec zéro accès aux systèmes de contrôle.</p>
@@ -161,6 +172,28 @@
             <span>5 min de lecture</span>
           </div>
           <a href="energy-grid-security.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="banking">
+          <div class="case-study-entry-industry">Banque & Assurance</div>
+          <h3><a href="banking-security-cage.html">Construire une Cage de Sécurité IA Conforme DSP2 pour la Banque</a></h3>
+          <p>Apprenez à enfermer des LLM puissants dans une Cage de Sécurité pour traiter des données de transactions clients tout en maintenant la conformité DSP2 et LCB-FT.</p>
+          <div class="case-study-entry-meta">
+            <span>6 Février 2026</span>
+            <span>3 min de lecture</span>
+          </div>
+          <a href="banking-security-cage.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="accounting">
+          <div class="case-study-entry-industry">Comptabilité</div>
+          <h3><a href="accounting-security-cage.html">Construire une Cage de Sécurité IA pour la Comptabilité Conforme au Plan Comptable</a></h3>
+          <p>Découvrez comment utiliser des LLM sur des documents financiers contenant des SIRET et des données d'audit sensibles sans violer le secret professionnel en utilisant les Cages de Sécurité AKIOS.</p>
+          <div class="case-study-entry-meta">
+            <span>6 Février 2026</span>
+            <span>3 min de lecture</span>
+          </div>
+          <a href="accounting-security-cage.html" class="case-study-read-more">Lire l'étude de cas complète →</a>
         </article>
 
       </div>
@@ -695,6 +728,33 @@
     })();
   </script>
 
+
+  <script>
+    // Case study sector filter
+    document.addEventListener('DOMContentLoaded', function() {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const entries = document.querySelectorAll('.case-study-entry');
+      
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const sector = this.dataset.sector;
+          
+          // Update active button
+          filterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Filter entries
+          entries.forEach(entry => {
+            if (sector === 'all' || entry.dataset.sector === sector) {
+              entry.style.display = '';
+            } else {
+              entry.style.display = 'none';
+            }
+          });
+        });
+      });
+    });
+  </script>
 
 </body>
 </html>

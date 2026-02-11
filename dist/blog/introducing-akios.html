@@ -55,49 +55,157 @@
             <div class="blog-post-wrapper">
                 <div class="blog-post-main">
                     <header class="post-header">
-  <div class="post-meta">January 14, 2026</div>
-  <h1>Introducing AKIOS: A Secure Runtime for Untrusted AI Agents</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
+  <div class="post-meta">
+    January 14, 2026 &bull; <span>6 min read</span>
   </div>
+  <h1>Introducing AKIOS: A Secure Runtime for Untrusted AI Agents</h1>
 </header>
 
 <div class="post-content">
-  <p class="lead">
-    Today we are announcing AKIOS, a new open-source runtime designed specifically for running untrusted AI agents on local machines.
-  </p>
 
-  <h2>The Problem: "curl | sh" for Agents</h2>
-  <p>
-    We are entering an era where developers routinely run AI agents that generate and execute code. Current practices often involve running these agents directly on the host machine or inside loosely configured Docker containers.
-  </p>
-  <p>
-    This is risky. Agents can hallucinate destructive commands, exfiltrate credentials, or accidentally modify critical system files. We need a runtime that assumes the agent is untrusted by default.
-  </p>
+<p>Today we are announcing <strong>AKIOS</strong>, a new open-source runtime designed specifically for running untrusted AI agents on local machines.</p>
+<h2>The Problem: &quot;curl | sh&quot; for Agents</h2>
+<p>We are entering an era where developers routinely run AI agents that generate and execute code. Current practices often involve running these agents directly on the host machine or inside loosely configured Docker containers.</p>
+<p>This is risky. Agents can hallucinate destructive commands, exfiltrate credentials, or accidentally modify critical system files. We need a runtime that <strong>assumes the agent is untrusted by default</strong>.</p>
+<p>The typical &quot;solutions&quot; — Docker containers, VM isolation, or hope — leave critical gaps:</p>
+<table>
+  <thead>
+    <tr><th>Approach</th><th>Network Control</th><th>PII Redaction</th><th>Cost Kill-Switch</th><th>Audit Trail</th><th>Setup Time</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Bare Metal</strong></td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>0 sec</td>
+    </tr>
+    <tr>
+      <td><strong>Docker</strong></td>
+      <td>⚠️ Manual iptables</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>⚠️ Basic logs</td>
+      <td>~30 min</td>
+    </tr>
+    <tr>
+      <td><strong>VM (Firecracker)</strong></td>
+      <td>⚠️ NAT config</td>
+      <td>❌ None</td>
+      <td>❌ None</td>
+      <td>⚠️ Syslog</td>
+      <td>~1 hour</td>
+    </tr>
+    <tr>
+      <td><strong>AKIOS</strong></td>
+      <td>✅ Policy-gated</td>
+      <td>✅ 50+ patterns</td>
+      <td>✅ Per-workflow</td>
+      <td>✅ Merkle chain</td>
+      <td>15 sec</td>
+    </tr>
+  </tbody>
+</table>
 
-  <h2>Enter AKIOS</h2>
-  <p>
-    AKIOS provides a strict sandbox based on <code>seccomp-bpf</code> and user namespaces. It follows a "deny-by-default" philosophy for both network and filesystem access.
-  </p>
+<h2>Enter AKIOS</h2>
+<p>AKIOS provides a strict sandbox based on <code>seccomp-bpf</code> and user namespaces. It follows a <strong>&quot;deny-by-default&quot;</strong> philosophy for both network and filesystem access.</p>
+<h3>Architecture Overview</h3>
+<pre><code class="language-mermaid">graph LR
+    User[&quot;Developer / CI&quot;] --&gt;|&quot;akios run workflow.yml&quot;| CLI[&quot;AKIOS CLI&quot;]
 
-  <h3>Key Features</h3>
-  <ul>
-    <li><strong>Strict Sandboxing:</strong> Agents run in isolated environments with minimal privileges.</li>
-    <li><strong>Explicit Policies:</strong> You define exactly which domains an agent can contact and which files it can read/write.</li>
-    <li><strong>Auditable Logs:</strong> Every action taken by the agent is logged and signed, providing a verifiable audit trail.</li>
-  </ul>
+    subgraph RUNTIME[&quot;AKIOS Security Runtime&quot;]
+        CLI --&gt; PolicyEngine[&quot;Policy Engine\n(validate + sign)&quot;]
+        PolicyEngine --&gt; Sandbox[&quot;Kernel Sandbox\nseccomp-bpf + cgroups&quot;]
 
-  <h2>What's Next?</h2>
-  <p>
-    This is just the beginning. We are working on advanced features like multi-agent orchestration and hardware-accelerated inference within the sandbox.
-  </p>
-  <p>
-    Check out the <a href="../docs/quickstart.html">Quickstart</a> guide to give it a spin.
-  </p>
+        subgraph CAGE[&quot;Security Cage (ephemeral)&quot;]
+            Sandbox --&gt; FS[&quot;Filesystem Agent\npath-gated&quot;]
+            Sandbox --&gt; HTTP[&quot;HTTP Agent\nrate-limited&quot;]
+            Sandbox --&gt; LLM[&quot;LLM Agent\nbudget-gated&quot;]
+            Sandbox --&gt; Tool[&quot;Tool Executor\nallowlisted&quot;]
+        end
+
+        FS --&gt; PII[&quot;PII Redaction\n50+ patterns&quot;]
+        HTTP --&gt; PII
+        LLM --&gt; PII
+        Tool --&gt; PII
+        PII --&gt; Audit[&quot;Merkle Audit\nSHA-256 chain&quot;]
+        Audit --&gt; KillSwitch[&quot;Kill-Switch\ncost + loop&quot;]
+    end
+
+    KillSwitch --&gt;|&quot;sanitized output&quot;| Output[&quot;Results\n(auditable)&quot;]
+</code></pre>
+<h3>Key Features</h3>
+<p><strong>Strict Sandboxing</strong> — Agents run in isolated environments with minimal privileges. On Linux, this uses kernel-level controls (cgroups v2 + seccomp-bpf). On other platforms, Docker provides strong container isolation.</p>
+<p><strong>Explicit Policies</strong> — You define exactly which domains an agent can contact, which files it can read/write, and what commands it can execute. Everything else is blocked.</p>
+<pre><code class="language-yaml"># Example: minimal policy for a doc-summary agent
+version: 1
+name: &quot;doc-summary&quot;
+filesystem:
+  allow:
+    - path: &quot;/workspace/docs&quot;
+      mode: &quot;r&quot;
+http:
+  allow:
+    - host: &quot;api.openai.com&quot;
+      methods: [&quot;POST&quot;]
+      rate_limit_per_min: 10
+llm:
+  provider: &quot;openai&quot;
+  model: &quot;gpt-4.1&quot;
+  budget_usd: 0.50
+audit:
+  merkle: true
+  pii_redaction: true
+</code></pre>
+<p><strong>Real-Time PII Redaction</strong> — Over 50 patterns detected and redacted in under 50ms — SSNs, credit card numbers, API keys, emails, phone numbers — before they ever reach the agent.</p>
+<p><strong>Tamper-Evident Audit</strong> — Every action is cryptographically logged in a Merkle chain. If even one byte is altered, the chain breaks. This isn&#39;t just logging — it&#39;s cryptographic proof.</p>
+<p><strong>Cost Kill-Switches</strong> — Hard termination on budget exceed or infinite loops. Set a $1.00 limit per workflow and know it will be enforced.</p>
+<h2>How It Works: 30-Second Demo</h2>
+<pre><code class="language-bash"># Install
+pip install akios
+
+# Initialize a project
+akios init my-project
+cd my-project
+
+# Run a sandboxed workflow
+akios run templates/hello-workflow.yml
+</code></pre>
+<p>What you&#39;ll see:</p>
+<pre><code>[akios] sandbox: seccomp-bpf, cgroups v2 (Linux)
+[akios] pii: redaction enabled (50+ patterns)
+[akios] audit: Merkle trail initialized
+[akios] budget: $0.50 limit enforced
+[akios] workflow: completed successfully in 1.2s
+[akios] audit: chain verified ✓ (hash: a3b7c9...d2e1)
+</code></pre>
+<h2>What Makes AKIOS Different</h2>
+<p>This isn&#39;t another AI framework. It&#39;s a <strong>security runtime</strong>.</p>
+<ul>
+<li><strong>Frameworks</strong> give you tools to build agents. AKIOS gives you a cage to run them safely.</li>
+<li><strong>Docker</strong> gives you container isolation. AKIOS gives you policy-gated, PII-redacted, cost-limited, cryptographically audited execution.</li>
+<li><strong>Trust-me architectures</strong> rely on developers doing the right thing. AKIOS enforces it at the kernel level.</li>
+</ul>
+<h2>What&#39;s Next?</h2>
+<p>This is just the beginning. We are working on:</p>
+<ul>
+<li><strong>Multi-agent orchestration</strong> — parallel execution with inter-agent policy gates</li>
+<li><strong>Database connectors</strong> — PostgreSQL, SQLite with query-level policy enforcement</li>
+<li><strong>Plugin system</strong> — community agents with sandboxed plugin architecture</li>
+<li><strong>Hardware-accelerated inference</strong> — GPU access within the sandbox with memory isolation</li>
+</ul>
+<p>Check out the <a href="../docs/quickstart.html">Quickstart</a> guide to give it a spin, or browse the <a href="https://github.com/akios-ai/akios">source on GitHub</a>.</p>
+<h2>Try It Yourself</h2>
+<pre><code class="language-bash">pip install akios
+akios init my-project
+akios run templates/hello-workflow.yml
+</code></pre>
+<p>Secure your AI. Build with AKIOS.</p>
 </div>
 
 <div class="post-footer">
+  <p>Related: <a href="release-notes-v0-1-0.html">AKIOS v1.0 Release Notes</a> | <a href="secure-agent-communication.html">How AKIOS Isolates Agent Interactions</a></p>
   <div class="share-links">
     <span>Share this post:</span>
     <a href="#" target="_blank">Twitter</a>

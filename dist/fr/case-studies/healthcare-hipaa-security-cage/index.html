@@ -56,59 +56,151 @@
                 <div class="blog-post-main">
                     <header class="post-header">
   <div class="post-meta">6 Février 2026 · Ingénierie / Santé · 5 min de lecture</div>
-  <h1>Construire une Cage de Sécurité IA Conforme RGPD en 15 Secondes</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Auteur" class="avatar">
-    <span>AJ</span>
-  </div>
+  <h1>Construire une Cage de Sécurité IA Conforme RGPD pour la Santé en 15 Secondes</h1>
 </header>
 
 <div class="post-content">
 
 <p>Le principal obstacle à l&#39;adoption de l&#39;IA dans la santé n&#39;est pas la capacité des modèles, mais la <strong>sécurité</strong>. Comment utiliser des LLM puissants comme Grok ou GPT-4 sur des dossiers patients sensibles sans risquer une violation du RGPD ?</p>
 <p>La réponse n&#39;est pas d&#39;éviter l&#39;IA, mais de l&#39;enfermer dans une <strong>Cage de Sécurité</strong>.</p>
+<h2>Le Problème</h2>
+<p>Tout DSI hospitalier connaît le dilemme : les modèles IA ont besoin de données pour être utiles, mais les données dont ils ont besoin — numéros de sécurité sociale, identifiants patients, diagnostics, résultats de laboratoire — sont exactement celles que la réglementation impose de protéger. Les approches traditionnelles forcent un choix : <strong>utiliser l&#39;IA et accepter le risque</strong>, ou <strong>rester conforme et rester manuel</strong>.</p>
+<p>AKIOS élimine ce compromis.</p>
 <h2>Le Cadre Réglementaire</h2>
 <p>L&#39;IA en santé en Europe doit se conformer à plusieurs cadres qui se superposent :</p>
-<ul>
-<li><strong>RGPD (Art. 9)</strong> — Les données de santé sont des données sensibles. Traitement interdit sauf exceptions strictes (consentement explicite, intérêt vital, etc.).</li>
-<li><strong>EU AI Act (Haut Risque)</strong> — Les systèmes IA utilisés en santé sont classés haut risque : évaluations de conformité, supervision humaine et pistes d&#39;audit complètes obligatoires.</li>
-<li><strong>Loi Bioéthique &amp; HDS</strong> — En France, les données de santé doivent être hébergées chez un Hébergeur de Données de Santé certifié.</li>
-</ul>
+<table>
+  <thead>
+    <tr><th>Réglementation</th><th>Périmètre</th><th>Comment AKIOS l'Applique</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>RGPD (Art. 9)</strong></td>
+      <td>Les données de santé sont des données sensibles. Traitement interdit sauf exceptions strictes.</td>
+      <td>Anonymisation en mémoire à l'ingestion. L'IA ne voit jamais les identifiants patients bruts.</td>
+    </tr>
+    <tr>
+      <td><strong>HDS (Hébergement de Données de Santé)</strong></td>
+      <td>En France, les données de santé doivent être hébergées chez un hébergeur certifié HDS.</td>
+      <td>Isolation réseau totale. Les données ne quittent jamais l'infrastructure locale. Compatible HDS.</td>
+    </tr>
+    <tr>
+      <td><strong>EU AI Act (Haut Risque)</strong></td>
+      <td>Les systèmes IA en santé sont classés haut risque : évaluations de conformité obligatoires.</td>
+      <td>Pistes d'audit complètes et contrôles humains satisfont les exigences IA haut risque.</td>
+    </tr>
+    <tr>
+      <td><strong>Loi Bioéthique</strong></td>
+      <td>Encadrement du traitement des données génétiques et de santé à des fins de recherche.</td>
+      <td>Anonymisation agressive — aucune donnée identifiante ne traverse le moteur IA.</td>
+    </tr>
+    <tr>
+      <td><strong>CNIL — Référentiel Santé</strong></td>
+      <td>Recommandations spécifiques de la CNIL pour le traitement IA des données de santé.</td>
+      <td>Minimisation des données, limitation des finalités et traçabilité intégrées au runtime.</td>
+    </tr>
+  </tbody>
+</table>
+
 <p>AKIOS applique ces exigences au niveau du runtime — pas comme une checklist, mais comme du code.</p>
 <h2>Le Concept : La Politique en tant que Code</h2>
-<p>AKIOS introduit le concept de &quot;Security Cage&quot; (Cage de Sécurité) : un environnement d&#39;exécution éphémère et cloisonné où les données sont traitées selon des politiques strictes définies par le code.</p>
-<p>Dans notre dernière démonstration, nous présentons un flux de travail courant : <strong>L&#39;Anonymisation Automatisée des DCP</strong>.</p>
-<h3>Le Flux de Travail</h3>
-<ol>
-<li><strong>Ingestion</strong> : Un dossier d&#39;admission patient brut (contenant Nom, Sécu, Adresse) est chargé dans l&#39;espace de travail sécurisé.</li>
-<li><strong>La Cage</strong> : Le runtime AKIOS s&#39;initialise. Il bloque tous les appels réseau non autorisés, impose un budget strict (ex: limite de 1,00 €) et charge la politique d&#39;anonymisation RGPD.</li>
-<li><strong>Exécution</strong> : Un agent IA reçoit un accès temporaire au texte <em>uniquement</em> pour identifier et supprimer les données personnelles. Il ne peut pas sauvegarder les données brutes ailleurs.</li>
-<li><strong>Intégration</strong> : Le résultat anonymisé et vérifié est déployé de manière sécurisée vers une API DPI autorisée (Hprim/FHIR).</li>
-<li><strong>Audit</strong> : Chaque octet lu, écrit et transmis est journalisé avec une empreinte cryptographique. Si la trace d&#39;audit est rompue, le flux de travail échoue.</li>
-</ol>
+<p>AKIOS introduit le concept de &quot;Security Cage&quot; (Cage de Sécurité) : un environnement d&#39;exécution éphémère et cloisonné où les données sont traitées selon des politiques strictes définies par le code. Contrairement à la conformité traditionnelle basée sur la documentation et la confiance, la Cage de Sécurité rend les violations <strong>physiquement impossibles</strong> au niveau infrastructure.</p>
+<h2>Le Flux de Travail : Anonymisation Automatisée des DCP</h2>
+<table>
+  <thead>
+    <tr><th>Étape</th><th>Ce qui se passe</th><th>Contrôle de sécurité</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Ingestion</strong></td>
+      <td>Dossier patient brut (NIR, Nom, Adresse, IPP) chargé dans la cage</td>
+      <td>Données entrées via agent filesystem en lecture seule. Aucune copie hors de la cage.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Anonymisation</strong></td>
+      <td>50+ motifs de DCP détectés et masqués avant traitement IA</td>
+      <td>NIR, IPP, RPPS, date de naissance remplacés par des jetons. L'original n'atteint jamais le LLM.</td>
+    </tr>
+    <tr>
+      <td><strong>3. Analyse IA</strong></td>
+      <td>Le LLM effectue l'analyse clinique sur le contenu anonymisé — codage, synthèse, alertes</td>
+      <td>Budget plafonné (1,00 €/dossier), isolation réseau, aucun stockage persistant.</td>
+    </tr>
+    <tr>
+      <td><strong>4. Intégration</strong></td>
+      <td>Résultat anonymisé déployé vers l'API DPI autorisée (Hprim/FHIR)</td>
+      <td>Agent HTTP verrouillé sur les endpoints FHIR approuvés uniquement.</td>
+    </tr>
+    <tr>
+      <td><strong>5. Audit</strong></td>
+      <td>Chaque octet lu, écrit et transmis journalisé avec empreinte cryptographique</td>
+      <td>Chaîne Merkle — si une entrée est altérée, toute la chaîne est invalidée.</td>
+    </tr>
+  </tbody>
+</table>
+
 <h3>Architecture</h3>
 <pre><code class="language-mermaid">graph LR
-    DPI[&quot;Dossier Patient&quot;] --&gt;|données patient| FS[&quot;agent filesystem\nlecture seule&quot;]
+    DPI[&quot;Dossier Patient\nInformatisé&quot;] --&gt;|&quot;données patient\n(chiffré)&quot;| FS[&quot;agent filesystem\nlecture seule&quot;]
 
     subgraph CAGE[&quot;Cage de Sécurité AKIOS&quot;]
-        FS --&gt; PII[&quot;Rédaction DCP\n«NIR» «RPPS» «IPP»&quot;]
+        FS --&gt; PII[&quot;Moteur Anonymisation\n«NIR» «RPPS» «IPP» «DDN»&quot;]
         PII --&gt; LLM[&quot;agent llm\nanalyse clinique&quot;]
-        LLM --&gt; SCAN[&quot;Rédaction Sortie&quot;]
-        SCAN --&gt; MERKLE[&quot;Chaîne Merkle\nSHA-256&quot;]
-        MERKLE --&gt; COST[&quot;Coupe-Circuit Coût\nbudget 1,00 €&quot;]
+        LLM --&gt; TE[&quot;tool_executor\ncodage &amp; classification&quot;]
+        TE --&gt; VALID[&quot;Validation Sortie\nvérification données brutes&quot;]
+        VALID --&gt; MERKLE[&quot;Chaîne Merkle\nSHA-256 signée&quot;]
+        MERKLE --&gt; COST[&quot;Coupe-Circuit Coût\n1,00 € / dossier&quot;]
     end
 
-    COST --&gt; HTTP[&quot;agent http\nFHIR uniquement&quot;]
+    COST --&gt;|&quot;sortie codée\n(anonymisée)&quot;| HTTP[&quot;agent http\nFHIR uniquement&quot;]
     HTTP --&gt; DPI
-    MERKLE --&gt;|export audit| DPO[&quot;DPO&quot;]
+    MERKLE --&gt;|&quot;export audit\n(immuable)&quot;| DPO[&quot;DPO / RSSI&quot;]
+    DPO --&gt; CNIL[&quot;CNIL\nContrôle&quot;]
 </code></pre>
+<h3>Configuration de la Politique</h3>
+<p>L&#39;ensemble de la posture de conformité est défini dans un seul fichier YAML :</p>
+<pre><code class="language-yaml"># healthcare-rgpd-policy.yml
+security:
+  sandbox: strict
+  network: isolated
+  allowed_endpoints:
+    - dpi-fhir.interne:443
+  pii_redaction:
+    enabled: true
+    patterns: [nir, ipp, rpps, date_naissance, telephone, adresse, numero_assure]
+    mode: aggressive
+  budget:
+    max_cost_per_run: 1.00
+    currency: EUR
+  audit:
+    merkle_chain: true
+    export_format: jsonl
+    retention_days: 7300  # 20 ans — conservation dossier médical
+</code></pre>
+<h2>Ce que le DPO Voit</h2>
+<p>À la fin du flux de travail, l&#39;équipe conformité reçoit un rapport structuré :</p>
+<table>
+  <thead>
+    <tr><th>Champ</th><th>Valeur</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Dossier</td><td>admission-2026-0206-****4281.pdf</td></tr>
+    <tr><td>Code Clinique</td><td>CIM-10 : E11.9 — Diabète de type 2 sans complication</td></tr>
+    <tr><td>Alertes</td><td>Interaction médicamenteuse — metformine + produit de contraste iodé programmé</td></tr>
+    <tr><td>Confiance</td><td>94%</td></tr>
+    <tr><td>Hash Audit</td><td><code>b4a7c1...d82f</code></td></tr>
+    <tr><td>DCP Exposées</td><td>❌ Aucune — tous les identifiants anonymisés avant analyse</td></tr>
+    <tr><td>Soumission FHIR</td><td>✅ Sortie codée soumise au endpoint DPI FHIR</td></tr>
+  </tbody>
+</table>
+
+<p>Pas de NIR. Pas de noms de patients. Pas de dossiers médicaux bruts. Juste des sorties cliniques actionnables avec une chaîne de preuve cryptographique.</p>
 <h2>Pourquoi C&#39;est Important</h2>
-<p>La conformité traditionnelle implique des revues manuelles et une architecture basée sur la confiance. AKIOS change cela pour une architecture basée sur la <strong>vérification</strong>.</p>
 <ul>
-<li><strong>Déterministe</strong> : La même entrée produit toujours le même résultat audité.</li>
-<li><strong>Local-First</strong> : Exécutez ceci sur votre poste ou sur un serveur déconnecté. Les DCP ne quittent jamais votre infrastructure.</li>
-<li><strong>Maîtrise des Coûts</strong> : Des coupe-circuits empêchent les factures API incontrôlées.</li>
-<li><strong>Conforme EU AI Act</strong> : Pistes d&#39;audit complètes et contrôles humains satisfont les exigences IA haut risque.</li>
+<li><strong>Zéro Exposition de DCP</strong> : Les identifiants patients sont anonymisés avant tout traitement IA. Même un modèle compromis ne peut rien fuiter.</li>
+<li><strong>Décisions Auditables</strong> : Chaque code clinique et alerte inclut une chaîne de preuve cryptographique. La CNIL peut tracer exactement comment une décision a été prise.</li>
+<li><strong>Maîtrise des Coûts</strong> : Des limites de budget strictes par dossier empêchent les factures API incontrôlées — essentiel lors du traitement de milliers d&#39;admissions.</li>
+<li><strong>Conservation 20 Ans</strong> : Les logs de la chaîne Merkle sont exportables en format JSONL, conformément à l&#39;exigence de conservation du dossier médical.</li>
+<li><strong>Conforme EU AI Act</strong> : Pistes d&#39;audit complètes et contrôles humains satisfont les exigences de classification IA haut risque.</li>
 </ul>
 <h2>Essayez-le Vous-même</h2>
 <p>AKIOS est open-source. Vous pouvez exécuter ce flux de travail dès aujourd&#39;hui :</p>
@@ -120,6 +212,7 @@ akios run templates/file_analysis.yml
 </div>
 
 <div class="post-footer">
+  <p>Connexe : <a href="banking-security-cage.html">Cage de Sécurité IA Conforme DSP2 pour la Banque</a> | <a href="pharma-clinical-trials.html">IA sous Contrôles ANSM pour la Pharma</a></p>
   <a href="./">← Retour aux études de cas</a>
 </div>
 

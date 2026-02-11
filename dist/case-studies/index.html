@@ -65,6 +65,17 @@
       <div class="hero hero-simple">
         <h1>Case Studies</h1>
         <p class="subtitle">How regulated industries deploy AI agents securely with AKIOS.</p>
+        <div class="case-study-filters">
+          <button class="filter-btn active" data-sector="all">All</button>
+          <button class="filter-btn" data-sector="healthcare">Healthcare</button>
+          <button class="filter-btn" data-sector="banking">Banking</button>
+          <button class="filter-btn" data-sector="accounting">Accounting</button>
+          <button class="filter-btn" data-sector="legal">Legal</button>
+          <button class="filter-btn" data-sector="government">Government</button>
+          <button class="filter-btn" data-sector="insurance">Insurance</button>
+          <button class="filter-btn" data-sector="pharma">Pharma</button>
+          <button class="filter-btn" data-sector="energy">Energy</button>
+        </div>
       </div>
     </div>
   </section>
@@ -75,7 +86,7 @@
       <h2 class="section-heading">Published</h2>
       <div class="case-studies-list">
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="healthcare">
           <div class="case-study-entry-industry">Healthcare</div>
           <h3><a href="healthcare-hipaa-security-cage.html">Building a HIPAA-Compliant AI Security Cage in 15 Seconds</a></h3>
           <p>HIPAA-compliant PII redaction and audit trails for patient data processed by AI agents. EU AI Act high-risk ready.</p>
@@ -86,7 +97,7 @@
           <a href="healthcare-hipaa-security-cage.html" class="case-study-read-more">Read the full case study →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="banking">
           <div class="case-study-entry-industry">Banking & Insurance</div>
           <h3><a href="banking-fraud-detection.html">Sandboxed AI for Banking: Fraud Detection Without Data Exposure</a></h3>
           <p>Sandboxed AI workflows for transaction fraud detection under GLBA, SOX, and BSA/AML compliance controls.</p>
@@ -97,7 +108,7 @@
           <a href="banking-fraud-detection.html" class="case-study-read-more">Read the full case study →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="accounting">
           <div class="case-study-entry-industry">Accounting</div>
           <h3><a href="accounting-document-processing.html">Secure AI for Accounting: Automated Document Processing Under SOX Controls</a></h3>
           <p>Secure document processing and financial data extraction under SOX and PCAOB audit controls.</p>
@@ -108,7 +119,7 @@
           <a href="accounting-document-processing.html" class="case-study-read-more">Read the full case study →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="legal">
           <div class="case-study-entry-industry">Legal</div>
           <h3><a href="legal-contract-review.html">AI-Powered Contract Review Under Attorney-Client Privilege</a></h3>
           <p>Privilege-preserving contract review and document analysis with complete network isolation and audit trails.</p>
@@ -119,7 +130,7 @@
           <a href="legal-contract-review.html" class="case-study-read-more">Read the full case study →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="government">
           <div class="case-study-entry-industry">Government</div>
           <h3><a href="government-airgap-deployment.html">Air-Gapped AI for Government: FedRAMP-Ready Deployments with AKIOS</a></h3>
           <p>Air-gapped, auditable AI deployments meeting FedRAMP, NIST 800-53, and FISMA data sovereignty requirements.</p>
@@ -130,7 +141,7 @@
           <a href="government-airgap-deployment.html" class="case-study-read-more">Read the full case study →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="insurance">
           <div class="case-study-entry-industry">Insurance</div>
           <h3><a href="insurance-claims-processing.html">Secure AI for Insurance: Claims Processing Without Exposing Policyholder Data</a></h3>
           <p>Sandboxed AI for claims processing with PII redaction, fraud detection, and NAIC-compliant audit trails.</p>
@@ -141,7 +152,7 @@
           <a href="insurance-claims-processing.html" class="case-study-read-more">Read the full case study →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="pharma">
           <div class="case-study-entry-industry">Pharmaceutical</div>
           <h3><a href="pharma-clinical-trials.html">Sandboxed AI for Pharma: Accelerating Clinical Trials Under FDA Controls</a></h3>
           <p>AI-powered clinical trial analysis under FDA 21 CFR Part 11, HIPAA, and GCP controls with full reproducibility.</p>
@@ -152,7 +163,7 @@
           <a href="pharma-clinical-trials.html" class="case-study-read-more">Read the full case study →</a>
         </article>
 
-        <article class="case-study-entry">
+        <article class="case-study-entry" data-sector="energy">
           <div class="case-study-entry-industry">Energy & Utilities</div>
           <h3><a href="energy-grid-security.html">AI for Energy: Securing Critical Infrastructure with AKIOS</a></h3>
           <p>OT-isolated AI for grid anomaly detection under NERC CIP with zero control-system access and complete audit trails.</p>
@@ -161,6 +172,28 @@
             <span>5 min read</span>
           </div>
           <a href="energy-grid-security.html" class="case-study-read-more">Read the full case study →</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="banking">
+          <div class="case-study-entry-industry">Banking & Insurance</div>
+          <h3><a href="banking-security-cage.html">Building a PCI-DSS Compliant AI Security Cage for Banking</a></h3>
+          <p>Learn how to wrap powerful LLMs in a Security Cage to process customer transaction data while maintaining PCI-DSS and BSA/AML compliance.</p>
+          <div class="case-study-entry-meta">
+            <span>February 6, 2026</span>
+            <span>3 min read</span>
+          </div>
+          <a href="banking-security-cage.html" class="case-study-read-more">Read the full case study →</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="accounting">
+          <div class="case-study-entry-industry">Accounting</div>
+          <h3><a href="accounting-security-cage.html">Building a SOX-Compliant AI Security Cage for Accounting</a></h3>
+          <p>Discover how to use LLMs on financial documents containing EINs and sensitive audit data without violating SOX Section 302 using AKIOS Security Cages.</p>
+          <div class="case-study-entry-meta">
+            <span>February 6, 2026</span>
+            <span>3 min read</span>
+          </div>
+          <a href="accounting-security-cage.html" class="case-study-read-more">Read the full case study →</a>
         </article>
 
       </div>
@@ -695,6 +728,33 @@
     })();
   </script>
 
+
+  <script>
+    // Case study sector filter
+    document.addEventListener('DOMContentLoaded', function() {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const entries = document.querySelectorAll('.case-study-entry');
+      
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const sector = this.dataset.sector;
+          
+          // Update active button
+          filterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Filter entries
+          entries.forEach(entry => {
+            if (sector === 'all' || entry.dataset.sector === sector) {
+              entry.style.display = '';
+            } else {
+              entry.style.display = 'none';
+            }
+          });
+        });
+      });
+    });
+  </script>
 
 </body>
 </html>

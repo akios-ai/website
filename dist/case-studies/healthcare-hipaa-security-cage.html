@@ -57,58 +57,150 @@
                     <header class="post-header">
   <div class="post-meta">February 6, 2026 · Engineering / Healthcare · 5 min read</div>
   <h1>Building a HIPAA-Compliant AI Security Cage in 15 Seconds</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
-  </div>
 </header>
 
 <div class="post-content">
 
 <p>The biggest barrier to adopting AI in healthcare isn&#39;t model capability — it&#39;s <strong>safety</strong>. How do you use powerful LLMs like Grok or GPT-4 on sensitive patient records without risking a HIPAA violation?</p>
 <p>The answer isn&#39;t to avoid AI, but to wrap it in a <strong>Security Cage</strong>.</p>
+<h2>The Problem</h2>
+<p>Every healthcare CIO faces the same dilemma: AI models need data to be useful, but the data they need — Social Security numbers, medical record numbers, diagnoses, lab results — is exactly the data that regulations demand you protect. Traditional approaches force a choice: <strong>use AI and accept the risk</strong>, or <strong>stay compliant and stay manual</strong>.</p>
+<p>AKIOS eliminates that trade-off.</p>
 <h2>The Regulatory Landscape</h2>
 <p>Healthcare AI in the United States must comply with multiple overlapping frameworks:</p>
-<ul>
-<li><strong>HIPAA / HITECH</strong> — Strict rules on Protected Health Information (PHI) storage, transmission, and access.</li>
-<li><strong>EU AI Act (High-Risk)</strong> — AI systems used in healthcare are classified as high-risk, requiring conformity assessments, human oversight, and full audit trails.</li>
-<li><strong>21 CFR Part 11</strong> — FDA requirements for electronic records and signatures.</li>
-</ul>
+<table>
+  <thead>
+    <tr><th>Regulation</th><th>Scope</th><th>How AKIOS Enforces It</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>HIPAA / HITECH</strong></td>
+      <td>Strict rules on Protected Health Information (PHI) storage, transmission, and access</td>
+      <td>In-memory redaction at ingestion. The AI never sees raw patient identifiers.</td>
+    </tr>
+    <tr>
+      <td><strong>21 CFR Part 11</strong></td>
+      <td>FDA requirements for electronic records and electronic signatures</td>
+      <td>Merkle-chained audit trail with cryptographic signatures satisfies e-signature requirements.</td>
+    </tr>
+    <tr>
+      <td><strong>EU AI Act (High-Risk)</strong></td>
+      <td>AI systems in healthcare classified as high-risk, requiring conformity assessments</td>
+      <td>Full audit trails and human-in-the-loop controls satisfy high-risk AI requirements.</td>
+    </tr>
+    <tr>
+      <td><strong>HITECH Breach Notification</strong></td>
+      <td>Mandatory breach notification within 60 days if PHI is exposed</td>
+      <td>Zero-exposure architecture — PHI is redacted before AI processing, so there is nothing to breach.</td>
+    </tr>
+    <tr>
+      <td><strong>State Privacy Laws</strong></td>
+      <td>California CCPA, Texas HB 300, New York SHIELD Act — state-level health data protections</td>
+      <td>Policy templates per jurisdiction ensure the cage enforces the strictest applicable rules.</td>
+    </tr>
+  </tbody>
+</table>
+
 <p>AKIOS enforces these at the runtime level — not as a checklist, but as code.</p>
 <h2>The Concept: Policy as Code</h2>
-<p>AKIOS introduces the concept of a &quot;Security Cage&quot; — an ephemeral, sandboxed runtime environment where data is processed under strict, code-defined policies.</p>
-<p>In our latest demo, we show a common workflow: <strong>Automated PII Redaction</strong>.</p>
-<h3>The Workflow</h3>
-<ol>
-<li><strong>Ingestion</strong>: A raw patient admission record (containing SSN, Name, Address) is loaded into the secure workspace.</li>
-<li><strong>The Cage</strong>: The AKIOS runtime initializes. It blocks all unauthorized network calls, enforces a strict budget (e.g., $1.00 limit), and loads the HIPAA redaction policy.</li>
-<li><strong>Execution</strong>: An AI agent is granted temporary access to the text <em>only</em> to identify and redact PII. It cannot save the raw data elsewhere.</li>
-<li><strong>Integration</strong>: The sanitized, verified output is securely deployed to a whitelisted EHR API (e.g., Epic Systems via FHIR/HL7) via the Network Agent.</li>
-<li><strong>Audit</strong>: Every byte read, written, and transmitted is logged with a cryptographic hash. If the audit trail breaks, the workflow fails.</li>
-</ol>
+<p>AKIOS introduces the concept of a &quot;Security Cage&quot; — an ephemeral, sandboxed runtime environment where data is processed under strict, code-defined policies. Unlike traditional compliance built on documentation and trust, the Security Cage makes violations <strong>physically impossible</strong> at the infrastructure level.</p>
+<h2>The Workflow: Automated PHI Redaction</h2>
+<table>
+  <thead>
+    <tr><th>Step</th><th>What Happens</th><th>Security Control</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Ingestion</strong></td>
+      <td>Raw patient admission record (SSN, Name, Address, MRN) loaded into the cage</td>
+      <td>Data enters via read-only filesystem agent. No copies outside the cage.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Redaction</strong></td>
+      <td>50+ PHI patterns detected and masked before AI processing</td>
+      <td>SSN, MRN, NPI, DOB replaced with tokens. The original never reaches the LLM.</td>
+    </tr>
+    <tr>
+      <td><strong>3. AI Analysis</strong></td>
+      <td>LLM performs clinical analysis on redacted content — coding, summarization, risk flags</td>
+      <td>Budget capped ($1.00/record), network isolated, no persistent storage.</td>
+    </tr>
+    <tr>
+      <td><strong>4. Integration</strong></td>
+      <td>Sanitized output deployed to whitelisted EHR API (Epic/Cerner via FHIR/HL7)</td>
+      <td>HTTP agent locked to approved FHIR endpoints only. No other destinations allowed.</td>
+    </tr>
+    <tr>
+      <td><strong>5. Audit</strong></td>
+      <td>Every byte read, written, and transmitted logged with cryptographic hash</td>
+      <td>Merkle chain — if any entry is altered, the entire chain is invalidated.</td>
+    </tr>
+  </tbody>
+</table>
+
 <h3>Architecture</h3>
 <pre><code class="language-mermaid">graph LR
-    EHR[&quot;EHR System&quot;] --&gt;|patient records| FS[&quot;filesystem agent\n(read-only)&quot;]
+    EHR[&quot;EHR System\n(Epic/Cerner)&quot;] --&gt;|&quot;patient records\n(encrypted)&quot;| FS[&quot;filesystem agent\nread-only&quot;]
 
     subgraph CAGE[&quot;AKIOS Security Cage&quot;]
-        FS --&gt; PII[&quot;PII Redaction\n«SSN» «NPI» «MRN»&quot;]
+        FS --&gt; PII[&quot;Redaction Engine\n«SSN» «NPI» «MRN» «DOB»&quot;]
         PII --&gt; LLM[&quot;llm agent\nclinical analysis&quot;]
-        LLM --&gt; SCAN[&quot;Output Redaction&quot;]
-        SCAN --&gt; MERKLE[&quot;Merkle Audit\nSHA-256 chain&quot;]
-        MERKLE --&gt; COST[&quot;Cost Kill-Switch\n$1.00 budget&quot;]
+        LLM --&gt; TE[&quot;tool_executor\ncoding &amp; classification&quot;]
+        TE --&gt; VALID[&quot;Output Validation\nraw data check&quot;]
+        VALID --&gt; MERKLE[&quot;Merkle Chain\nSHA-256 signed&quot;]
+        MERKLE --&gt; COST[&quot;Cost Kill-Switch\n$1.00 / record&quot;]
     end
 
-    COST --&gt; HTTP[&quot;http agent\nFHIR endpoint only&quot;]
+    COST --&gt;|&quot;coded output\n(redacted)&quot;| HTTP[&quot;http agent\nFHIR endpoint only&quot;]
     HTTP --&gt; EHR
-    MERKLE --&gt;|audit export| CISO[&quot;Compliance Officer&quot;]
+    MERKLE --&gt;|&quot;audit export\n(immutable)&quot;| CISO[&quot;Compliance Officer&quot;]
+    CISO --&gt; HHS[&quot;HHS / OCR\nAuditor&quot;]
 </code></pre>
+<h3>Policy Configuration</h3>
+<p>The entire compliance posture is defined in a single YAML file:</p>
+<pre><code class="language-yaml"># healthcare-hipaa-policy.yml
+security:
+  sandbox: strict
+  network: isolated
+  allowed_endpoints:
+    - ehr-fhir.internal:443
+  pii_redaction:
+    enabled: true
+    patterns: [ssn, mrn, npi, dob, phone, address, insurance_id]
+    mode: aggressive
+  budget:
+    max_cost_per_run: 1.00
+    currency: USD
+  audit:
+    merkle_chain: true
+    export_format: jsonl
+    retention_days: 2190  # 6 years — HIPAA retention requirement
+</code></pre>
+<h2>What the Compliance Officer Sees</h2>
+<p>At the end of the workflow, the compliance team receives a structured report:</p>
+<table>
+  <thead>
+    <tr><th>Field</th><th>Value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Record</td><td>admission-2026-0206-****4281.pdf</td></tr>
+    <tr><td>Clinical Code</td><td>ICD-10: E11.9 — Type 2 Diabetes Mellitus without complications</td></tr>
+    <tr><td>Risk Flags</td><td>Drug interaction alert — metformin + contrast dye imaging scheduled</td></tr>
+    <tr><td>Confidence</td><td>94%</td></tr>
+    <tr><td>Audit Hash</td><td><code>b4a7c1...d82f</code></td></tr>
+    <tr><td>PHI Exposed</td><td>❌ None — all identifiers redacted before analysis</td></tr>
+    <tr><td>FHIR Submission</td><td>✅ Coded output submitted to Epic FHIR R4 endpoint</td></tr>
+  </tbody>
+</table>
+
+<p>No SSNs. No patient names. No raw medical records. Just clinically actionable output with a cryptographic proof chain.</p>
 <h2>Why It Matters</h2>
-<p>Traditional compliance involves manual reviews and &quot;trust me&quot; architecture. AKIOS changes this to <strong>&quot;verify me&quot;</strong> architecture.</p>
 <ul>
-<li><strong>Deterministic</strong>: The same input always yields the same audited result.</li>
-<li><strong>Local-First</strong>: Run this on your laptop or in an air-gapped server. PHI never leaves your infrastructure.</li>
-<li><strong>Cost-Controlled</strong>: Kill-switches prevent runaway API bills — critical when processing thousands of patient records.</li>
-<li><strong>EU AI Act Ready</strong>: Full audit trails and human-in-the-loop controls satisfy high-risk AI requirements.</li>
+<li><strong>Zero PHI Exposure</strong>: Patient identifiers are redacted before any AI processing. Even if the model is compromised, there is nothing to leak.</li>
+<li><strong>Auditable Decisions</strong>: Every clinical code and risk flag includes a cryptographic proof chain. HHS/OCR auditors can trace exactly how a decision was made.</li>
+<li><strong>Cost Control</strong>: Hard budget limits per record prevent runaway API bills — critical when processing thousands of patient admissions.</li>
+<li><strong>HIPAA Retention</strong>: Merkle chain logs are exportable in JSONL format, satisfying the 6-year HIPAA retention requirement.</li>
+<li><strong>EU AI Act Ready</strong>: Full audit trails and human-in-the-loop controls satisfy high-risk AI classification requirements.</li>
 </ul>
 <h2>Try It Yourself</h2>
 <p>AKIOS is open-source. You can run this exact workflow today:</p>
@@ -120,6 +212,7 @@ akios run templates/file_analysis.yml
 </div>
 
 <div class="post-footer">
+  <p>Related: <a href="banking-security-cage.html">PCI-DSS Compliant AI for Banking</a> | <a href="pharma-clinical-trials.html">FDA-Controlled AI for Pharma</a></p>
   <a href="./">← Back to Case Studies</a>
 </div>
 

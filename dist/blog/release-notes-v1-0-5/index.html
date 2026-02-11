@@ -56,96 +56,180 @@
                 <div class="blog-post-main">
                     <header class="post-header">
   <div class="post-meta">
-    February 7, 2026 &bull; <span>4 min read</span>
+    February 7, 2026 &bull; <span>5 min read</span>
   </div>
   <h1>AKIOS v1.0.5: Rich UI, Accessibility, and Critical Fixes</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
-  </div>
 </header>
 
 <div class="post-content">
-  <p class="lead">
-    AKIOS v1.0.5 brings a rich terminal UI, environment auto-detection, full accessibility support, and a critical fix for the SIGTRAP crash when running with <code>sudo</code>.
-  </p>
 
-  <h2>What's New</h2>
+<p>AKIOS v1.0.5 brings a rich terminal UI, environment auto-detection, full accessibility support, and a critical fix for the SIGTRAP crash when running with <code>sudo</code>.</p>
+<h2>What&#39;s Changed: v1.0 → v1.0.5</h2>
+<table>
+  <thead>
+    <tr><th>Area</th><th>v1.0</th><th>v1.0.5</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Terminal UI</strong></td>
+      <td>Plain text output</td>
+      <td>Rich semantic colors, structured dashboards, status badges</td>
+    </tr>
+    <tr>
+      <td><strong>Environment</strong></td>
+      <td>Manual configuration</td>
+      <td>Auto-detection: Docker, K8s, Podman, CI/CD (< 5ms)</td>
+    </tr>
+    <tr>
+      <td><strong>Accessibility</strong></td>
+      <td>Basic</td>
+      <td>7 themes, 4 colorblind modes, 3 symbol modes, NO_COLOR</td>
+    </tr>
+    <tr>
+      <td><strong>Diagnostics</strong></td>
+      <td>Manual checks</td>
+      <td><code>akios doctor</code> — automated system diagnostics</td>
+    </tr>
+    <tr>
+      <td><strong>Compliance</strong></td>
+      <td>Manual reports</td>
+      <td><code>akios compliance report</code> — basic, detailed, executive</td>
+    </tr>
+    <tr>
+      <td><strong>sudo Execution</strong></td>
+      <td>🐛 SIGTRAP crash</td>
+      <td>✅ Fixed — seccomp filter updated for privileged syscalls</td>
+    </tr>
+    <tr>
+      <td><strong>PII Config</strong></td>
+      <td>On/off toggle</td>
+      <td><code>pii_redaction_outputs</code> + <code>pii_redaction_aggressive</code></td>
+    </tr>
+    <tr>
+      <td><strong>Token Default</strong></td>
+      <td>1000 max per call</td>
+      <td>500 max per call (cost safety)</td>
+    </tr>
+  </tbody>
+</table>
 
-  <h3>🎨 Rich Terminal UI</h3>
-  <p>
-    The CLI now uses semantic colors and structured output. Status dashboards, security reports, and workflow results are clearer and easier to scan. Powered by Rich, with full fallback for plain terminals.
-  </p>
-  <pre><code>akios status
+<h2>What&#39;s New</h2>
+<h3>🎨 Rich Terminal UI</h3>
+<p>The CLI now uses semantic colors and structured output. Status dashboards, security reports, and workflow results are clearer and easier to scan. Powered by Rich, with full fallback for plain terminals.</p>
+<pre><code class="language-bash">akios status
 akios status --security
-akios status --budget</code></pre>
+akios status --budget
+</code></pre>
+<h3>🔍 Environment Auto-Detection</h3>
+<p>AKIOS now automatically detects its runtime environment at startup (&lt; 5ms):</p>
+<pre><code class="language-mermaid">graph LR
+    Start[&quot;akios run&quot;] --&gt; Detect[&quot;Environment\nDetection (&lt; 5ms)&quot;]
 
-  <h3>🔍 Environment Auto-Detection</h3>
-  <p>
-    AKIOS now automatically detects its runtime environment at startup (&lt;5ms):
-  </p>
-  <ul>
-    <li>Container type: native, Docker, Kubernetes, Podman</li>
-    <li>CI/CD: GitHub Actions, GitLab CI, Jenkins</li>
-    <li>Terminal capabilities: Unicode support, color depth, TTY</li>
-  </ul>
-  <p>
-    The runtime adjusts symbol modes, colors, and output format automatically. No configuration needed.
-  </p>
+    Detect --&gt; Container{&quot;Container?&quot;}
+    Container --&gt;|Docker| Docker[&quot;Docker Mode\ncontainer isolation&quot;]
+    Container --&gt;|K8s| K8s[&quot;Kubernetes Mode\npod isolation&quot;]
+    Container --&gt;|Podman| Podman[&quot;Podman Mode\nrootless&quot;]
+    Container --&gt;|None| Native[&quot;Native Mode\nseccomp + cgroups&quot;]
 
-  <h3>♿ Accessibility</h3>
-  <p>
-    Full accessibility support for all users:
-  </p>
-  <ul>
-    <li><strong>Symbol modes:</strong> Unicode (default), ASCII (CI/log-safe), Minimal (screen readers)</li>
-    <li><strong>Colorblind modes:</strong> protanopia, deuteranopia, tritanopia, achromatopsia</li>
-    <li><strong>7 built-in themes:</strong> default, dark, light, nord, solarized-dark/light, high-contrast</li>
-    <li><strong>Standards:</strong> Respects <code>NO_COLOR</code>, <code>CLICOLOR_FORCE</code>, <code>FORCE_COLOR</code></li>
-  </ul>
-  <pre><code># Colorblind mode
+    Detect --&gt; CI{&quot;CI/CD?&quot;}
+    CI --&gt;|GH Actions| GHA[&quot;GitHub Actions\nplain output&quot;]
+    CI --&gt;|GitLab| GL[&quot;GitLab CI\nplain output&quot;]
+    CI --&gt;|None| TTY[&quot;TTY Detection\nrich output&quot;]
+
+    Detect --&gt; Term{&quot;Terminal?&quot;}
+    Term --&gt; Unicode[&quot;Unicode/ASCII\nsymbol mode&quot;]
+    Term --&gt; Color[&quot;Color Depth\ntheme selection&quot;]
+</code></pre>
+<ul>
+<li><strong>Container type:</strong> native, Docker, Kubernetes, Podman</li>
+<li><strong>CI/CD:</strong> GitHub Actions, GitLab CI, Jenkins</li>
+<li><strong>Terminal capabilities:</strong> Unicode support, color depth, TTY</li>
+</ul>
+<p>The runtime adjusts symbol modes, colors, and output format automatically. No configuration needed.</p>
+<h3>♿ Accessibility</h3>
+<p>Full accessibility support for all users:</p>
+<table>
+  <thead>
+    <tr><th>Feature</th><th>Options</th><th>How to Set</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Symbol Modes</strong></td>
+      <td>Unicode (default), ASCII (CI/log-safe), Minimal (screen readers)</td>
+      <td><code>AKIOS_SYMBOL_MODE=minimal</code></td>
+    </tr>
+    <tr>
+      <td><strong>Colorblind Modes</strong></td>
+      <td>Protanopia, Deuteranopia, Tritanopia, Achromatopsia</td>
+      <td><code>AKIOS_COLORBLIND_MODE=deuteranopia</code></td>
+    </tr>
+    <tr>
+      <td><strong>Themes</strong></td>
+      <td>Default, Dark, Light, Nord, Solarized Dark/Light, High-Contrast</td>
+      <td><code>AKIOS_THEME=nord</code></td>
+    </tr>
+    <tr>
+      <td><strong>Standards</strong></td>
+      <td>NO_COLOR, CLICOLOR_FORCE, FORCE_COLOR</td>
+      <td>Set env var per spec</td>
+    </tr>
+  </tbody>
+</table>
+
+<pre><code class="language-bash"># Colorblind mode
 export AKIOS_COLORBLIND_MODE=deuteranopia
 
-<h1>Screen reader mode</h1>
-<p>export NO_COLOR=1
-export AKIOS_SYMBOL_MODE=minimal</p>
-<h1>Change theme</h1>
-<p>export AKIOS_THEME=nord</code></pre></p>
-  <h3>🩺 New Commands</h3>
-  <ul>
-    <li><code>akios doctor</code> — Run system diagnostics (kernel, seccomp, cgroups, Docker)</li>
-    <li><code>akios compliance report</code> — Generate compliance reports (basic, detailed, executive)</li>
-    <li><code>akios output</code> — Manage workflow outputs (list, clean, archive)</li>
-  </ul>
+# Screen reader mode
+export NO_COLOR=1
+export AKIOS_SYMBOL_MODE=minimal
 
-  <h3>🐛 Critical Bug Fix: SIGTRAP Crash</h3>
-  <p>
-    Fixed a crash when running <code>sudo akios run</code> on Linux. The seccomp BPF filter was rejecting essential syscalls during privileged execution. Upgrade immediately if you use <code>sudo</code>:
-  </p>
-  <pre><code>sudo pip3 install --upgrade akios</code></pre>
-
-  <h2>Upgrade</h2>
-  <pre><code># Pip
+# Change theme
+export AKIOS_THEME=nord
+</code></pre>
+<h3>🩺 New Commands</h3>
+<ul>
+<li><strong><code>akios doctor</code></strong> — Run system diagnostics (kernel, seccomp, cgroups, Docker)</li>
+<li><strong><code>akios compliance report</code></strong> — Generate compliance reports (basic, detailed, executive)</li>
+<li><strong><code>akios output</code></strong> — Manage workflow outputs (list, clean, archive)</li>
+</ul>
+<h3>🐛 Critical Bug Fix: SIGTRAP Crash</h3>
+<p>Fixed a crash when running <code>sudo akios run</code> on Linux. The seccomp BPF filter was rejecting essential syscalls during privileged execution. The fix updates the syscall allowlist for the <code>CAP_SYS_ADMIN</code> context. <strong>Upgrade immediately if you use <code>sudo</code>:</strong></p>
+<pre><code class="language-bash">sudo pip3 install --upgrade akios
+</code></pre>
+<h2>Upgrade</h2>
+<pre><code class="language-bash"># Pip
 pip install akios==1.0.5
 
-<h1>Docker</h1>
-<p>docker pull akiosai/akios:v1.0.5</code></pre></p>
-  <h2>Full Changelog</h2>
-  <ul>
-    <li>Rich terminal UI with semantic colors</li>
-    <li>Environment auto-detection (Docker, K8s, Podman, CI/CD)</li>
-    <li>Accessibility: colorblind modes, symbol modes, themes</li>
-    <li><code>akios doctor</code> diagnostics command</li>
-    <li><code>akios compliance report</code> command</li>
-    <li><code>akios output</code> management command</li>
-    <li>SIGTRAP crash fix for <code>sudo</code> execution</li>
-    <li>Configuration corruption auto-detection</li>
-    <li><code>pii_redaction_outputs</code> and <code>pii_redaction_aggressive</code> config options</li>
-    <li><code>max_tokens_per_call</code> default reduced from 1000 to 500 for cost safety</li>
-  </ul>
+# Docker
+docker pull akiosai/akios:v1.0.5
+
+# Verify
+akios --version
+# akios 1.0.5
+</code></pre>
+<h2>Full Changelog</h2>
+<ul>
+<li>Rich terminal UI with semantic colors</li>
+<li>Environment auto-detection (Docker, K8s, Podman, CI/CD)</li>
+<li>Accessibility: colorblind modes, symbol modes, themes</li>
+<li><code>akios doctor</code> diagnostics command</li>
+<li><code>akios compliance report</code> command</li>
+<li><code>akios output</code> management command</li>
+<li>SIGTRAP crash fix for <code>sudo</code> execution</li>
+<li>Configuration corruption auto-detection</li>
+<li><code>pii_redaction_outputs</code> and <code>pii_redaction_aggressive</code> config options</li>
+<li><code>max_tokens_per_call</code> default reduced from 1000 to 500 for cost safety</li>
+</ul>
+<h2>Try It Yourself</h2>
+<pre><code class="language-bash">pip install akios==1.0.5
+akios doctor
+akios status --security
+</code></pre>
+<p>Secure your AI. Build with AKIOS.</p>
 </div>
 
 <div class="post-footer">
+  <p>Related: <a href="release-notes-v0-1-0.html">AKIOS v1.0 Release Notes</a> | <a href="hardening-checklist.html">Hardening Checklist</a></p>
   <div class="share-links">
     <span>Share this post:</span>
     <a href="#" target="_blank">Twitter</a>

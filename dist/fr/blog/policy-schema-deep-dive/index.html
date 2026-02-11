@@ -55,78 +55,212 @@
             <div class="blog-post-wrapper">
                 <div class="blog-post-main">
                     <header class="post-header">
-  <div class="post-meta">22 janvier 2026</div>
-  <h1>Plongée dans le schéma de politique (v1)</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
+  <div class="post-meta">
+    22 Janvier 2026 &bull; <span>6 min de lecture</span>
   </div>
+  <h1>Plongée dans le Schéma de Politique (v1)</h1>
 </header>
 
 <div class="post-content">
-  <p class="lead">
-    Le schéma v1 est volontairement compact. Voici les blocs clés avec des exemples prêts à copier.
-  </p>
 
-  <h2>Filesystem</h2>
-  <pre><code>filesystem:
-  allow:
-    - path: "/srv/akios/readme.md"
-      mode: "r"
-  deny_writes: true</code></pre>
+<p>Le schéma de politique v1 est intentionnellement petit. Mais petit ne veut pas dire simple — chaque clé contrôle une frontière de sécurité réelle. Cet article explique ce que fait chaque bloc, pourquoi il existe, et comment l&#39;utiliser.</p>
+<h2>Pourquoi la Politique en tant que Code ?</h2>
+<p>La plupart de la sécurité IA est appliquée par convention : les développeurs promettent de ne pas faire de bêtises. AKIOS adopte une approche différente — la sécurité est appliquée par du <strong>code</strong>, validée avant exécution, et signée cryptographiquement. Si la politique ne l&#39;autorise pas, ça n&#39;arrive pas.</p>
+<pre><code class="language-mermaid">graph LR
+    YAML[&quot;Politique YAML&quot;] --&gt;|&quot;parse + validation&quot;| Engine[&quot;Moteur de Politique&quot;]
+    Engine --&gt;|&quot;signature&quot;| Signed[&quot;Politique Signée\n(SHA-256)&quot;]
+    Signed --&gt;|&quot;chargement dans la cage&quot;| Cage[&quot;Cage de Sécurité&quot;]
 
-  <h2>HTTP</h2>
-  <pre><code>http:
+    subgraph CAGE_RUNTIME[&quot;Application au Runtime&quot;]
+        Cage --&gt; FS_CHECK{&quot;Requête\nfilesystem ?&quot;}
+        Cage --&gt; HTTP_CHECK{&quot;Requête\nHTTP ?&quot;}
+        Cage --&gt; LLM_CHECK{&quot;Appel\nLLM ?&quot;}
+        Cage --&gt; TOOL_CHECK{&quot;Exécution\noutil ?&quot;}
+
+        FS_CHECK --&gt;|&quot;chemin autorisé ?&quot;| FS_ALLOW[&quot;✅ Autoriser&quot;]
+        FS_CHECK --&gt;|&quot;refusé&quot;| FS_BLOCK[&quot;❌ Bloquer + Log&quot;]
+        HTTP_CHECK --&gt;|&quot;hôte autorisé ?&quot;| HTTP_ALLOW[&quot;✅ Autoriser&quot;]
+        HTTP_CHECK --&gt;|&quot;refusé&quot;| HTTP_BLOCK[&quot;❌ Bloquer + Log&quot;]
+        LLM_CHECK --&gt;|&quot;dans le budget ?&quot;| LLM_ALLOW[&quot;✅ Autoriser&quot;]
+        LLM_CHECK --&gt;|&quot;dépassement&quot;| LLM_KILL[&quot;🛑 Coupe-Circuit&quot;]
+        TOOL_CHECK --&gt;|&quot;liste blanche ?&quot;| TOOL_ALLOW[&quot;✅ Autoriser&quot;]
+        TOOL_CHECK --&gt;|&quot;refusé&quot;| TOOL_BLOCK[&quot;❌ Bloquer + Log&quot;]
+    end
+</code></pre>
+<h2>Les Blocs du Schéma</h2>
+<p>La politique v1 a six blocs de premier niveau. Voici ce que chacun fait :</p>
+<table>
+  <thead>
+    <tr><th>Bloc</th><th>Contrôle</th><th>Défaut</th><th>Impact Sécurité</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>filesystem</strong></td>
+      <td>Quels chemins les agents peuvent lire/écrire</td>
+      <td>Tout interdire</td>
+      <td>Empêche l'exfiltration de données via les fichiers locaux</td>
+    </tr>
+    <tr>
+      <td><strong>http</strong></td>
+      <td>Quels hôtes/méthodes/débits sont autorisés</td>
+      <td>Tout interdire</td>
+      <td>Empêche les appels réseau non autorisés</td>
+    </tr>
+    <tr>
+      <td><strong>llm</strong></td>
+      <td>Fournisseur, modèle, tokens, budget</td>
+      <td>Aucun fournisseur</td>
+      <td>Empêche les dépassements de coûts et l'abus de modèle</td>
+    </tr>
+    <tr>
+      <td><strong>tools</strong></td>
+      <td>Quelles commandes peuvent s'exécuter</td>
+      <td>Tout interdire</td>
+      <td>Empêche l'exécution arbitraire de commandes</td>
+    </tr>
+    <tr>
+      <td><strong>audit</strong></td>
+      <td>Chaîne Merkle, anonymisation DCP, export</td>
+      <td>Activé</td>
+      <td>Fournit une preuve inviolable de l'exécution</td>
+    </tr>
+    <tr>
+      <td><strong>pii_redaction</strong></td>
+      <td>Quels motifs détecter et anonymiser</td>
+      <td>Activé (standard)</td>
+      <td>Empêche les données sensibles d'atteindre l'agent</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Filesystem</h3>
+<p>Contrôle ce que l&#39;agent peut voir et modifier sur le disque :</p>
+<pre><code class="language-yaml">filesystem:
   allow:
-    - host: "api.example.com"
-      methods: ["GET"]
+    - path: &quot;/srv/akios/readme.md&quot;
+      mode: &quot;r&quot;           # lecture seule
+    - path: &quot;/workspace/output&quot;
+      mode: &quot;w&quot;           # écriture autorisée
+  deny_writes: true       # bloqué partout ailleurs
+</code></pre>
+<p><strong>Règle clé :</strong> Les chemins non listés sont invisibles pour l&#39;agent. Il ne peut même pas détecter qu&#39;ils existent.</p>
+<h3>HTTP</h3>
+<p>Contrôle quels services externes l&#39;agent peut contacter :</p>
+<pre><code class="language-yaml">http:
+  allow:
+    - host: &quot;api.openai.com&quot;
+      methods: [&quot;POST&quot;]
       rate_limit_per_min: 30
-  redact_headers: ["authorization", "cookie"]</code></pre>
-
-  <h2>LLM</h2>
-  <pre><code>llm:
-  provider: "openai"
-  model: "gpt-4.1"
+    - host: &quot;docs.example.com&quot;
+      methods: [&quot;GET&quot;]
+      rate_limit_per_min: 60
+  redact_headers: [&quot;authorization&quot;, &quot;cookie&quot;, &quot;x-api-key&quot;]
+</code></pre>
+<p><strong>Règle clé :</strong> Chaque requête passe par le moteur d&#39;anonymisation DCP. Même les requêtes autorisées voient leurs en-têtes sensibles supprimés.</p>
+<h3>LLM</h3>
+<p>Contrôle le modèle IA et les dépenses :</p>
+<pre><code class="language-yaml">llm:
+  provider: &quot;openai&quot;
+  model: &quot;gpt-4.1&quot;
   max_tokens: 1200
   budget_usd: 0.25
   redact_prompts: true
-  redact_responses: true</code></pre>
-
-  <h2>Outils (commandes)</h2>
-  <pre><code>tools:
+  redact_responses: true
+</code></pre>
+<p><strong>Règle clé :</strong> Quand <code>budget_usd</code> est dépassé, le workflow est <strong>tué immédiatement</strong> — pas après l&#39;appel en cours. C&#39;est un coupe-circuit dur, pas un avertissement.</p>
+<h3>Tools (Commandes)</h3>
+<p>Contrôle quelles commandes shell l&#39;agent peut exécuter :</p>
+<pre><code class="language-yaml">tools:
   allow:
-    - name: "jq"
-      args: ["." ]
-    - name: "grep"
-      args: ["-n", "ERROR"]
-  working_dir: "/workspace"
-  timeout_sec: 20</code></pre>
+    - name: &quot;jq&quot;
+      args: [&quot;.&quot;]
+    - name: &quot;grep&quot;
+      args: [&quot;-n&quot;, &quot;ERROR&quot;]
+  working_dir: &quot;/workspace&quot;
+  timeout_sec: 20
+</code></pre>
+<p><strong>Règle clé :</strong> Seules 17 commandes pré-approuvées sont disponibles. Chacune s&#39;exécute dans un sous-processus sandboxé avec filtrage syscall et limites de sortie (1 Mo).</p>
+<h3>Audit</h3>
+<p>Contrôle la journalisation inviolable :</p>
+<pre><code class="language-yaml">audit:
+  merkle: true
+  pii_redaction: true
+  export_format: jsonl
+  retention_days: 2555  # 7 ans
+</code></pre>
+<p><strong>Règle clé :</strong> La chaîne Merkle est append-only. Si une entrée est modifiée, la chaîne de hash se brise et la vérification échoue. C&#39;est une preuve cryptographique, pas un simple fichier de log.</p>
+<h3>Anonymisation DCP</h3>
+<p>Contrôle quels motifs de données sensibles sont détectés :</p>
+<pre><code class="language-yaml">pii_redaction:
+  enabled: true
+  mode: aggressive
+  patterns: [nir, siret, carte_bancaire, iban, email, telephone, cle_api]
+</code></pre>
+<p><strong>Règle clé :</strong> En mode <code>aggressive</code>, le moteur favorise l&#39;anonymisation excessive. Les faux positifs sont préférables aux fuites de données.</p>
+<h2>Politique Complète</h2>
+<pre><code class="language-yaml">version: 1
+name: &quot;resume-documents&quot;
 
-  <h2>Ensemble complet</h2>
-  <pre><code>version: 1
-name: "doc-summary"
 filesystem:
   allow:
-    - path: "/workspace/docs"
-      mode: "r"
+    - path: &quot;/workspace/docs&quot;
+      mode: &quot;r&quot;
 http:
   allow:
-    - host: "docs.example.com"
-      methods: ["GET"]
+    - host: &quot;api.openai.com&quot;
+      methods: [&quot;POST&quot;]
+      rate_limit_per_min: 10
+  redact_headers: [&quot;authorization&quot;, &quot;cookie&quot;]
 llm:
-  provider: "openai"
-  model: "gpt-4.1"
+  provider: &quot;openai&quot;
+  model: &quot;gpt-4.1&quot;
   max_tokens: 1500
   budget_usd: 0.30
+  redact_prompts: true
+  redact_responses: true
 tools:
   allow:
-    - name: "jq"
-    - name: "grep"
+    - name: &quot;jq&quot;
+    - name: &quot;grep&quot;
+  working_dir: &quot;/workspace&quot;
+  timeout_sec: 20
 audit:
   merkle: true
-  pii_redaction: true</code></pre>
+  pii_redaction: true
+  export_format: jsonl
+pii_redaction:
+  enabled: true
+  mode: aggressive
+</code></pre>
+<h2>Valider votre Politique</h2>
+<p>Toujours valider avant de déployer :</p>
+<pre><code class="language-bash"># Le dry-run valide la politique sans l&#39;exécuter
+akios run --dry-run mon-workflow.yml
 
-  <p>Gardez des politiques courtes, explicites et signées. C’est ainsi que la cage reste prévisible.</p>
+# Signer la politique pour l&#39;utilisation en production
+akios policy sign mon-workflow.yml
+
+# Vérifier une politique signée
+akios policy verify mon-workflow.yml.sig
+</code></pre>
+<h2>Essayez-le Vous-même</h2>
+<pre><code class="language-bash">pip install akios
+akios init mon-projet
+akios run templates/hello-workflow.yml
+</code></pre>
+<p>Gardez les politiques petites, explicites et signées. C&#39;est ainsi que la cage reste prévisible.</p>
+<p>Sécurisez votre IA. Construisez avec AKIOS.</p>
+</div>
+
+<div class="post-footer">
+  <p>Connexe : <a href="hardening-checklist.html">Checklist de Durcissement</a> | <a href="secure-agent-communication.html">Communication Sécurisée entre Agents</a></p>
+  <div class="share-links">
+    <span>Partager :</span>
+    <a href="#" target="_blank">Twitter</a>
+    <a href="#" target="_blank">LinkedIn</a>
+    <a href="#" target="_blank">Hacker News</a>
+  </div>
+  <a href="./">← Retour au Blog</a>
 </div>
 
                 </div>

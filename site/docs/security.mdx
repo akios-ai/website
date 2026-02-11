@@ -1,0 +1,302 @@
+# Security Features
+
+AKIOS protects your AI workflows with multiple layers of defense. This guide explains what security you get and how to verify it's working.
+
+## What AKIOS Protects Against
+
+**Data Leaks** → Automatic PII redaction before data reaches AI providers  
+**Cost Overruns** → Hard budget limits with automatic termination  
+**Resource Abuse** → CPU, memory, and disk quotas  
+**Unauthorized Access** → Sandbox isolation and path restrictions  
+**Audit Gaps** → Complete tamper-evident logging of all actions
+
+## Security By Platform
+
+| Platform | Security Level | What You Get |
+|----------|---------------|--------------|
+| **Native Linux + sudo** | Full (kernel-hard) | cgroups v2 + seccomp-bpf syscall filtering = maximum isolation |
+| **Native Linux (no sudo)** | Strong (graceful degradation) | Policy-based sandbox with most protections active |
+| **Docker** (all platforms) | Strong (policy-based) | Container isolation + command allowlisting = excellent cross-platform security |
+
+**Both are production-ready.** Use native Linux for absolute maximum, Docker for excellent security everywhere.
+
+## The Four Security Layers
+
+### 0. Security Cage
+
+The Security Cage is the core abstraction — a controlled environment where AI workflows execute with full protections active.
+
+**Activate the cage:**
+```bash
+# Activate full security: PII redaction, network lock, sandbox, audit
+akios cage up
+
+# Check current security posture
+akios cage status
+
+# Run diagnostics
+akios doctor
+```
+
+When the cage is **ACTIVE**, these protections are enforced:
+- **PII Redaction** — All inputs/outputs automatically scanned and redacted
+- **Network Lock** — Only LLM API endpoints + configured `allowed_domains` pass through
+- **Sandbox** — Process isolation via cgroups v2 + seccomp-bpf (native) or container policy (Docker)
+- **Audit Logging** — Every action cryptographically logged with Merkle chains
+- **Cost Controls** — Budget kill-switches halt execution if limits exceeded
+
+**Deactivate the cage:**
+```bash
+# Full cage down — destroy ALL session data (default)
+akios cage down
+
+# Dev mode — relax protections but keep data for debugging
+akios cage down --keep-data
+```
+
+> **Warning:** `cage down` permanently destroys `audit/`, `data/output/`, and `data/input/`. This is the cage's core security promise: zero data residue when the cage goes down. Use `--keep-data` only during active development.
+
+### 1. Sandbox & Isolation
+
+**What it does:** Keeps AI agents in a controlled environment
+
+- **Process isolation** - Agents can't access the host system
+- **Syscall filtering** - Dangerous system calls are blocked (Linux)
+- **Resource limits** - CPU/memory quotas prevent exhaustion
+- **Path restrictions** - Only allowed directories accessible
+- **Network control** - Default deny, explicit allow only
+
+**Verify it's working:**
+```bash
+akios status --security
+# Look for: Security Level: Full (Linux) or Strong (Docker)
+```
+
+### 2. PII Redaction
+
+**What it does:** Automatically removes sensitive data
+
+**Protected data types (50+ patterns):**
+- Email addresses, phone numbers
+- Social Security numbers, credit cards
+- API keys, passwords, tokens
+- IP addresses, MAC addresses
+- Medical records, health data
+- Financial account numbers
+
+**Applied twice:**
+- Before sending to AI providers (inputs)
+- After receiving from AI providers (outputs)
+
+**Verify it's working:**
+```bash
+akios status --security
+# Look for: PII Protection: Active (inputs + outputs)
+```
+
+**PII marker format:** Detected PII is replaced with typed markers using guillemet notation:
+
+| PII Type | Marker | Example |
+|----------|--------|---------|
+| Email | `«EMAIL»` | john@example.com → `«EMAIL»` |
+| SSN | `«SSN»` | 442-01-9821 → `«SSN»` |
+| Phone | `«PHONE»` | (319) 555-1701 → `«PHONE»` |
+| Name | `«NAME»` | James T. Kirk → `«NAME»` |
+| Address | `«ADDRESS»` | 1701 Enterprise Way → `«ADDRESS»` |
+| Credit Card | `«CREDIT_CARD»` | 4111-1111-1111-1111 → `«CREDIT_CARD»` |
+
+**Scan files before processing:**
+```bash
+akios protect scan data/input/document.txt
+akios protect preview templates/workflow.yml
+```
+
+### 3. Cost Kill-Switches
+
+**What it does:** Prevents surprise AI bills
+
+- **Default budget:** $1.00 per workflow
+- **Token limits:** 1000 tokens per API call (default)
+- **Automatic termination:** Workflow stops if budget exceeded
+- **Loop detection:** Catches infinite loops before costs spiral
+
+**Verify it's working:**
+```bash
+akios status
+# Look for: Budget: $0.12 / $1.00 remaining
+```
+
+### 4. Audit Trail
+
+**What it does:** Creates tamper-evident logs
+
+- **Cryptographic integrity** - Merkle-style hash chains
+- **Complete coverage** - Every action logged
+- **PII-safe** - Sensitive data redacted in logs
+- **Compliance ready** - Export for SOX/HIPAA/GDPR
+
+**Verify it's working:**
+```bash
+akios logs --limit 5
+# You should see recent actions with timestamps
+```
+
+## Check Your Security Status
+
+**Quick check:**
+```bash
+akios status
+```
+
+Shows: Security level, PII protection, budget remaining, audit status
+
+**Detailed security dashboard:**
+```bash
+akios status --security
+```
+
+Shows: All security features, active protections, compliance indicators, resource limits
+
+**Machine-readable (for scripts):**
+```bash
+akios status --security --json
+```
+
+## What to Expect
+
+### On Native Linux
+```
+🛡️ Security Level: Full (kernel-hard)
+✓ Sandbox: cgroups v2 + seccomp-bpf active
+✓ PII Redaction: Active (inputs + outputs)
+✓ Audit Logging: Cryptographic integrity verified
+✓ Network: Denied (unless explicitly enabled)
+✓ Cost Controls: $1.00 budget limit active
+```
+
+**Requirements:** Linux kernel 5.4+, system packages `libseccomp-dev` and `python3-seccomp`, sudo privileges for full kernel-hard protection. Without sudo, AKIOS gracefully degrades to policy-based mode.
+
+### On Docker (any platform)
+```
+🛡️ Security Level: Strong (policy-based)
+✓ Sandbox: Container isolation active
+✓ PII Redaction: Active (inputs + outputs)
+✓ Audit Logging: Cryptographic integrity verified
+✓ Network: Denied (unless explicitly enabled)
+✓ Cost Controls: $1.00 budget limit active
+```
+
+## Security Best Practices
+
+**√ Do:**
+- Run `akios status --security` regularly
+- Keep AKIOS updated to latest version
+- Review audit logs periodically
+- Set appropriate budget limits
+- Use environment variables for API keys
+- Run in isolated environments for sensitive work
+
+**× Don't:**
+- Commit `.env` files to version control
+- Disable PII redaction in production
+- Run with unlimited budgets
+- Ignore security warnings
+- Share API keys in logs or outputs
+
+## Deployable Output
+
+Every workflow execution produces a structured `output.json` artifact:
+
+```bash
+akios output latest
+```
+
+The output includes: metadata (version, workflow name, ID, timestamp), execution details (status, steps, timing), security state (PII redaction, audit, sandbox), cost breakdown (total, budget, remaining, over-budget flag), and per-step results with agent, action, status, timing, and output text. Designed for CI/CD pipeline integration.
+
+## Data Lifecycle
+
+The cage enforces a strict data lifecycle:
+
+```
+cage up → protections activate → workflows execute → data generated
+                                                           ↓
+cage down → audit/ destroyed → data/output/ destroyed → data/input/ destroyed
+                                                           ↓
+                                                    ZERO DATA RESIDUE
+```
+
+Every session starts clean and ends clean. No sensitive artifacts survive a cage session.
+
+## Network Security & HTTPS Whitelist
+
+By default, **all external network access is blocked** (secure-first design). LLM API endpoints (OpenAI, Anthropic, Grok, Mistral, Gemini) always pass through regardless of this setting — the `network_access_allowed` controls only the HTTP agent.
+
+**Configure an HTTPS whitelist for the HTTP agent:**
+
+```yaml
+# config.yaml
+network_access_allowed: true
+allowed_domains:
+  - "api.salesforce.com"
+  - "api.mycompany.com"
+```
+
+Or via environment variable:
+```bash
+AKIOS_ALLOWED_DOMAINS="api.salesforce.com,api.mycompany.com"
+```
+
+Subdomains must be added explicitly — they are not automatically allowed.
+
+## Compliance Frameworks
+
+AKIOS audit exports are designed for regulatory examination across sectors:
+
+| Sector | Regulation | Compliance Features |
+|--------|-----------|-------------------|
+| Healthcare | HIPAA, HITECH | PHI redaction, access logging, audit proof |
+| Banking | PCI-DSS, BSA-AML, GLBA | Financial PII redaction, transaction audit |
+| Insurance | NAIC, State DOI | Claim data protection, fraud detection audit |
+| Accounting | SOX 302/404, PCAOB | Financial audit trail, control verification |
+| Government | FISMA, FedRAMP, Privacy Act | Clearance data protection, access audit |
+| Legal | ABA Rule 1.6, FRE 502 | Privilege protection, case data redaction |
+| EU/France | RGPD, CNIL, ANSSI | DCP redaction, RGS compliance, data lifecycle |
+
+## Report Security Issues
+
+**Found a vulnerability?** Email **security@akioud.ai** (private only — do NOT report via public GitHub issues)
+
+**Include:**
+- Clear description of the issue
+- Steps to reproduce
+- Affected versions
+- Potential impact (sandbox bypass, PII leak, cost overrun)
+- Your contact info
+
+**Our response:**
+- Acknowledgment within 24 hours
+- Triage within 72 hours
+- Critical fixes within 7 days
+- High-severity fixes within 30 days
+- Coordinated disclosure
+- Public credit (Hall of Fame)
+
+## Supported Versions
+
+| Version | Supported | Security Updates |
+|---------|-----------|------------------|
+| 1.0.x | ✅ Active | ✅ Full support |
+| <1.0 | ❌ End of Life | ❌ No support |
+
+Always use the latest 1.0.x version for best security.
+
+## Learn More
+
+- **[Concepts](concepts.html)** - Understand how security layers work
+- **[Configuration](config-reference.html)** - Customize security settings
+- **[Best Practices](best-practices.html)** - Patterns for secure workflows
+- **[Deployment Guide](./deployment.mdx)** - Security-hardened deployment patterns
+- **[EC2 Deployment Guide](./ec2-deployment.mdx)** - AWS cloud deployment with security best practices
+- **[Debugging](debugging.html)** - Troubleshoot security issues
+
+**Remember:** No software is 100% secure. Always validate outputs and run AKIOS in appropriate environments for your security needs.
