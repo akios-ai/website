@@ -55,55 +55,213 @@
             <div class="blog-post-wrapper">
                 <div class="blog-post-main">
                     <header class="post-header">
-  <div class="post-meta">January 26, 2026</div>
-  <h1>Hardening Checklist for AKIOS 1.0</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
+  <div class="post-meta">
+    January 26, 2026 &bull; <span>5 min read</span>
   </div>
+  <h1>Hardening Checklist for AKIOS 1.0</h1>
 </header>
 
 <div class="post-content">
-  <p class="lead">
-    AKIOS is minimal, but you still need a few guardrails to keep agents contained in real environments. Use this short checklist before you ship.
-  </p>
 
-  <h2>Host hardening</h2>
-  <ul>
-    <li>Run on a recent Linux kernel with <code>seccomp</code>, <code>userns</code>, <code>cgroups v2</code> enabled.</li>
-    <li>Disable unneeded capabilities for the AKIOS process (drop <code>NET_ADMIN</code>, <code>SYS_ADMIN</code>, etc.).</li>
-    <li>Mount <code>/tmp</code> as <code>noexec</code> if your workflow allows it.</li>
-  </ul>
+<p>AKIOS is minimal by design, but you still need a few guardrails to keep agents contained in real environments. Use this checklist before you ship to production.</p>
+<h2>Why Hardening Matters</h2>
+<p>AKIOS provides kernel-level isolation out of the box. But the runtime is only one layer. The host, the CI/CD pipeline, the policy management process, and the audit storage all need to be hardened too. A Security Cage is only as strong as the weakest layer in the stack.</p>
+<p>This checklist covers the five hardening domains:</p>
+<pre><code class="language-mermaid">graph TB
+    subgraph STACK[&quot;Hardening Stack&quot;]
+        HOST[&quot;1. Host Hardening\nKernel, capabilities, mounts&quot;]
+        POLICY[&quot;2. Policy Discipline\nSign, deny-default, budget&quot;]
+        AUDIT[&quot;3. Audit + Observability\nImmutable sinks, alerts&quot;]
+        PII[&quot;4. PII &amp; Secrets\nRedaction, vault, env&quot;]
+        CICD[&quot;5. CI/CD Safety\nDry-run, namespace, hash gates&quot;]
+    end
 
-  <h2>Policy discipline</h2>
-  <ul>
-    <li>Sign policies and load only signed artifacts in CI/CD.</li>
-    <li>Default-deny network and filesystem; allowlist exact hosts and paths.</li>
-    <li>Keep per-tool budgets tight; fail closed on budget overflow.</li>
-  </ul>
+    HOST --&gt; POLICY --&gt; AUDIT --&gt; PII --&gt; CICD
+</code></pre>
+<h2>The Checklist</h2>
+<table>
+  <thead>
+    <tr><th>Domain</th><th>Check</th><th>Command / Action</th><th>Priority</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="3"><strong>Host</strong></td>
+      <td>Recent Linux kernel with <code>seccomp</code>, <code>userns</code>, <code>cgroups v2</code></td>
+      <td><code>uname -r</code> → 5.15+</td>
+      <td>🔴 Critical</td>
+    </tr>
+    <tr>
+      <td>Drop unneeded capabilities (<code>NET_ADMIN</code>, <code>SYS_ADMIN</code>)</td>
+      <td><code>capsh --print</code></td>
+      <td>🔴 Critical</td>
+    </tr>
+    <tr>
+      <td>Mount <code>/tmp</code> as <code>noexec</code></td>
+      <td><code>mount -o remount,noexec /tmp</code></td>
+      <td>🟡 Recommended</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><strong>Policy</strong></td>
+      <td>Sign policies; load only signed artifacts in CI/CD</td>
+      <td><code>akios policy sign policy.yml</code></td>
+      <td>🔴 Critical</td>
+    </tr>
+    <tr>
+      <td>Default-deny network and filesystem; allowlist exact hosts and paths</td>
+      <td>Verify <code>network: isolated</code> in policy</td>
+      <td>🔴 Critical</td>
+    </tr>
+    <tr>
+      <td>Per-tool budgets tight; fail closed on budget overflow</td>
+      <td><code>budget.max_cost_per_run: 0.50</code></td>
+      <td>🟡 Recommended</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><strong>Audit</strong></td>
+      <td>Ship audit logs to immutable sink (append-only bucket)</td>
+      <td><code>akios audit export --format jsonl</code></td>
+      <td>🔴 Critical</td>
+    </tr>
+    <tr>
+      <td>Enable Merkle proofs export; validate in CI smoke tests</td>
+      <td><code>akios audit verify</code></td>
+      <td>🔴 Critical</td>
+    </tr>
+    <tr>
+      <td>Alert on sandbox escapes, policy denials, kill-switch activations</td>
+      <td>Configure alerting in monitoring stack</td>
+      <td>🟡 Recommended</td>
+    </tr>
+    <tr>
+      <td rowspan="2"><strong>PII</strong></td>
+      <td>Keep PII redaction on for all agents; treat opt-outs as exceptions</td>
+      <td><code>pii_redaction: { enabled: true, mode: aggressive }</code></td>
+      <td>🔴 Critical</td>
+    </tr>
+    <tr>
+      <td>Store secrets in vault; inject via env with least privilege</td>
+      <td>Never put secrets in prompts or policy files</td>
+      <td>🔴 Critical</td>
+    </tr>
+    <tr>
+      <td rowspan="3"><strong>CI/CD</strong></td>
+      <td>Gate PRs on <code>akios run --dry-run</code></td>
+      <td>Add to CI pipeline before merge</td>
+      <td>🟡 Recommended</td>
+    </tr>
+    <tr>
+      <td>Run sample workflows in throwaway namespace/VM per PR</td>
+      <td>Ephemeral runners in CI</td>
+      <td>🟡 Recommended</td>
+    </tr>
+    <tr>
+      <td>Block merges if audit output deviates from expected hash chain</td>
+      <td><code>akios audit verify --expected-hash $HASH</code></td>
+      <td>🟡 Recommended</td>
+    </tr>
+  </tbody>
+</table>
 
-  <h2>Audit + observability</h2>
-  <ul>
-    <li>Ship audit logs to an immutable sink (append-only bucket or log service with retention).</li>
-    <li>Enable Merkle proofs export and validate in CI smoke tests.</li>
-    <li>Alert on sandbox escapes, policy denials, and kill-switch activations.</li>
-  </ul>
+<h2>Example: Hardened Policy</h2>
+<p>Here&#39;s a production-ready policy with all hardening applied:</p>
+<pre><code class="language-yaml"># hardened-production.yml
+version: 1
+name: &quot;hardened-production&quot;
 
-  <h2>PII &amp; secrets</h2>
-  <ul>
-    <li>Keep PII redaction on for all agents; treat opt-outs as exceptions.</li>
-    <li>Store secrets in your vault; inject via env with least privilege; never in prompts.</li>
-  </ul>
+security:
+  sandbox: strict
+  network: isolated
+  allowed_endpoints: []  # default-deny
 
-  <h2>CI/CD safety</h2>
-  <ul>
-    <li>Gate PRs on <code>akios run --dry-run</code> to validate workflows before merging.</li>
-    <li>Run sample workflows in a throwaway namespace/VM per PR.</li>
-    <li>Use <code>akios compliance report</code> to generate compliance artifacts per build.</li>
-    <li>Block merges if audit output deviates from expected hash chain.</li>
-  </ul>
+filesystem:
+  allow:
+    - path: &quot;/workspace/input&quot;
+      mode: &quot;r&quot;
+    - path: &quot;/workspace/output&quot;
+      mode: &quot;w&quot;
+  deny_writes: true  # everywhere else
 
-<p>Ship with these basics and you'll keep your security tight while you iterate.</p>
+http:
+  allow: []  # no HTTP access
+  redact_headers: [&quot;authorization&quot;, &quot;cookie&quot;, &quot;x-api-key&quot;]
+
+llm:
+  provider: &quot;openai&quot;
+  model: &quot;gpt-4.1&quot;
+  max_tokens: 500
+  budget_usd: 0.50
+  redact_prompts: true
+  redact_responses: true
+
+tools:
+  allow:
+    - name: &quot;jq&quot;
+    - name: &quot;grep&quot;
+  timeout_sec: 20
+  working_dir: &quot;/workspace&quot;
+
+audit:
+  merkle: true
+  pii_redaction: true
+  export_format: jsonl
+  retention_days: 2555  # 7 years
+
+pii_redaction:
+  enabled: true
+  mode: aggressive
+  patterns: [ssn, ein, credit_card, bank_account, email, phone, api_key]
+</code></pre>
+<h2>Verifying Your Hardening</h2>
+<p>Run the built-in diagnostics to check your hardening posture:</p>
+<pre><code class="language-bash"># Check system readiness
+akios doctor
+
+# Validate policy before deployment
+akios run --dry-run templates/my-workflow.yml
+
+# Verify audit chain integrity
+akios audit verify
+
+# Generate compliance report
+akios compliance report --format detailed
+</code></pre>
+<p>Expected output from <code>akios doctor</code>:</p>
+<pre><code>[akios] System Diagnostics
+  ✅ Kernel: 6.1.0 (seccomp-bpf supported)
+  ✅ cgroups: v2 enabled
+  ✅ User namespaces: enabled
+  ✅ /tmp: noexec mount
+  ✅ Capabilities: minimal set
+  ⚠️  Docker: available (fallback mode)
+  ✅ PII redaction: enabled (aggressive mode)
+  ✅ Audit: Merkle chain initialized
+</code></pre>
+<h2>Common Mistakes</h2>
+<ol>
+<li><strong>Running with <code>--no-sandbox</code></strong> — Never disable the sandbox in production. If you need debugging, use <code>--dry-run</code> instead.</li>
+<li><strong>Allowing <code>*</code> in network policies</strong> — This defeats the purpose. Allowlist specific hosts.</li>
+<li><strong>Storing API keys in policy files</strong> — Use environment variables or a secrets vault.</li>
+<li><strong>Ignoring audit chain breaks</strong> — A broken chain means something was tampered with. Investigate immediately.</li>
+<li><strong>Setting budget to unlimited</strong> — Always set a budget, even if generous. The kill-switch is your last line of defense.</li>
+</ol>
+<h2>Try It Yourself</h2>
+<pre><code class="language-bash">pip install akios
+akios doctor
+akios run --dry-run templates/hello-workflow.yml
+</code></pre>
+<p>Ship with these basics and you&#39;ll keep your security tight while you iterate.</p>
+<p>Secure your AI. Build with AKIOS.</p>
+</div>
+
+<div class="post-footer">
+  <p>Related: <a href="release-notes-v0-1-0.html">AKIOS v1.0 Release Notes</a> | <a href="policy-schema-deep-dive.html">Policy Schema Deep Dive</a></p>
+  <div class="share-links">
+    <span>Share this post:</span>
+    <a href="#" target="_blank">Twitter</a>
+    <a href="#" target="_blank">LinkedIn</a>
+    <a href="#" target="_blank">Hacker News</a>
+  </div>
+  <a href="./">← Back to Blog</a>
 </div>
 
                 </div>

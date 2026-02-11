@@ -57,55 +57,153 @@
                     <header class="post-header">
   <div class="post-meta">February 10, 2026 · Engineering / Insurance · 5 min read</div>
   <h1>Secure AI for Insurance: Claims Processing Without Exposing Policyholder Data</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
-  </div>
 </header>
 
 <div class="post-content">
 
 <p>Insurance companies process thousands of claims daily — property damage, medical bills, liability disputes. AI can accelerate adjudication, flag fraud, and reduce cycle times. The challenge: <strong>policyholder data includes medical records, financial details, and personally identifiable information that must never leak.</strong></p>
 <p>AKIOS solves this with the Security Cage: an ephemeral, sandboxed runtime where AI processes claims under strict, code-defined policies.</p>
+<h2>The Problem</h2>
+<p>Claims processing is a bottleneck. Manual adjudication is slow, inconsistent, and expensive. AI can evaluate a claim in seconds — but connecting a model to policyholder data creates a new risk vector. Medical records, SSNs, policy numbers, and financial details are all at stake. A data breach doesn&#39;t just mean regulatory fines — it means class-action lawsuits and lost customer trust.</p>
+<p>AKIOS lets you deploy AI on claims data <strong>without exposing any policyholder identifiers</strong>.</p>
 <h2>The Regulatory Landscape</h2>
 <p>US insurance companies face a unique regulatory stack:</p>
-<ul>
-<li><strong>State Insurance Regulations</strong> — Each state has its own data protection and claims handling requirements. NAIC Model Laws provide a baseline, but compliance is per-state.</li>
-<li><strong>HIPAA</strong> — Health insurance claims involve PHI. AI processing must maintain the same protections as the insurer&#39;s core systems.</li>
-<li><strong>NAIC Model Audit Rule</strong> — Insurers must maintain auditable records of all automated decision-making affecting policyholders.</li>
-<li><strong>FCRA (Fair Credit Reporting Act)</strong> — When AI uses credit-related data for underwriting, adverse action requirements apply.</li>
-</ul>
+<table>
+  <thead>
+    <tr><th>Regulation</th><th>Scope</th><th>How AKIOS Enforces It</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>State Insurance Regulations</strong></td>
+      <td>Each state has its own data protection and claims handling requirements (NAIC Model Laws as baseline)</td>
+      <td>Policy templates per state ensure the cage enforces jurisdiction-specific rules.</td>
+    </tr>
+    <tr>
+      <td><strong>HIPAA</strong></td>
+      <td>Health insurance claims involve PHI — same protections as core healthcare systems</td>
+      <td>Medical record identifiers redacted before AI processing. Zero PHI exposure.</td>
+    </tr>
+    <tr>
+      <td><strong>NAIC Model Audit Rule</strong></td>
+      <td>Insurers must maintain auditable records of all automated decision-making affecting policyholders</td>
+      <td>Merkle-chained audit trail — every classification cryptographically signed and immutable.</td>
+    </tr>
+    <tr>
+      <td><strong>FCRA</strong></td>
+      <td>When AI uses credit-related data for underwriting, adverse action requirements apply</td>
+      <td>Complete decision provenance exported per claim. Adverse action explanations included in output.</td>
+    </tr>
+    <tr>
+      <td><strong>CCPA / State Privacy</strong></td>
+      <td>Consumer data rights — access, deletion, opt-out of automated decision-making</td>
+      <td>All PII redacted before AI processing. Audit trail proves no personal data retained by model.</td>
+    </tr>
+  </tbody>
+</table>
+
 <p>AKIOS enforces these at the runtime level — the AI agent never operates outside the compliance boundary.</p>
+<h2>The Concept: Policy as Code</h2>
+<p>AKIOS introduces the concept of a &quot;Security Cage&quot; — an ephemeral, sandboxed runtime environment where data is processed under strict, code-defined policies. For insurance, the key feature is <strong>per-state policy templates</strong>: compliance rules can be configured per jurisdiction, ensuring the AI respects state-specific claims handling requirements.</p>
 <h2>The Workflow: Automated Claims Adjudication</h2>
-<ol>
-<li><strong>Ingestion</strong>: A batch of new claims is loaded into the Security Cage. SSNs, policy numbers, and medical record identifiers are redacted before the AI sees them.</li>
-<li><strong>The Cage</strong>: AKIOS initializes with the insurance policy: network isolation, $0.30 budget cap per claim, and NAIC-compliant audit logging.</li>
-<li><strong>Analysis</strong>: The sandboxed AI agent evaluates claims against policy terms — damage assessments, coverage verification, medical necessity review — using only redacted data.</li>
-<li><strong>Classification</strong>: Claims are classified as approve, deny, or escalate with confidence scores and rule citations. The AI cannot authorize payments.</li>
-<li><strong>Audit</strong>: Every inference, data access, and output is cryptographically signed into a Merkle chain. State regulators can verify the complete decision path.</li>
-</ol>
+<table>
+  <thead>
+    <tr><th>Step</th><th>What Happens</th><th>Security Control</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Ingestion</strong></td>
+      <td>Batch of new claims loaded into the Security Cage</td>
+      <td>SSNs, policy numbers, and medical IDs redacted before AI sees them.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Redaction</strong></td>
+      <td>Policyholder identifiers stripped and replaced with tokens</td>
+      <td>50+ PII patterns including medical codes, financial accounts, addresses replaced.</td>
+    </tr>
+    <tr>
+      <td><strong>3. AI Analysis</strong></td>
+      <td>LLM evaluates claims against policy terms — damage assessment, coverage verification, medical necessity</td>
+      <td>Budget capped ($0.30/claim), network isolated, no persistent storage.</td>
+    </tr>
+    <tr>
+      <td><strong>4. Classification</strong></td>
+      <td>Claims classified as approve, deny, or escalate with confidence scores and rule citations</td>
+      <td>AI cannot authorize payments. All approvals require human confirmation.</td>
+    </tr>
+    <tr>
+      <td><strong>5. Audit</strong></td>
+      <td>Every inference, data access, and output cryptographically signed</td>
+      <td>State regulators can verify the complete decision path for any claim.</td>
+    </tr>
+  </tbody>
+</table>
+
 <h3>Architecture</h3>
 <pre><code class="language-mermaid">graph LR
-    CMS[&quot;Claims System&quot;] --&gt;|claim files| FS[&quot;filesystem agent\nbatch ingest&quot;]
+    CMS[&quot;Claims Mgmt\nSystem&quot;] --&gt;|&quot;claim files\n(encrypted)&quot;| FS[&quot;filesystem agent\nbatch ingest&quot;]
 
     subgraph CAGE[&quot;AKIOS Security Cage&quot;]
-        FS --&gt; PII[&quot;PII Redaction\n«SSN» «CC» «POLICY»&quot;]
+        FS --&gt; PII[&quot;Redaction Engine\n«SSN» «POLICY» «MEDICAL» «CC»&quot;]
         PII --&gt; LLM[&quot;llm agent\nclaims triage&quot;]
         LLM --&gt; TE[&quot;tool_executor\nadjudication rules&quot;]
-        TE --&gt; MERKLE[&quot;Merkle Audit\nSHA-256 chain&quot;]
-        MERKLE --&gt; COST[&quot;Cost Kill-Switch\n$1.00 budget&quot;]
+        TE --&gt; VALID[&quot;Output Validation\nno payment auth&quot;]
+        VALID --&gt; MERKLE[&quot;Merkle Chain\nSHA-256 signed&quot;]
+        MERKLE --&gt; COST[&quot;Cost Kill-Switch\n$0.30 / claim&quot;]
     end
 
-    COST --&gt; Queue[&quot;Decision Queue&quot;]
-    Queue --&gt; Adjuster[&quot;Adjuster Review&quot;]
-    MERKLE --&gt;|audit export| Compliance[&quot;NAIC Audit Trail&quot;]
+    COST --&gt;|&quot;classifications\n(redacted)&quot;| Queue[&quot;Decision Queue\nAdjuster Dashboard&quot;]
+    Queue --&gt; Adjuster[&quot;Claims\nAdjuster&quot;]
+    MERKLE --&gt;|&quot;audit export\n(immutable)&quot;| Compliance[&quot;NAIC Audit Trail&quot;]
+    Compliance --&gt; DOI[&quot;State Dept of\nInsurance&quot;]
 </code></pre>
+<h3>Policy Configuration</h3>
+<p>The entire compliance posture is defined in a single YAML file:</p>
+<pre><code class="language-yaml"># insurance-claims-policy.yml
+security:
+  sandbox: strict
+  network: isolated
+  allowed_endpoints: []  # zero network access
+  pii_redaction:
+    enabled: true
+    patterns: [ssn, policy_number, medical_record, credit_card, address, dob]
+    mode: aggressive
+  budget:
+    max_cost_per_run: 0.30
+    currency: USD
+  audit:
+    merkle_chain: true
+    export_format: jsonl
+    retention_days: 2555  # 7 years — NAIC record retention
+  constraints:
+    payment_authorization: disabled  # AI cannot approve payments
+    human_review: required_for_denials
+</code></pre>
+<h2>What the Claims Adjuster Sees</h2>
+<p>At the end of the workflow, the claims adjuster receives a structured report:</p>
+<table>
+  <thead>
+    <tr><th>Field</th><th>Value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Claim ID</td><td>CLM-2026-0210-****5847</td></tr>
+    <tr><td>Classification</td><td>⚠️ Escalate — Coverage ambiguity detected</td></tr>
+    <tr><td>Analysis</td><td>Water damage claim cites "sudden and accidental" but description indicates gradual seepage over 3 months</td></tr>
+    <tr><td>Policy Reference</td><td>Section 4.2.1 — Exclusion for gradual deterioration</td></tr>
+    <tr><td>Fraud Indicators</td><td>None detected (0.12 risk score)</td></tr>
+    <tr><td>Confidence</td><td>89%</td></tr>
+    <tr><td>Audit Hash</td><td><code>d8f2a1...c47b</code></td></tr>
+    <tr><td>Policyholder Data Exposed</td><td>❌ None — all PII redacted before analysis</td></tr>
+  </tbody>
+</table>
+
+<p>No SSNs. No policy numbers. No medical details. Just adjudication intelligence with a cryptographic proof chain.</p>
 <h2>Why It Matters</h2>
 <ul>
 <li><strong>Zero Data Exposure</strong>: SSNs, medical records, and policy details are redacted before AI processing. Even if the model is compromised, there&#39;s nothing to leak.</li>
 <li><strong>State-Level Compliance</strong>: Policy templates can be configured per state, ensuring the AI respects jurisdiction-specific claims handling rules.</li>
 <li><strong>Fraud Detection</strong>: The sandbox can cross-reference claims patterns without exposing individual policyholder data across claims.</li>
 <li><strong>Auditable Decisions</strong>: Every classification includes a cryptographic proof chain. State insurance commissioners can trace exactly how a decision was made.</li>
+<li><strong>No Unauthorized Payments</strong>: Hard-coded constraints prevent the AI from authorizing any payments. All financial actions require human confirmation.</li>
 </ul>
 <h2>Try It Yourself</h2>
 <pre><code class="language-bash">pip install akios
@@ -116,6 +214,7 @@ akios run templates/batch_processing.yml
 </div>
 
 <div class="post-footer">
+  <p>Related: <a href="healthcare-hipaa-security-cage.html">HIPAA-Compliant AI for Healthcare</a> | <a href="banking-fraud-detection.html">Fraud Detection for Banking</a></p>
   <a href="./">← Back to Case Studies</a>
 </div>
                 </div>

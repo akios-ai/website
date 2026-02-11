@@ -54,7 +54,15 @@
       "pharma_time": "5 min read",
       "energy_title": "AI for Energy: Securing Critical Infrastructure with AKIOS",
       "energy_date": "February 10, 2026",
-      "energy_time": "5 min read"
+      "energy_time": "5 min read",
+      "banking_security_cage_title": "Building a PCI-DSS Compliant AI Security Cage for Banking",
+      "banking_security_cage_desc": "Learn how to wrap powerful LLMs in a Security Cage to process customer transaction data while maintaining PCI-DSS and BSA/AML compliance.",
+      "banking_security_cage_date": "February 6, 2026",
+      "banking_security_cage_time": "3 min read",
+      "accounting_security_cage_title": "Building a SOX-Compliant AI Security Cage for Accounting",
+      "accounting_security_cage_desc": "Discover how to use LLMs on financial documents containing EINs and sensitive audit data without violating SOX Section 302 using AKIOS Security Cages.",
+      "accounting_security_cage_date": "February 6, 2026",
+      "accounting_security_cage_time": "3 min read"
     }
   },
   "fr": {
@@ -112,7 +120,15 @@
       "pharma_time": "5 min de lecture",
       "energy_title": "IA pour l'Énergie : Sécuriser les Infrastructures Critiques avec AKIOS",
       "energy_date": "10 Février 2026",
-      "energy_time": "5 min de lecture"
+      "energy_time": "5 min de lecture",
+      "banking_security_cage_title": "Construire une Cage de Sécurité IA Conforme DSP2 pour la Banque",
+      "banking_security_cage_desc": "Apprenez à enfermer des LLM puissants dans une Cage de Sécurité pour traiter des données de transactions clients tout en maintenant la conformité DSP2 et LCB-FT.",
+      "banking_security_cage_date": "6 Février 2026",
+      "banking_security_cage_time": "3 min de lecture",
+      "accounting_security_cage_title": "Construire une Cage de Sécurité IA pour la Comptabilité Conforme au Plan Comptable",
+      "accounting_security_cage_desc": "Découvrez comment utiliser des LLM sur des documents financiers contenant des SIRET et des données d'audit sensibles sans violer le secret professionnel en utilisant les Cages de Sécurité AKIOS.",
+      "accounting_security_cage_date": "6 Février 2026",
+      "accounting_security_cage_time": "3 min de lecture"
     }
   }
 }

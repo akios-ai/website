@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{i18n.case_studies_index.title}}</title>
+  <meta name="description" content="{{i18n.case_studies_index.description}}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{i18n.case_studies_index.title}}">
+  <meta property="og:description" content="{{i18n.case_studies_index.description}}">
+  <meta property="og:site_name" content="AKIOS">
+  <meta name="twitter:card" content="summary">
+  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+  <link rel="stylesheet" href="{{root}}/assets/css/styles.css">
+  <link rel="icon" href="{{root}}/assets/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+
+  <!-- {{header}} -->
+
+  <main id="main-content">
+
+  <!-- Hero -->
+  <section class="section section-hero">
+    <div class="page">
+      <div class="hero hero-simple">
+        <h1>{{i18n.case_studies_index.hero_heading}}</h1>
+        <p class="subtitle">{{i18n.case_studies_index.hero_subtitle}}</p>
+        <div class="case-study-filters">
+          <button class="filter-btn active" data-sector="all">{{i18n.case_study_filters.all}}</button>
+          <button class="filter-btn" data-sector="healthcare">{{i18n.case_study_filters.healthcare}}</button>
+          <button class="filter-btn" data-sector="banking">{{i18n.case_study_filters.banking}}</button>
+          <button class="filter-btn" data-sector="accounting">{{i18n.case_study_filters.accounting}}</button>
+          <button class="filter-btn" data-sector="legal">{{i18n.case_study_filters.legal}}</button>
+          <button class="filter-btn" data-sector="government">{{i18n.case_study_filters.government}}</button>
+          <button class="filter-btn" data-sector="insurance">{{i18n.case_study_filters.insurance}}</button>
+          <button class="filter-btn" data-sector="pharma">{{i18n.case_study_filters.pharma}}</button>
+          <button class="filter-btn" data-sector="energy">{{i18n.case_study_filters.energy}}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Published Case Studies -->
+  <section class="section">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.case_studies_index.section_available}}</h2>
+      <div class="case-studies-list">
+
+        <article class="case-study-entry" data-sector="healthcare">
+          <div class="case-study-entry-industry">{{i18n.case_studies_home.industry_healthcare}}</div>
+          <h3><a href="healthcare-hipaa-security-cage.html">{{i18n.case_studies_index.healthcare_title}}</a></h3>
+          <p>{{i18n.case_studies_home.industry_healthcare_desc}}</p>
+          <div class="case-study-entry-meta">
+            <span>{{i18n.case_studies_index.healthcare_date}}</span>
+            <span>{{i18n.case_studies_index.healthcare_time}}</span>
+          </div>
+          <a href="healthcare-hipaa-security-cage.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="banking">
+          <div class="case-study-entry-industry">{{i18n.case_studies_home.industry_banking}}</div>
+          <h3><a href="banking-fraud-detection.html">{{i18n.case_studies_index.banking_title}}</a></h3>
+          <p>{{i18n.case_studies_home.industry_banking_desc}}</p>
+          <div class="case-study-entry-meta">
+            <span>{{i18n.case_studies_index.banking_date}}</span>
+            <span>{{i18n.case_studies_index.banking_time}}</span>
+          </div>
+          <a href="banking-fraud-detection.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="accounting">
+          <div class="case-study-entry-industry">{{i18n.case_studies_home.industry_accounting}}</div>
+          <h3><a href="accounting-document-processing.html">{{i18n.case_studies_index.accounting_title}}</a></h3>
+          <p>{{i18n.case_studies_home.industry_accounting_desc}}</p>
+          <div class="case-study-entry-meta">
+            <span>{{i18n.case_studies_index.accounting_date}}</span>
+            <span>{{i18n.case_studies_index.accounting_time}}</span>
+          </div>
+          <a href="accounting-document-processing.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="legal">
+          <div class="case-study-entry-industry">{{i18n.case_studies_home.industry_legal}}</div>
+          <h3><a href="legal-contract-review.html">{{i18n.case_studies_index.legal_title}}</a></h3>
+          <p>{{i18n.case_studies_home.industry_legal_desc}}</p>
+          <div class="case-study-entry-meta">
+            <span>{{i18n.case_studies_index.legal_date}}</span>
+            <span>{{i18n.case_studies_index.legal_time}}</span>
+          </div>
+          <a href="legal-contract-review.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="government">
+          <div class="case-study-entry-industry">{{i18n.case_studies_home.industry_gov}}</div>
+          <h3><a href="government-airgap-deployment.html">{{i18n.case_studies_index.gov_title}}</a></h3>
+          <p>{{i18n.case_studies_home.industry_gov_desc}}</p>
+          <div class="case-study-entry-meta">
+            <span>{{i18n.case_studies_index.gov_date}}</span>
+            <span>{{i18n.case_studies_index.gov_time}}</span>
+          </div>
+          <a href="government-airgap-deployment.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="insurance">
+          <div class="case-study-entry-industry">{{i18n.case_studies_home.industry_insurance}}</div>
+          <h3><a href="insurance-claims-processing.html">{{i18n.case_studies_index.insurance_title}}</a></h3>
+          <p>{{i18n.case_studies_home.industry_insurance_desc}}</p>
+          <div class="case-study-entry-meta">
+            <span>{{i18n.case_studies_index.insurance_date}}</span>
+            <span>{{i18n.case_studies_index.insurance_time}}</span>
+          </div>
+          <a href="insurance-claims-processing.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="pharma">
+          <div class="case-study-entry-industry">{{i18n.case_studies_home.industry_pharma}}</div>
+          <h3><a href="pharma-clinical-trials.html">{{i18n.case_studies_index.pharma_title}}</a></h3>
+          <p>{{i18n.case_studies_home.industry_pharma_desc}}</p>
+          <div class="case-study-entry-meta">
+            <span>{{i18n.case_studies_index.pharma_date}}</span>
+            <span>{{i18n.case_studies_index.pharma_time}}</span>
+          </div>
+          <a href="pharma-clinical-trials.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="energy">
+          <div class="case-study-entry-industry">{{i18n.case_studies_home.industry_energy}}</div>
+          <h3><a href="energy-grid-security.html">{{i18n.case_studies_index.energy_title}}</a></h3>
+          <p>{{i18n.case_studies_home.industry_energy_desc}}</p>
+          <div class="case-study-entry-meta">
+            <span>{{i18n.case_studies_index.energy_date}}</span>
+            <span>{{i18n.case_studies_index.energy_time}}</span>
+          </div>
+          <a href="energy-grid-security.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="banking">
+          <div class="case-study-entry-industry">Banque</div>
+          <h3><a href="banking-security-cage.html">Construire une Cage de Sécurité IA Conforme DSP2 pour la Banque</a></h3>
+          <p>Apprenez à enfermer des LLM puissants dans une Cage de Sécurité pour traiter des données de transactions clients tout en maintenant la conformité DSP2 et LCB-FT.</p>
+          <div class="case-study-entry-meta">
+            <span>6 Février 2026</span>
+            <span>3 min de lecture</span>
+          </div>
+          <a href="banking-security-cage.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+        <article class="case-study-entry" data-sector="accounting">
+          <div class="case-study-entry-industry">Comptabilité</div>
+          <h3><a href="accounting-security-cage.html">Construire une Cage de Sécurité IA pour la Comptabilité Conforme au Plan Comptable</a></h3>
+          <p>Découvrez comment utiliser des LLM sur des documents financiers contenant des SIRET et des données d'audit sensibles sans violer le secret professionnel en utilisant les Cages de Sécurité AKIOS.</p>
+          <div class="case-study-entry-meta">
+            <span>6 Février 2026</span>
+            <span>3 min de lecture</span>
+          </div>
+          <a href="accounting-security-cage.html" class="case-study-read-more">{{i18n.case_studies_index.read_more}}</a>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- {{footer}} -->
+
+  <script>
+    // Case study sector filter
+    document.addEventListener('DOMContentLoaded', function() {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const entries = document.querySelectorAll('.case-study-entry');
+      
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const sector = this.dataset.sector;
+          
+          // Update active button
+          filterBtns.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Filter entries
+          entries.forEach(entry => {
+            if (sector === 'all' || entry.dataset.sector === sector) {
+              entry.style.display = '';
+            } else {
+              entry.style.display = 'none';
+            }
+          });
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>

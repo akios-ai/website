@@ -57,54 +57,152 @@
                     <header class="post-header">
   <div class="post-meta">February 10, 2026 · Engineering / Energy · 5 min read</div>
   <h1>AI for Energy: Securing Critical Infrastructure with AKIOS</h1>
-  <div class="post-author">
-    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
-    <span>AJ</span>
-  </div>
 </header>
 
 <div class="post-content">
 
 <p>Energy utilities manage power grids, pipelines, and generation facilities that serve millions. AI can optimize load balancing, predict equipment failures, and detect cyber threats. The problem: <strong>a compromised AI agent connected to operational technology (OT) systems could cause physical damage to infrastructure or disrupt power delivery to entire regions.</strong></p>
 <p>AKIOS solves this with the Security Cage: an ephemeral, sandboxed runtime where AI analyzes grid data under strict, code-defined policies — with no direct access to control systems.</p>
+<h2>The Problem</h2>
+<p>The energy sector&#39;s challenge is unique: unlike banking or healthcare, a breach doesn&#39;t just expose data — it can cause <strong>physical harm</strong>. A compromised AI with write access to SCADA systems could open breakers, reroute power, or mask equipment failures. Traditional cybersecurity tools were designed for IT networks, not for the OT/IT convergence that modern smart grids demand.</p>
+<p>AKIOS enforces an absolute boundary between AI analysis and operational control.</p>
 <h2>The Regulatory Landscape</h2>
 <p>US energy companies face some of the strictest infrastructure protection requirements:</p>
-<ul>
-<li><strong>NERC CIP (Critical Infrastructure Protection)</strong> — Mandatory cybersecurity standards for bulk electric systems. AI systems must comply with access controls, electronic security perimeters, and incident reporting.</li>
-<li><strong>FERC Orders</strong> — Federal Energy Regulatory Commission mandates supply chain risk management and cybersecurity incident reporting for any automated systems touching grid operations.</li>
-<li><strong>DOE Cybersecurity Guidelines</strong> — Department of Energy guidance on AI/ML in energy systems emphasizes air-gapped architectures, human-in-the-loop controls, and data integrity.</li>
-<li><strong>TSA Pipeline Security Directives</strong> — For gas and oil pipeline operators, mandatory cybersecurity measures including network segmentation and access controls for automated monitoring.</li>
-</ul>
+<table>
+  <thead>
+    <tr><th>Regulation</th><th>Scope</th><th>How AKIOS Enforces It</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>NERC CIP</strong></td>
+      <td>Mandatory cybersecurity standards for bulk electric systems — access controls, electronic security perimeters, incident reporting</td>
+      <td>Sandbox satisfies electronic security perimeter requirements. Every data access logged, every output signed.</td>
+    </tr>
+    <tr>
+      <td><strong>FERC Orders</strong></td>
+      <td>Supply chain risk management and cybersecurity incident reporting for automated systems</td>
+      <td>AI runs in ephemeral containers with no supply chain dependencies. Zero third-party data transmission.</td>
+    </tr>
+    <tr>
+      <td><strong>DOE Cybersecurity Guidelines</strong></td>
+      <td>Air-gapped architectures, human-in-the-loop controls, and data integrity for AI/ML in energy</td>
+      <td>Complete network isolation from OT networks. AI can recommend but never execute control commands.</td>
+    </tr>
+    <tr>
+      <td><strong>TSA Pipeline Security</strong></td>
+      <td>Mandatory cybersecurity measures including network segmentation for pipeline operators</td>
+      <td>Policy-enforced network segmentation — pipeline telemetry enters read-only, no write path exists.</td>
+    </tr>
+    <tr>
+      <td><strong>ICS-CERT Advisories</strong></td>
+      <td>CISA advisories on industrial control system vulnerabilities and AI-specific threat vectors</td>
+      <td>Seccomp-bpf filters block all syscalls that could interact with control system protocols.</td>
+    </tr>
+  </tbody>
+</table>
+
 <p>AKIOS enforces these at the runtime level — the AI agent never operates outside the compliance boundary.</p>
+<h2>The Concept: Policy as Code</h2>
+<p>AKIOS introduces the concept of a &quot;Security Cage&quot; — an ephemeral, sandboxed runtime where data is processed under strict, code-defined policies. For energy, the key innovation is the <strong>absolute read-only boundary</strong>: the AI can read telemetry, but the cage is physically incapable of sending commands to control systems.</p>
 <h2>The Workflow: Grid Anomaly Detection</h2>
-<ol>
-<li><strong>Ingestion</strong>: SCADA telemetry and sensor readings are loaded into the Security Cage. Asset identifiers, geographic coordinates, and facility details are abstracted before the AI sees them.</li>
-<li><strong>The Cage</strong>: AKIOS initializes with the energy policy: complete network isolation from OT networks, read-only data access, no command execution capability, and NERC CIP-compliant audit logging.</li>
-<li><strong>Analysis</strong>: The sandboxed AI agent analyzes sensor patterns for anomalies — load imbalances, equipment degradation signatures, unusual access patterns — using only abstracted telemetry.</li>
-<li><strong>Alerting</strong>: Anomalies are classified by severity and type with confidence scores. The AI can recommend actions but cannot execute any commands on operational systems.</li>
-<li><strong>Audit</strong>: Every inference, data access, and output is cryptographically signed into a Merkle chain. NERC auditors can verify the complete analysis path.</li>
-</ol>
+<table>
+  <thead>
+    <tr><th>Step</th><th>What Happens</th><th>Security Control</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Ingestion</strong></td>
+      <td>SCADA telemetry and sensor readings loaded into the cage</td>
+      <td>Asset IDs, coordinates, and facility details abstracted. Read-only filesystem agent.</td>
+    </tr>
+    <tr>
+      <td><strong>2. Abstraction</strong></td>
+      <td>Critical infrastructure identifiers replaced with generic tokens</td>
+      <td>Substation names, GPS coordinates, and asset serial numbers never reach the LLM.</td>
+    </tr>
+    <tr>
+      <td><strong>3. AI Analysis</strong></td>
+      <td>LLM analyzes sensor patterns — load imbalances, degradation signatures, unusual access patterns</td>
+      <td>Budget capped ($0.75/scan), complete OT network isolation, no command execution capability.</td>
+    </tr>
+    <tr>
+      <td><strong>4. Alerting</strong></td>
+      <td>Anomalies classified by severity and type with confidence scores</td>
+      <td>AI can recommend actions but cannot execute any commands on operational systems.</td>
+    </tr>
+    <tr>
+      <td><strong>5. Audit</strong></td>
+      <td>Every inference and data access cryptographically signed into a Merkle chain</td>
+      <td>NERC auditors can verify the complete analysis path for any alert generated.</td>
+    </tr>
+  </tbody>
+</table>
+
 <h3>Architecture</h3>
 <pre><code class="language-mermaid">graph LR
-    SCADA[&quot;SCADA / OT&quot;] --&gt;|telemetry| FS[&quot;filesystem agent\nread-only&quot;]
+    SCADA[&quot;SCADA / OT\nControl Systems&quot;] --&gt;|&quot;telemetry only\n(one-way diode)&quot;| FS[&quot;filesystem agent\nread-only&quot;]
 
     subgraph CAGE[&quot;AKIOS Security Cage · seccomp-bpf&quot;]
-        FS --&gt; PII[&quot;PII Redaction\n«ASSET_ID» «COORD»&quot;]
+        FS --&gt; PII[&quot;Abstraction Engine\n«ASSET_ID» «COORD» «SERIAL»&quot;]
         PII --&gt; LLM[&quot;llm agent\nanomaly detection&quot;]
-        LLM --&gt; SCAN[&quot;Output Redaction&quot;]
-        SCAN --&gt; MERKLE[&quot;Merkle Audit\nSHA-256 chain&quot;]
+        LLM --&gt; TE[&quot;tool_executor\nseverity classification&quot;]
+        TE --&gt; VALID[&quot;Output Validation\nno control commands&quot;]
+        VALID --&gt; MERKLE[&quot;Merkle Chain\nSHA-256 signed&quot;]
+        MERKLE --&gt; COST[&quot;Cost Kill-Switch\n$0.75 / scan&quot;]
     end
 
-    MERKLE --&gt; Alert[&quot;Alert Dashboard&quot;]
-    Alert --&gt; Engineer[&quot;Grid Engineer&quot;]
-    MERKLE --&gt;|audit export| CISO[&quot;NERC CIP Audit Trail&quot;]
+    COST --&gt;|&quot;anomaly alerts\n(abstracted)&quot;| Alert[&quot;Alert Dashboard\nSOC / NOC&quot;]
+    Alert --&gt; Engineer[&quot;Grid\nEngineer&quot;]
+    MERKLE --&gt;|&quot;audit export\n(immutable)&quot;| NERC[&quot;NERC CIP\nAudit Trail&quot;]
+    NERC --&gt; FERC[&quot;FERC\nCompliance&quot;]
 </code></pre>
+<h3>Policy Configuration</h3>
+<p>The entire compliance posture is defined in a single YAML file:</p>
+<pre><code class="language-yaml"># energy-nerc-cip-policy.yml
+security:
+  sandbox: strict
+  network: isolated
+  allowed_endpoints: []  # zero network access — absolute OT/IT separation
+  pii_redaction:
+    enabled: true
+    patterns: [asset_id, gps_coordinates, serial_number, substation_name]
+    mode: aggressive
+  budget:
+    max_cost_per_run: 0.75
+    currency: USD
+  audit:
+    merkle_chain: true
+    export_format: jsonl
+    retention_days: 1095  # 3 years — NERC CIP retention requirement
+  constraints:
+    block_control_commands: true  # hard-coded: AI cannot generate SCADA commands
+    read_only: true
+</code></pre>
+<h2>What the Grid Engineer Sees</h2>
+<p>At the end of the workflow, the grid engineer receives a structured alert:</p>
+<table>
+  <thead>
+    <tr><th>Field</th><th>Value</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Alert ID</td><td>GRID-2026-0210-****6721</td></tr>
+    <tr><td>Severity</td><td>🟠 High — Equipment degradation signature</td></tr>
+    <tr><td>Pattern Detected</td><td>Transformer harmonic distortion increasing 12% over 72 hours — consistent with insulation breakdown</td></tr>
+    <tr><td>Recommended Action</td><td>Schedule preventive maintenance inspection within 14 days</td></tr>
+    <tr><td>Confidence</td><td>88%</td></tr>
+    <tr><td>Audit Hash</td><td><code>c9d4e7...b23a</code></td></tr>
+    <tr><td>Infrastructure Data Exposed</td><td>❌ None — all asset identifiers abstracted before analysis</td></tr>
+  </tbody>
+</table>
+
+<p>No substation names. No GPS coordinates. No equipment serial numbers. Just actionable maintenance intelligence with a cryptographic proof chain.</p>
 <h2>Why It Matters</h2>
 <ul>
 <li><strong>OT/IT Separation</strong>: The Security Cage is completely air-gapped from operational technology networks. The AI reads telemetry — it can never send commands to control systems.</li>
-<li><strong>Zero-Persistence Processing</strong>: Sensor data is processed in ephemeral containers that are destroyed after analysis. No grid data is ever stored, cached, or retained by the AI model.</li>
+<li><strong>Zero-Persistence Processing</strong>: Sensor data is processed in ephemeral containers destroyed after analysis. No grid data is ever stored, cached, or retained by the AI model.</li>
 <li><strong>NERC CIP Compliance</strong>: The sandbox satisfies electronic security perimeter requirements. Every data access is logged, every output is signed, every session is containerized.</li>
 <li><strong>Physical Safety</strong>: Hard-coded policy rules prevent the AI from generating or outputting anything resembling a control command. The boundary between analysis and action is absolute.</li>
+<li><strong>Predictive Maintenance</strong>: AI can identify equipment degradation patterns weeks before failure, enabling proactive maintenance without exposing critical infrastructure details.</li>
 </ul>
 <h2>Try It Yourself</h2>
 <pre><code class="language-bash">pip install akios
@@ -115,6 +213,7 @@ akios run templates/file_analysis.yml
 </div>
 
 <div class="post-footer">
+  <p>Related: <a href="government-airgap-deployment.html">Air-Gapped AI for Government</a> | <a href="healthcare-hipaa-security-cage.html">HIPAA-Compliant AI for Healthcare</a></p>
   <a href="./">← Back to Case Studies</a>
 </div>
                 </div>
