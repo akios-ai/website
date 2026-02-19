@@ -46,7 +46,12 @@
       "post_1_category": "Release",
       "post_1_title": "Introducing AKIOS: A Secure Runtime for Untrusted AI Agents",
       "post_1_excerpt": "Why we built a dedicated runtime for local AI agents, and how it differs from traditional sandboxing.",
-      "post_1_time": "7"
+      "post_1_time": "7",
+      "post_8_date": "February 19, 2026",
+      "post_8_category": "Release",
+      "post_8_title": "AKIOS v1.0.7: Audit Integrity, Workflow Validation, and 53 PII Patterns",
+      "post_8_excerpt": "Real Merkle proofs, PII fail-safe hardening, workflow validation, ablation benchmarking, audit stats/rotate, and 10 new digital identity patterns.",
+      "post_8_time": "6"
     },
     "blog_post": {
       "table_of_contents": "On This Page"
@@ -73,7 +78,9 @@
       "post_6_date": "22 janvier 2026",
       "post_6_category": "Tutoriel",
       "post_6_title": "Plongée dans le schéma de politique (v1)",
-      "post_6_excerpt": "Guide du schéma v1 avec des exemples pour filesystem, HTTP, LLM et exécution d’outils.",      "post_6_time": "12",      "post_3_date": "25 janvier 2026",
+      "post_6_excerpt": "Guide du schéma v1 avec des exemples pour filesystem, HTTP, LLM et exécution d’outils.",
+      "post_6_time": "12",
+      "post_3_date": "25 janvier 2026",
       "post_3_category": "Publication",
       "post_3_title": "AKIOS v1.0 : La cage de sécurité est arrivée",
       "post_3_excerpt": "La fondation de sécurité open-source la plus robuste pour agents IA. Ils ne peuvent fuir de données, brûler des budgets ou échapper au sandbox.",
@@ -97,7 +104,12 @@
       "post_7_category": "Publication",
       "post_7_title": "AKIOS v1.0.5 : UI riche, accessibilité et correctifs critiques",
       "post_7_excerpt": "Interface terminale riche, détection d'environnement, modes daltoniens, nouvelles commandes diagnostiques et correctif SIGTRAP.",
-      "post_7_time": "4"
+      "post_7_time": "4",
+      "post_8_date": "19 février 2026",
+      "post_8_category": "Publication",
+      "post_8_title": "AKIOS v1.0.7 : Intégrité d'audit, validation de workflows et 53 modèles PII",
+      "post_8_excerpt": "Preuves Merkle réelles, fail-safe PII, validation de workflows, benchmarking par ablation, statistiques et rotation d'audit, et 10 nouveaux modèles d'identité numérique.",
+      "post_8_time": "6"
     },
     "blog_post": {
       "table_of_contents": "Sur cette page"

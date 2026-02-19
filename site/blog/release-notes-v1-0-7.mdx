@@ -1,0 +1,211 @@
+<header class="post-header">
+  <div class="post-meta">
+    February 19, 2026 &bull; <span>6 min read</span>
+  </div>
+  <h1>AKIOS v1.0.7: Audit Integrity, Workflow Validation, and 53 PII Patterns</h1>
+</header>
+
+<div class="post-content">
+
+AKIOS v1.0.7 delivers cryptographic audit proofs that actually work, workflow validation before execution, ablation benchmarking, and secure data erasure controls. This release also includes all v1.0.6 security hardening.
+
+## What Changed: v1.0.5 &rarr; v1.0.7
+
+<table>
+  <thead>
+    <tr><th>Area</th><th>v1.0.5</th><th>v1.0.7</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>PII Patterns</strong></td>
+      <td>43 patterns</td>
+      <td>53 patterns (ITIN, MBI, VIN, IPv6, AWS key, JWT, GitHub token, etc.)</td>
+    </tr>
+    <tr>
+      <td><strong>Audit Proofs</strong></td>
+      <td>Placeholder stubs</td>
+      <td>Real O(log n) Merkle proofs with SHA-256 root recomputation</td>
+    </tr>
+    <tr>
+      <td><strong>PII Fail-Safe</strong></td>
+      <td>Silent passthrough on module failure</td>
+      <td>Blocks data with <code>[PII_REDACTION_UNAVAILABLE]</code> &mdash; never leaks</td>
+    </tr>
+    <tr>
+      <td><strong>HTTPS</strong></td>
+      <td>HTTP allowed in sandbox</td>
+      <td>Plain <code>http://</code> blocked when sandbox active</td>
+    </tr>
+    <tr>
+      <td><strong>Workflow Validation</strong></td>
+      <td>Runtime errors only</td>
+      <td><code>akios workflow validate</code> &mdash; pre-flight schema check</td>
+    </tr>
+    <tr>
+      <td><strong>Audit Management</strong></td>
+      <td>Manual log inspection</td>
+      <td><code>akios audit stats</code> + <code>akios audit rotate</code></td>
+    </tr>
+    <tr>
+      <td><strong>Data Erasure</strong></td>
+      <td>Default wipe</td>
+      <td><code>cage down --passes N</code> + <code>--fast</code> options</td>
+    </tr>
+    <tr>
+      <td><strong>Compliance</strong></td>
+      <td>Binary pass/fail</td>
+      <td>Weighted scoring (PII 30%, Audit 25%, Security 25%, Config 20%)</td>
+    </tr>
+    <tr>
+      <td><strong>Benchmarking</strong></td>
+      <td>Not possible</td>
+      <td><code>cage up --no-pii --no-audit --no-budget</code> ablation flags</td>
+    </tr>
+  </tbody>
+</table>
+
+## v1.0.7 &mdash; New Features
+
+### Audit Stats and Rotation
+
+Inspect your audit ledger without parsing raw JSONL:
+
+```bash
+akios audit stats
+# Event count, ledger size, archive segments, Merkle root hash
+
+akios audit rotate
+# Archive current ledger, start fresh with Merkle chain linkage
+
+akios audit stats --json  # Machine-readable output
+```
+
+Automatic rotation at 50K events with cryptographic chain linkage between segments.
+
+### Workflow Validation
+
+Catch errors before execution &mdash; no more wasted API calls on malformed YAML:
+
+```bash
+akios workflow validate my-workflow.yml
+# Checks: YAML syntax, required fields, agent/action existence, step schema
+
+akios workflow validate my-workflow.yml --json  # CI/CD integration
+```
+
+### Ablation Benchmarking
+
+Measure the overhead of each security layer independently:
+
+```bash
+# Disable specific protections for controlled benchmarking
+akios cage up --no-pii       # Skip PII redaction
+akios cage up --no-audit     # Skip audit logging
+akios cage up --no-budget    # Skip cost enforcement
+
+# Combine flags
+akios cage up --no-pii --no-audit --no-budget  # Raw performance baseline
+```
+
+### Secure Data Erasure Controls
+
+Configure how thoroughly <code>cage down</code> destroys session data:
+
+```bash
+akios cage down              # Default: 1-pass secure overwrite
+akios cage down --passes 3   # 3-pass overwrite (higher security)
+akios cage down --fast        # Skip overwrite (speed over security)
+```
+
+Each pass: random bytes &rarr; fsync &rarr; zeros &rarr; fsync &rarr; unlink.
+
+### Real Compliance Scoring
+
+<code>akios compliance report</code> now uses weighted scoring instead of binary pass/fail:
+
+<table>
+  <thead>
+    <tr><th>Category</th><th>Weight</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>PII Protection</td><td>30%</td></tr>
+    <tr><td>Audit Integrity</td><td>25%</td></tr>
+    <tr><td>Security Controls</td><td>25%</td></tr>
+    <tr><td>Configuration</td><td>20%</td></tr>
+  </tbody>
+</table>
+
+### Smarter PII Detection
+
+Context keywords on ambiguous patterns reduce false positives. Routing numbers now require context prefix (routing, aba, transit) instead of matching any bare 9-digit number.
+
+## v1.0.6 &mdash; Security Hardening
+
+### Merkle Proof System &mdash; Complete Rewrite
+
+The previous Merkle proof implementation was a stub. v1.0.6 replaced it entirely:
+
+- <code>get_proof()</code> generates proper O(log n) sibling-hash proof paths
+- <code>verify_proof()</code> performs real SHA-256 cryptographic root recomputation
+- <code>akios audit verify</code> compares recomputed root against stored Merkle root hash
+- Root persisted to <code>merkle_root.hash</code> sidecar file on every flush
+
+### PII Fail-Safe Hardening
+
+All 4 agents now block data if the PII module fails to load:
+
+- **Before:** Silent passthrough of raw content (data leak risk)
+- **After:** Returns <code>[PII_REDACTION_UNAVAILABLE]</code> &mdash; data never passes through unredacted
+- Filesystem agent PII timeout: returns <code>[CONTENT_REDACTED_TIMEOUT]</code>
+- CRITICAL log warning emitted when PII module fails
+
+### HTTPS Enforcement
+
+The HTTP agent now blocks plain <code>http://</code> URLs when sandbox is enabled. Only HTTPS permitted in sandboxed mode. LLM provider APIs always allowed.
+
+### 53 PII Patterns (was 43)
+
+10 new digital identity patterns:
+
+<table>
+  <thead>
+    <tr><th>Pattern</th><th>Category</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>ITIN</td><td>Personal</td></tr>
+    <tr><td>Medicare MBI</td><td>Health</td></tr>
+    <tr><td>VIN</td><td>Personal</td></tr>
+    <tr><td>IPv6 Address</td><td>Digital</td></tr>
+    <tr><td>AWS Access Key</td><td>Digital</td></tr>
+    <tr><td>Generic API Key</td><td>Digital</td></tr>
+    <tr><td>JWT Token</td><td>Digital</td></tr>
+    <tr><td>Private Key Header</td><td>Digital</td></tr>
+    <tr><td>GitHub Token</td><td>Digital</td></tr>
+    <tr><td>Password in URL</td><td>Digital</td></tr>
+  </tbody>
+</table>
+
+### ICD-10 False Positives Fixed
+
+License plate pattern changed from <code>[A-Z]{1,3}</code> to <code>[A-Z]{2,3}</code> &mdash; medical codes like E11.9 no longer misclassified.
+
+## Installation
+
+```bash
+pip install akios=={{version}}
+```
+
+Or with Docker:
+
+```bash
+docker pull akiosai/akios:v{{version}}
+```
+
+## Links
+
+- [PyPI](https://pypi.org/project/akios/{{version}}/)
+- [Docker Hub](https://hub.docker.com/r/akiosai/akios)
+- [GitHub](https://github.com/akios-ai/akios)
+- [Full Changelog](https://github.com/akios-ai/akios/blob/main/CHANGELOG.md)
+
+</div>

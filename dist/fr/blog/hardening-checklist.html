@@ -55,200 +55,54 @@
             <div class="blog-post-wrapper">
                 <div class="blog-post-main">
                     <header class="post-header">
-  <div class="post-meta">
-    26 Janvier 2026 &bull; <span>5 min de lecture</span>
+  <div class="post-meta">26 janvier 2026</div>
+  <h1>Checklist de durcissement pour AKIOS 1.0</h1>
+  <div class="post-author">
+    <img src="https://github.com/aj14pm.png" alt="Author" class="avatar">
+    <span>AJ</span>
   </div>
-  <h1>Checklist de Durcissement pour AKIOS 1.0</h1>
 </header>
 
 <div class="post-content">
+  <p class="lead">
+    AKIOS est minimal, mais quelques garde-fous sont nécessaires en conditions réelles. Utilisez cette checklist avant de déployer.
+  </p>
 
-<p>AKIOS est minimal par conception, mais vous avez quand même besoin de quelques garde-fous pour garder les agents contenus en environnement réel. Utilisez cette checklist avant de mettre en production.</p>
-<h2>Pourquoi le Durcissement est Important</h2>
-<p>AKIOS fournit une isolation au niveau kernel dès l&#39;installation. Mais le runtime n&#39;est qu&#39;une couche. L&#39;hôte, le pipeline CI/CD, le processus de gestion des politiques et le stockage d&#39;audit doivent aussi être durcis. Une Cage de Sécurité n&#39;est aussi solide que la couche la plus faible de la pile.</p>
-<p>Cette checklist couvre les cinq domaines de durcissement :</p>
-<pre><code class="language-mermaid">graph TB
-    subgraph PILE[&quot;Pile de Durcissement&quot;]
-        HOTE[&quot;1. Durcissement Hôte\nKernel, capabilities, montages&quot;]
-        POLITIQUE[&quot;2. Discipline des Politiques\nSignature, deny-default, budget&quot;]
-        AUDIT[&quot;3. Audit + Observabilité\nSinks immuables, alertes&quot;]
-        DCP[&quot;4. DCP &amp; Secrets\nAnonymisation, coffre-fort, env&quot;]
-        CICD[&quot;5. Sécurité CI/CD\nDry-run, namespace, hash gates&quot;]
-    end
+  <h2>Durcissement hôte</h2>
+  <ul>
+    <li>Kernel Linux récent avec <code>seccomp</code>, <code>userns</code>, <code>cgroups v2</code> activés.</li>
+    <li>Supprimez les capacités inutiles pour le processus AKIOS (<code>NET_ADMIN</code>, <code>SYS_ADMIN</code>, etc.).</li>
+    <li>Montez <code>/tmp</code> en <code>noexec</code> si votre flux le permet.</li>
+  </ul>
 
-    HOTE --&gt; POLITIQUE --&gt; AUDIT --&gt; DCP --&gt; CICD
-</code></pre>
-<h2>La Checklist</h2>
-<table>
-  <thead>
-    <tr><th>Domaine</th><th>Vérification</th><th>Commande / Action</th><th>Priorité</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td rowspan="3"><strong>Hôte</strong></td>
-      <td>Kernel Linux récent avec <code>seccomp</code>, <code>userns</code>, <code>cgroups v2</code></td>
-      <td><code>uname -r</code> → 5.15+</td>
-      <td>🔴 Critique</td>
-    </tr>
-    <tr>
-      <td>Supprimer les capabilities inutiles (<code>NET_ADMIN</code>, <code>SYS_ADMIN</code>)</td>
-      <td><code>capsh --print</code></td>
-      <td>🔴 Critique</td>
-    </tr>
-    <tr>
-      <td>Monter <code>/tmp</code> en <code>noexec</code></td>
-      <td><code>mount -o remount,noexec /tmp</code></td>
-      <td>🟡 Recommandé</td>
-    </tr>
-    <tr>
-      <td rowspan="3"><strong>Politique</strong></td>
-      <td>Signer les politiques ; charger uniquement des artefacts signés en CI/CD</td>
-      <td><code>akios policy sign policy.yml</code></td>
-      <td>🔴 Critique</td>
-    </tr>
-    <tr>
-      <td>Default-deny réseau et filesystem ; liste blanche stricte</td>
-      <td>Vérifier <code>network: isolated</code></td>
-      <td>🔴 Critique</td>
-    </tr>
-    <tr>
-      <td>Budgets serrés par outil ; échec fermé sur dépassement</td>
-      <td><code>budget.max_cost_per_run: 0.50</code></td>
-      <td>🟡 Recommandé</td>
-    </tr>
-    <tr>
-      <td rowspan="3"><strong>Audit</strong></td>
-      <td>Envoyer les logs d'audit vers un sink immuable (bucket append-only)</td>
-      <td><code>akios audit export --format jsonl</code></td>
-      <td>🔴 Critique</td>
-    </tr>
-    <tr>
-      <td>Activer l'export de preuves Merkle ; valider en tests CI</td>
-      <td><code>akios audit verify</code></td>
-      <td>🔴 Critique</td>
-    </tr>
-    <tr>
-      <td>Alerter sur escapes sandbox, refus de politique, activations coupe-circuit</td>
-      <td>Configurer les alertes dans le stack de monitoring</td>
-      <td>🟡 Recommandé</td>
-    </tr>
-    <tr>
-      <td rowspan="2"><strong>DCP</strong></td>
-      <td>Garder l'anonymisation DCP activée pour tous les agents</td>
-      <td><code>pii_redaction: { enabled: true, mode: aggressive }</code></td>
-      <td>🔴 Critique</td>
-    </tr>
-    <tr>
-      <td>Stocker les secrets dans un coffre-fort ; injecter via env avec moindre privilège</td>
-      <td>Jamais de secrets dans les prompts ou fichiers de politique</td>
-      <td>🔴 Critique</td>
-    </tr>
-    <tr>
-      <td rowspan="3"><strong>CI/CD</strong></td>
-      <td>Conditionner les PRs à <code>akios run --dry-run</code></td>
-      <td>Ajouter au pipeline CI avant le merge</td>
-      <td>🟡 Recommandé</td>
-    </tr>
-    <tr>
-      <td>Exécuter les workflows dans un namespace/VM éphémère par PR</td>
-      <td>Runners éphémères en CI</td>
-      <td>🟡 Recommandé</td>
-    </tr>
-    <tr>
-      <td>Bloquer les merges si la sortie d'audit dévie de la chaîne de hash attendue</td>
-      <td><code>akios audit verify --expected-hash $HASH</code></td>
-      <td>🟡 Recommandé</td>
-    </tr>
-  </tbody>
-</table>
+  <h2>Discipline des politiques</h2>
+  <ul>
+    <li>Signez les politiques et chargez uniquement des artefacts signés en CI/CD.</li>
+    <li>Réseau et filesystem en deny par défaut ; listez précisément hôtes et chemins.</li>
+    <li>Limitez les budgets par outil ; échec en mode fermé lors d’un dépassement.</li>
+  </ul>
 
-<h2>Exemple : Politique Durcie</h2>
-<p>Voici une politique de production avec tout le durcissement appliqué :</p>
-<pre><code class="language-yaml"># production-durcie.yml
-version: 1
-name: &quot;production-durcie&quot;
+  <h2>Audit + observabilité</h2>
+  <ul>
+    <li>Envoyez les journaux d’audit vers un sink immuable (bucket append-only ou service log avec rétention).</li>
+    <li>Activez l’export des preuves Merkle et validez-les dans les tests CI.</li>
+    <li>Alertez sur les sorties de sandbox, refus de politique et activations de kill-switch.</li>
+  </ul>
 
-security:
-  sandbox: strict
-  network: isolated
-  allowed_endpoints: []  # default-deny
+  <h2>PII &amp; secrets</h2>
+  <ul>
+    <li>Gardez la rédaction PII activée pour tous les agents ; les exceptions doivent être rares.</li>
+    <li>Stockez les secrets dans votre coffre ; injectez-les avec privilèges minimaux, jamais dans les prompts.</li>
+  </ul>
 
-filesystem:
-  allow:
-    - path: &quot;/workspace/input&quot;
-      mode: &quot;r&quot;
-    - path: &quot;/workspace/output&quot;
-      mode: &quot;w&quot;
-  deny_writes: true
+  <h2>Sécurité CI/CD</h2>
+  <ul>
+    <li>Bloquez les PR sur <code>akios lint</code> + <code>akios policy validate</code>.</li>
+    <li>Exécutez les workflows d’exemple dans un namespace/VM jetable par PR.</li>
+    <li>Bloquez les merges si la chaîne de hachage d’audit diverge de l’attendu.</li>
+  </ul>
 
-http:
-  allow: []  # aucun accès HTTP
-  redact_headers: [&quot;authorization&quot;, &quot;cookie&quot;, &quot;x-api-key&quot;]
-
-llm:
-  provider: &quot;openai&quot;
-  model: &quot;gpt-4.1&quot;
-  max_tokens: 500
-  budget_usd: 0.50
-  redact_prompts: true
-  redact_responses: true
-
-tools:
-  allow:
-    - name: &quot;jq&quot;
-    - name: &quot;grep&quot;
-  timeout_sec: 20
-
-audit:
-  merkle: true
-  pii_redaction: true
-  export_format: jsonl
-  retention_days: 2555  # 7 ans
-
-pii_redaction:
-  enabled: true
-  mode: aggressive
-  patterns: [nir, siret, carte_bancaire, iban, email, telephone, cle_api]
-</code></pre>
-<h2>Vérifier votre Durcissement</h2>
-<pre><code class="language-bash"># Vérifier la disponibilité système
-akios doctor
-
-# Valider la politique avant déploiement
-akios run --dry-run templates/mon-workflow.yml
-
-# Vérifier l&#39;intégrité de la chaîne d&#39;audit
-akios audit verify
-
-# Générer un rapport de conformité
-akios compliance report --format detailed
-</code></pre>
-<h2>Erreurs Courantes</h2>
-<ol>
-<li><strong>Exécuter avec <code>--no-sandbox</code></strong> — Ne jamais désactiver le sandbox en production. Utilisez <code>--dry-run</code> pour le debugging.</li>
-<li><strong>Autoriser <code>*</code> dans les politiques réseau</strong> — Cela annule l&#39;objectif. Listez les hôtes spécifiques.</li>
-<li><strong>Stocker les clés API dans les fichiers de politique</strong> — Utilisez des variables d&#39;environnement ou un coffre-fort.</li>
-<li><strong>Ignorer les cassures de chaîne d&#39;audit</strong> — Une chaîne cassée signifie une altération. Investiguer immédiatement.</li>
-<li><strong>Mettre le budget en illimité</strong> — Toujours définir un budget. Le coupe-circuit est votre dernière ligne de défense.</li>
-</ol>
-<h2>Essayez-le Vous-même</h2>
-<pre><code class="language-bash">pip install akios
-akios doctor
-akios run --dry-run templates/hello-workflow.yml
-</code></pre>
-<p>Déployez avec ces fondamentaux et votre sécurité restera solide pendant que vous itérez.</p>
-<p>Sécurisez votre IA. Construisez avec AKIOS.</p>
-</div>
-
-<div class="post-footer">
-  <p>Connexe : <a href="release-notes-v0-1-0.html">Notes de Version AKIOS v1.0</a> | <a href="policy-schema-deep-dive.html">Plongée dans le Schéma de Politique</a></p>
-  <div class="share-links">
-    <span>Partager :</span>
-    <a href="#" target="_blank">Twitter</a>
-    <a href="#" target="_blank">LinkedIn</a>
-    <a href="#" target="_blank">Hacker News</a>
-  </div>
-  <a href="./">← Retour au Blog</a>
+  <p>Avec ces bases, la cage reste serrée tout en vous laissant itérer.</p>
 </div>
 
                 </div>

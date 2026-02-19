@@ -1,0 +1,188 @@
+<header class="post-header">
+  <div class="post-meta">
+    19 f&eacute;vrier 2026 &bull; <span>6 min de lecture</span>
+  </div>
+  <h1>AKIOS v1.0.7 : Int&eacute;grit&eacute; d'audit, validation de workflows et 53 mod&egrave;les PII</h1>
+</header>
+
+<div class="post-content">
+
+AKIOS v1.0.7 apporte des preuves d'audit cryptographiques fonctionnelles, la validation de workflows avant ex&eacute;cution, le benchmarking par ablation et des contr&ocirc;les d'effacement s&eacute;curis&eacute;. Cette version inclut &eacute;galement tout le renforcement s&eacute;curitaire de la v1.0.6.
+
+## Ce qui a chang&eacute; : v1.0.5 &rarr; v1.0.7
+
+<table>
+  <thead>
+    <tr><th>Domaine</th><th>v1.0.5</th><th>v1.0.7</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Mod&egrave;les PII</strong></td>
+      <td>43 mod&egrave;les</td>
+      <td>53 mod&egrave;les (ITIN, MBI, VIN, IPv6, cl&eacute; AWS, JWT, token GitHub, etc.)</td>
+    </tr>
+    <tr>
+      <td><strong>Preuves d'audit</strong></td>
+      <td>Stubs provisoires</td>
+      <td>Preuves Merkle O(log n) r&eacute;elles avec recalcul de racine SHA-256</td>
+    </tr>
+    <tr>
+      <td><strong>S&eacute;curit&eacute; PII</strong></td>
+      <td>Passthrough silencieux en cas d'&eacute;chec</td>
+      <td>Bloque les donn&eacute;es avec <code>[PII_REDACTION_UNAVAILABLE]</code> &mdash; aucune fuite</td>
+    </tr>
+    <tr>
+      <td><strong>HTTPS</strong></td>
+      <td>HTTP autoris&eacute; en sandbox</td>
+      <td><code>http://</code> bloqu&eacute; quand le sandbox est actif</td>
+    </tr>
+    <tr>
+      <td><strong>Validation de workflows</strong></td>
+      <td>Erreurs uniquement &agrave; l'ex&eacute;cution</td>
+      <td><code>akios workflow validate</code> &mdash; v&eacute;rification pr&eacute;alable</td>
+    </tr>
+    <tr>
+      <td><strong>Gestion d'audit</strong></td>
+      <td>Inspection manuelle des logs</td>
+      <td><code>akios audit stats</code> + <code>akios audit rotate</code></td>
+    </tr>
+    <tr>
+      <td><strong>Effacement des donn&eacute;es</strong></td>
+      <td>Effacement par d&eacute;faut</td>
+      <td><code>cage down --passes N</code> + <code>--fast</code></td>
+    </tr>
+    <tr>
+      <td><strong>Conformit&eacute;</strong></td>
+      <td>Pass&eacute;/&eacute;chou&eacute; binaire</td>
+      <td>Scoring pond&eacute;r&eacute; (PII 30%, Audit 25%, S&eacute;curit&eacute; 25%, Config 20%)</td>
+    </tr>
+    <tr>
+      <td><strong>Benchmarking</strong></td>
+      <td>Impossible</td>
+      <td>Drapeaux d'ablation <code>cage up --no-pii --no-audit --no-budget</code></td>
+    </tr>
+  </tbody>
+</table>
+
+## v1.0.7 &mdash; Nouvelles fonctionnalit&eacute;s
+
+### Statistiques et rotation d'audit
+
+Inspectez votre registre d'audit sans analyser du JSONL brut :
+
+```bash
+akios audit stats
+# Nombre d'&eacute;v&eacute;nements, taille du registre, segments d'archive, hash racine Merkle
+
+akios audit rotate
+# Archiver le registre actuel, red&eacute;marrer avec cha&icirc;nage Merkle
+
+akios audit stats --json  # Sortie lisible par machine
+```
+
+Rotation automatique &agrave; 50K &eacute;v&eacute;nements avec cha&icirc;nage cryptographique entre segments.
+
+### Validation de workflows
+
+D&eacute;tectez les erreurs avant l'ex&eacute;cution &mdash; plus d'appels API gaspill&eacute;s sur du YAML malform&eacute; :
+
+```bash
+akios workflow validate mon-workflow.yml
+# V&eacute;rifie : syntaxe YAML, champs requis, existence agent/action, sch&eacute;ma des &eacute;tapes
+
+akios workflow validate mon-workflow.yml --json  # Int&eacute;gration CI/CD
+```
+
+### Benchmarking par ablation
+
+Mesurez le co&ucirc;t de chaque couche de s&eacute;curit&eacute; ind&eacute;pendamment :
+
+```bash
+# D&eacute;sactiver des protections sp&eacute;cifiques pour le benchmarking
+akios cage up --no-pii       # Ignorer la r&eacute;daction PII
+akios cage up --no-audit     # Ignorer la journalisation d'audit
+akios cage up --no-budget    # Ignorer le contr&ocirc;le des co&ucirc;ts
+
+# Combiner les drapeaux
+akios cage up --no-pii --no-audit --no-budget  # Performance brute de r&eacute;f&eacute;rence
+```
+
+### Contr&ocirc;les d'effacement s&eacute;curis&eacute;
+
+Configurez la rigueur de l'effacement par <code>cage down</code> :
+
+```bash
+akios cage down              # Par d&eacute;faut : &eacute;crasement 1 passe
+akios cage down --passes 3   # &Eacute;crasement 3 passes (s&eacute;curit&eacute; accrue)
+akios cage down --fast        # Sans &eacute;crasement (vitesse vs s&eacute;curit&eacute;)
+```
+
+### Scoring de conformit&eacute; r&eacute;el
+
+<code>akios compliance report</code> utilise maintenant un scoring pond&eacute;r&eacute; :
+
+<table>
+  <thead>
+    <tr><th>Cat&eacute;gorie</th><th>Poids</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Protection PII</td><td>30%</td></tr>
+    <tr><td>Int&eacute;grit&eacute; d'audit</td><td>25%</td></tr>
+    <tr><td>Contr&ocirc;les de s&eacute;curit&eacute;</td><td>25%</td></tr>
+    <tr><td>Configuration</td><td>20%</td></tr>
+  </tbody>
+</table>
+
+### D&eacute;tection PII plus intelligente
+
+Les mots-cl&eacute;s contextuels sur les mod&egrave;les ambigus r&eacute;duisent les faux positifs. Les num&eacute;ros de routage n&eacute;cessitent maintenant un pr&eacute;fixe contextuel.
+
+## v1.0.6 &mdash; Renforcement s&eacute;curitaire
+
+### Syst&egrave;me de preuves Merkle &mdash; R&eacute;&eacute;criture compl&egrave;te
+
+L'impl&eacute;mentation pr&eacute;c&eacute;dente &eacute;tait un stub. La v1.0.6 l'a enti&egrave;rement remplac&eacute;e :
+
+- <code>get_proof()</code> g&eacute;n&egrave;re des chemins de preuves O(log n) avec hashes fr&egrave;res
+- <code>verify_proof()</code> effectue un recalcul cryptographique SHA-256 r&eacute;el
+- <code>akios audit verify</code> compare la racine recalcul&eacute;e au hash stock&eacute;
+
+### Renforcement du fail-safe PII
+
+Les 4 agents bloquent maintenant les donn&eacute;es si le module PII &eacute;choue :
+
+- **Avant :** Passthrough silencieux du contenu brut (risque de fuite)
+- **Apr&egrave;s :** Retourne <code>[PII_REDACTION_UNAVAILABLE]</code> &mdash; les donn&eacute;es ne passent jamais non r&eacute;dig&eacute;es
+
+### Application HTTPS
+
+L'agent HTTP bloque maintenant les URLs <code>http://</code> quand le sandbox est actif. Seul HTTPS est permis en mode sandbox.
+
+### 53 mod&egrave;les PII (contre 43)
+
+10 nouveaux mod&egrave;les d'identit&eacute; num&eacute;rique : ITIN, Medicare MBI, VIN, adresse IPv6, cl&eacute; AWS, cl&eacute; API g&eacute;n&eacute;rique, token JWT, en-t&ecirc;te de cl&eacute; priv&eacute;e, token GitHub, mot de passe dans l'URL.
+
+### Correction des faux positifs ICD-10
+
+Le mod&egrave;le de plaque d'immatriculation a &eacute;t&eacute; corrig&eacute; &mdash; les codes m&eacute;dicaux comme E11.9 ne sont plus mal class&eacute;s.
+
+## Installation
+
+```bash
+pip install akios=={{version}}
+```
+
+Ou avec Docker :
+
+```bash
+docker pull akiosai/akios:v{{version}}
+```
+
+## Liens
+
+- [PyPI](https://pypi.org/project/akios/{{version}}/)
+- [Docker Hub](https://hub.docker.com/r/akiosai/akios)
+- [GitHub](https://github.com/akios-ai/akios)
+- [Changelog complet](https://github.com/akios-ai/akios/blob/main/CHANGELOG.md)
+
+</div>
