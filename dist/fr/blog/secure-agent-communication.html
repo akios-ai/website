@@ -56,210 +56,91 @@
                 <div class="blog-post-main">
                     <header class="post-header">
   <div class="post-meta">
-    20 Janvier 2026 &bull; <span>7 min de lecture</span>
+    20 janvier 2026 • <span>7 min de lecture</span>
   </div>
-  <h1>Communication Sécurisée entre Agents : Comment AKIOS Isole les Interactions</h1>
+  <h1>Communication sécurisée entre agents : au‑delà du simple pipe</h1>
+  <div class="post-author">
+    <img src="https://github.com/aj14pm.png" alt="Auteur" class="avatar">
+    <span>AJ</span>
+  </div>
 </header>
 
 <div class="post-content">
+  <p class="lead">
+    L'un des plus grands défis des systèmes multi‑agents est de permettre aux agents de communiquer entre eux sans ouvrir de brèches de sécurité. Voici comment AKIOS résout ce problème avec des canaux à base de capacités.
+  </p>
 
-<p>Quand les agents IA interagissent avec des outils et API externes, chaque échange de données est une frontière de sécurité potentielle. Voici comment AKIOS applique des contrôles stricts à chaque point de communication.</p>
-<h2>Le Problème : I/O d&#39;Agent Non Contrôlées</h2>
-<p>Les agents IA qui accèdent à des fichiers, appellent des API et exécutent des commandes doivent communiquer à travers des frontières de confiance. Sans contrôle, un agent peut :</p>
-<ul>
-<li>Lire des fichiers hors de son périmètre autorisé</li>
-<li>Envoyer des données sensibles vers des endpoints non autorisés</li>
-<li>Exécuter des commandes arbitraires sur l&#39;hôte</li>
-<li>Exfiltrer des identifiants via les prompts LLM</li>
-</ul>
-<p>La plupart des runtimes traitent la communication des agents comme un problème de plomberie. AKIOS la traite comme un <strong>problème de sécurité</strong>.</p>
-<h2>L&#39;Approche AKIOS : Communication Contrôlée par Politique</h2>
-<p>Dans AKIOS, chaque action d&#39;agent passe par la Cage de Sécurité avant exécution. Il n&#39;existe aucun chemin direct de l&#39;agent vers la ressource — le runtime médiatise chaque interaction.</p>
-<pre><code class="language-mermaid">sequenceDiagram
-    participant Agent as Agent IA
-    participant Policy as Moteur de Politique
-    participant PII as Anonymisation DCP
-    participant Resource as Ressource (Fichier/API/LLM)
-    participant Audit as Audit Merkle
+  <h2>Le dilemme de l'IPC</h2>
+  <p>
+    Les mécanismes d'IPC traditionnels comme la mémoire partagée ou les pipes nommés sont rapides, mais dangereux. Si l'agent A peut écrire dans la mémoire de l'agent B, il peut potentiellement détourner le flux d'exécution de B.
+  </p>
+  <p>
+    Dans AKIOS, nous adoptons une approche différente : la <strong>communication médiée par messages</strong>.
+  </p>
 
-    Agent-&gt;&gt;Policy: Demande d&#39;action
-    Policy-&gt;&gt;Policy: Vérification liste blanche
-    alt Refusé
-        Policy--&gt;&gt;Agent: ❌ Bloqué
-        Policy-&gt;&gt;Audit: Journal du refus
-    else Autorisé
-        Policy-&gt;&gt;PII: Assainir l&#39;entrée
-        PII-&gt;&gt;Resource: Exécuter (assaini)
-        Resource-&gt;&gt;PII: Réponse brute
-        PII-&gt;&gt;PII: Anonymiser les DCP de la sortie
-        PII-&gt;&gt;Audit: Journal action + hash
-        PII--&gt;&gt;Agent: Réponse assainie
-    end
-</code></pre>
-<h3>Comment Ça Fonctionne</h3>
-<ol>
-<li><strong>Vérification de Politique :</strong> Avant toute action, le runtime la valide contre les opérations autorisées du workflow.</li>
-<li><strong>Anonymisation DCP :</strong> Les entrées et sorties sont scannées pour les motifs de données sensibles (50+ catégories).</li>
-<li><strong>Journalisation d&#39;Audit :</strong> Chaque action est cryptographiquement journalisée dans la piste d&#39;audit Merkle.</li>
-<li><strong>Application des Ressources :</strong> Budget, limites de tokens, limites de débit et timeouts sont appliqués par action.</li>
-</ol>
-<h2>Les Quatre Types d&#39;Agents</h2>
-<p>Chaque type d&#39;agent a sa propre frontière de sécurité :</p>
-<table>
-  <thead>
-    <tr><th>Agent</th><th>Fonction</th><th>Contrôles de Sécurité</th><th>État par Défaut</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><strong>Filesystem</strong></td>
-      <td>Lit/écrit des fichiers</td>
-      <td>Liste blanche de chemins, mode (r/w), scan DCP sur le contenu</td>
-      <td>Tous chemins interdits</td>
-    </tr>
-    <tr>
-      <td><strong>HTTP</strong></td>
-      <td>Fait des appels API</td>
-      <td>Liste blanche d'hôtes, limitation de débit (10/min), suppression d'en-têtes, SSL requis</td>
-      <td>Tous hôtes interdits</td>
-    </tr>
-    <tr>
-      <td><strong>LLM</strong></td>
-      <td>Appelle les modèles IA</td>
-      <td>Coupe-circuit budget, limites de tokens, anonymisation prompt/réponse</td>
-      <td>Aucun fournisseur</td>
-    </tr>
-    <tr>
-      <td><strong>Exécuteur d'Outils</strong></td>
-      <td>Exécute des commandes shell</td>
-      <td>Liste blanche de commandes (17 pré-approuvées), limite sortie (1 Mo), timeout (30s)</td>
-      <td>Toutes commandes interdites</td>
-    </tr>
-  </tbody>
-</table>
+  <pre><code>// Exemple : définir un canal sécurisé dans une politique AKIOS
+allow_channel {
+  from: "agent-a",
+  to: "agent-b",
+  protocol: "json-rpc",
+  max_rate: "100/s"
+}</code></pre>
 
-<h3>Agent Filesystem : Accès par Chemin</h3>
-<p>L&#39;agent filesystem ne peut accéder qu&#39;aux chemins explicitement autorisés. Tout contenu passe par l&#39;anonymisation DCP :</p>
-<pre><code class="language-yaml"># Politique : contrôle d&#39;accès filesystem
-filesystem:
-  allow:
-    - path: &quot;./workflows/&quot;
-      mode: &quot;r&quot;
-    - path: &quot;./templates/&quot;
-      mode: &quot;r&quot;
-    - path: &quot;./data/input/&quot;
-      mode: &quot;r&quot;
-    - path: &quot;./data/output/&quot;
-      mode: &quot;w&quot;
-  deny_writes: true  # partout ailleurs
-</code></pre>
-<p>Toute tentative de lecture hors de ces chemins est bloquée et journalisée comme événement de sécurité. L&#39;agent ne peut même pas détecter que d&#39;autres fichiers existent.</p>
-<h3>Agent HTTP : Débit Limité et Anonymisé</h3>
-<p>L&#39;agent HTTP applique des contrôles stricts sur chaque requête :</p>
-<pre><code class="language-yaml"># Politique : contrôle d&#39;accès HTTP
-http:
-  allow:
-    - host: &quot;api.openai.com&quot;
-      methods: [&quot;POST&quot;]
-      rate_limit_per_min: 10
-  redact_headers: [&quot;authorization&quot;, &quot;cookie&quot;, &quot;x-api-key&quot;]
-  ssl_required: true
-  timeout_sec: 30
-</code></pre>
-<p>Chaque corps de requête et réponse est scanné pour les DCP. Les en-têtes sensibles sont supprimés avant la journalisation.</p>
-<h3>Agent LLM : Appels Contrôlés par Budget</h3>
-<p>Chaque appel LLM est suivi pour l&#39;utilisation de tokens et le coût. Le coupe-circuit budget termine le workflow immédiatement si les coûts dépassent la limite configurée :</p>
-<pre><code class="language-yaml"># Politique : contrôle de budget LLM
-llm:
-  provider: &quot;openai&quot;
-  model: &quot;gpt-4.1&quot;
-  max_tokens: 1200
-  budget_usd: 1.00
-  redact_prompts: true
-  redact_responses: true
-</code></pre>
-<p>Le coupe-circuit est une <strong>terminaison dure</strong> — pas un avertissement. Quand le budget atteint zéro, le workflow s&#39;arrête.</p>
-<h3>Exécuteur d&#39;Outils : Liste Blanche de Commandes</h3>
-<p>Seules les commandes pré-approuvées peuvent s&#39;exécuter. Chacune tourne dans un sous-processus sandboxé :</p>
-<pre><code class="language-yaml"># Politique : contrôle d&#39;exécution d&#39;outils
-tools:
-  allow:
-    - name: &quot;jq&quot;
-      args: [&quot;.&quot;]
-    - name: &quot;grep&quot;
-      args: [&quot;-n&quot;, &quot;ERROR&quot;]
-    - name: &quot;wc&quot;
-      args: [&quot;-l&quot;]
-  working_dir: &quot;/workspace&quot;
-  timeout_sec: 20
-</code></pre>
-<p>Le filtrage syscall via seccomp-bpf assure que même les commandes autorisées ne peuvent pas escalader les privilèges.</p>
-<h2>Performance : Sécurité sans Sacrifice</h2>
-<p>La communication contrôlée par politique ajoute un surcoût minimal :</p>
-<table>
-  <thead>
-    <tr><th>Opération</th><th>Sans AKIOS</th><th>Avec AKIOS</th><th>Surcoût</th></tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>Lecture fichier (1 Mo)</td>
-      <td>2 ms</td>
-      <td>4 ms</td>
-      <td>+2 ms (scan DCP)</td>
-    </tr>
-    <tr>
-      <td>Requête HTTP</td>
-      <td>150 ms</td>
-      <td>153 ms</td>
-      <td>+3 ms (vérification politique)</td>
-    </tr>
-    <tr>
-      <td>Appel LLM</td>
-      <td>1200 ms</td>
-      <td>1205 ms</td>
-      <td>+5 ms (budget + audit)</td>
-    </tr>
-    <tr>
-      <td>Exécution outil</td>
-      <td>50 ms</td>
-      <td>55 ms</td>
-      <td>+5 ms (setup sandbox)</td>
-    </tr>
-    <tr>
-      <td>Anonymisation DCP (50+ motifs)</td>
-      <td>N/A</td>
-      <td>&lt; 50 ms</td>
-      <td>N/A (nouvelle capacité)</td>
-    </tr>
-  </tbody>
-</table>
+  <p>
+    Cette politique définit explicitement qu'A peut envoyer des messages JSON‑RPC à B, mais seulement jusqu'à 100 messages par seconde. Le noyau AKIOS applique cette limite et valide les en‑têtes de protocole avant que le message n'atteigne l'agent B.
+  </p>
 
-<p>Le surcoût est négligeable par rapport au temps réel de l&#39;opération. Pour les appels LLM, les 5 ms de surcoût représentent moins de 0,5 % de la latence totale.</p>
-<h2>Le Résultat</h2>
-<p>Avec AKIOS, la communication des agents n&#39;est jamais « ouverte ». Chaque interaction est :</p>
-<ul>
-<li><strong>Validée</strong> contre des politiques explicites avant exécution</li>
-<li><strong>Anonymisée</strong> pour les DCP avant que les données ne quittent le sandbox</li>
-<li><strong>Auditée</strong> avec intégrité cryptographique via chaîne Merkle</li>
-<li><strong>Bornée</strong> par des budgets, limites de débit et timeouts</li>
-</ul>
-<p>C&#39;est ce qui rend AKIOS différent de l&#39;exécution d&#39;agents dans un conteneur Docker faiblement configuré. La cage ne fait pas que contenir — elle <strong>médiatise</strong>.</p>
-<h2>Essayez-le Vous-même</h2>
-<pre><code class="language-bash">pip install akios
-akios init mon-projet
-akios run templates/hello-workflow.yml
-</code></pre>
-<p>Sécurisez votre IA. Construisez avec AKIOS.</p>
+  <h2>Zero‑copy, zero‑trust</h2>
+  <p>
+    Malgré cette médiation, les performances restent élevées grâce à notre implémentation de buffer circulaire zero‑copy. Nous exposons des pages en lecture seule dans l'espace mémoire du récepteur, ce qui garantit que les données ne sont jamais recopiées inutilement et ne peuvent pas être modifiées par l'émetteur après l'envoi.
+  </p>
+
+  <h3>Benchmarks</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Méthode</th>
+        <th>Latence (p99)</th>
+        <th>Débit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Sockets Unix</td>
+        <td>12µs</td>
+        <td>4,5 Go/s</td>
+      </tr>
+      <tr>
+        <td>Canaux AKIOS</td>
+        <td>14µs</td>
+        <td>4,2 Go/s</td>
+      </tr>
+      <tr>
+        <td>HTTP/REST (localhost)</td>
+        <td>150µs</td>
+        <td>0,8 Go/s</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p>
+    Nous obtenons des performances proches de l'IPC natif tout en maintenant des frontières d'isolation strictes. Cela vous permet de construire des essaims d'agents complexes où un agent compromis ne peut pas se déplacer latéralement pour en infecter d'autres.
+  </p>
+
+  <h2>Conclusion</h2>
+  <p>
+    La sécurité ne doit pas se faire au détriment des performances. Avec les canaux AKIOS, vous obtenez les deux : isolation forte et throughput élevé.
+  </p>
 </div>
 
 <div class="post-footer">
-  <p>Connexe : <a href="policy-schema-deep-dive.html">Plongée dans le Schéma de Politique</a> | <a href="hardening-checklist.html">Checklist de Durcissement</a></p>
   <div class="share-links">
     <span>Partager :</span>
     <a href="#" target="_blank">Twitter</a>
     <a href="#" target="_blank">LinkedIn</a>
     <a href="#" target="_blank">Hacker News</a>
   </div>
-  <a href="./">← Retour au Blog</a>
+  <a href="./">← Retour au blog</a>
 </div>
 
                 </div>
