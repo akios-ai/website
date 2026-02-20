@@ -231,30 +231,35 @@ akios run templates/hello-workflow.yml</code></pre>
 
   <!-- EnforceCore Section -->
   <section class="section bg-alt">
-    <div class="page">
-      <h2 class="section-heading">{{i18n.home.enforcecore_heading}}</h2>
-      <p>{{i18n.home.enforcecore_description}}</p>
-      <div class="features-grid">
-        <div class="feature">
-          <h3>{{i18n.home.enforcecore_policy_title}}</h3>
-          <p>{{i18n.home.enforcecore_policy_desc}}</p>
+    <div class="page hero-grid">
+      <figure class="hero-figure" style="display: flex; align-items: center; justify-content: center;">
+        <img src="{{root}}/assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="max-width: 280px; height: auto;" loading="lazy">
+      </figure>
+      <div class="hero hero-left">
+        <h2 class="section-heading" style="margin-top: 0;">{{i18n.home.enforcecore_heading}}</h2>
+        <p>{{i18n.home.enforcecore_description}}</p>
+        <div class="features-grid" style="margin-top: var(--space-4);">
+          <div class="feature">
+            <h3>{{i18n.home.enforcecore_policy_title}}</h3>
+            <p>{{i18n.home.enforcecore_policy_desc}}</p>
+          </div>
+          <div class="feature">
+            <h3>{{i18n.home.enforcecore_redactor_title}}</h3>
+            <p>{{i18n.home.enforcecore_redactor_desc}}</p>
+          </div>
+          <div class="feature">
+            <h3>{{i18n.home.enforcecore_auditor_title}}</h3>
+            <p>{{i18n.home.enforcecore_auditor_desc}}</p>
+          </div>
+          <div class="feature">
+            <h3>{{i18n.home.enforcecore_guard_title}}</h3>
+            <p>{{i18n.home.enforcecore_guard_desc}}</p>
+          </div>
         </div>
-        <div class="feature">
-          <h3>{{i18n.home.enforcecore_redactor_title}}</h3>
-          <p>{{i18n.home.enforcecore_redactor_desc}}</p>
+        <div class="hero-actions" style="margin-top: var(--space-4);">
+          <a href="docs/enforcecore.html" class="btn btn-primary">{{i18n.home.enforcecore_cta_docs}}</a>
+          <a href="https://github.com/akios-ai/enforcecore" class="btn btn-outline" rel="noopener">{{i18n.home.enforcecore_cta_github}}</a>
         </div>
-        <div class="feature">
-          <h3>{{i18n.home.enforcecore_auditor_title}}</h3>
-          <p>{{i18n.home.enforcecore_auditor_desc}}</p>
-        </div>
-        <div class="feature">
-          <h3>{{i18n.home.enforcecore_guard_title}}</h3>
-          <p>{{i18n.home.enforcecore_guard_desc}}</p>
-        </div>
-      </div>
-      <div class="hero-actions" style="margin-top: var(--space-4);">
-        <a href="docs/enforcecore.html" class="btn btn-primary">{{i18n.home.enforcecore_cta_docs}}</a>
-        <a href="https://github.com/akios-ai/enforcecore" class="btn btn-outline" rel="noopener">{{i18n.home.enforcecore_cta_github}}</a>
       </div>
     </div>
   </section>
