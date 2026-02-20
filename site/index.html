@@ -231,26 +231,30 @@ akios run templates/hello-workflow.yml</code></pre>
 
   <!-- EnforceCore Section -->
   <section class="section bg-alt">
-    <div class="page" style="position: relative;">
-      <img src="{{root}}/assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="position: absolute; top: 0; right: 0; max-width: 180px; height: auto; opacity: 0.9;" loading="lazy">
+    <div class="page">
       <h2 class="section-heading">{{i18n.home.enforcecore_heading}}</h2>
       <p>{{i18n.home.enforcecore_description}}</p>
-      <div class="features-grid">
-        <div class="feature">
-          <h3>{{i18n.home.enforcecore_policy_title}}</h3>
-          <p>{{i18n.home.enforcecore_policy_desc}}</p>
+      <div style="display: grid; grid-template-columns: 280px 1fr; gap: var(--space-6); align-items: center; margin: var(--space-5) 0;">
+        <div style="display: flex; align-items: center; justify-content: center;">
+          <img src="{{root}}/assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="max-width: 100%; height: auto;" loading="lazy">
         </div>
-        <div class="feature">
-          <h3>{{i18n.home.enforcecore_redactor_title}}</h3>
-          <p>{{i18n.home.enforcecore_redactor_desc}}</p>
-        </div>
-        <div class="feature">
-          <h3>{{i18n.home.enforcecore_auditor_title}}</h3>
-          <p>{{i18n.home.enforcecore_auditor_desc}}</p>
-        </div>
-        <div class="feature">
-          <h3>{{i18n.home.enforcecore_guard_title}}</h3>
-          <p>{{i18n.home.enforcecore_guard_desc}}</p>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
+          <div class="feature">
+            <h3>{{i18n.home.enforcecore_policy_title}}</h3>
+            <p>{{i18n.home.enforcecore_policy_desc}}</p>
+          </div>
+          <div class="feature">
+            <h3>{{i18n.home.enforcecore_redactor_title}}</h3>
+            <p>{{i18n.home.enforcecore_redactor_desc}}</p>
+          </div>
+          <div class="feature">
+            <h3>{{i18n.home.enforcecore_auditor_title}}</h3>
+            <p>{{i18n.home.enforcecore_auditor_desc}}</p>
+          </div>
+          <div class="feature">
+            <h3>{{i18n.home.enforcecore_guard_title}}</h3>
+            <p>{{i18n.home.enforcecore_guard_desc}}</p>
+          </div>
         </div>
       </div>
       <div class="hero-actions" style="margin-top: var(--space-4);">

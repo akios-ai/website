@@ -271,26 +271,30 @@ akios run templates/hello-workflow.yml</code></pre>
 
   <!-- EnforceCore Section -->
   <section class="section bg-alt">
-    <div class="page" style="position: relative;">
-      <img src="./assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="position: absolute; top: 0; right: 0; max-width: 180px; height: auto; opacity: 0.9;" loading="lazy">
+    <div class="page">
       <h2 class="section-heading">EnforceCore</h2>
       <p>The open-source enforcement framework we designed as the foundation of AKIOS. Runtime policy enforcement, PII redaction, Merkle audit, and resource guards — for any Python agent framework.</p>
-      <div class="features-grid">
-        <div class="feature">
-          <h3>Policy Engine</h3>
-          <p>Declarative YAML policies evaluated at every call boundary. Mandatory, not advisory.</p>
+      <div style="display: grid; grid-template-columns: 280px 1fr; gap: var(--space-6); align-items: center; margin: var(--space-5) 0;">
+        <div style="display: flex; align-items: center; justify-content: center;">
+          <img src="./assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="max-width: 100%; height: auto;" loading="lazy">
         </div>
-        <div class="feature">
-          <h3>PII Redactor</h3>
-          <p>Real-time detection and redaction on inputs and outputs. Configurable strategies.</p>
-        </div>
-        <div class="feature">
-          <h3>Merkle Auditor</h3>
-          <p>SHA-256 Merkle tree audit trail. Tamper-proof, cryptographically chained.</p>
-        </div>
-        <div class="feature">
-          <h3>Resource Guard</h3>
-          <p>Cross-platform resource limits: time, memory, cost. Automatic kill-switch.</p>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
+          <div class="feature">
+            <h3>Policy Engine</h3>
+            <p>Declarative YAML policies evaluated at every call boundary. Mandatory, not advisory.</p>
+          </div>
+          <div class="feature">
+            <h3>PII Redactor</h3>
+            <p>Real-time detection and redaction on inputs and outputs. Configurable strategies.</p>
+          </div>
+          <div class="feature">
+            <h3>Merkle Auditor</h3>
+            <p>SHA-256 Merkle tree audit trail. Tamper-proof, cryptographically chained.</p>
+          </div>
+          <div class="feature">
+            <h3>Resource Guard</h3>
+            <p>Cross-platform resource limits: time, memory, cost. Automatic kill-switch.</p>
+          </div>
         </div>
       </div>
       <div class="hero-actions" style="margin-top: var(--space-4);">
