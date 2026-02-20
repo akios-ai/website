@@ -24,6 +24,7 @@
         <a href="../../blog/index.html">Blog</a>
         <a href="../../case-studies/index.html">Case Studies</a>
         <a href="../../community.html">Community</a>
+        <a href="../../docs/enforcecore.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -92,6 +93,11 @@
                         <li><a href="../../docs/ec2-deployment.html">EC2 Deployment</a></li>
                         <li><a href="../../docs/migration-guide.html">Migration Guide</a></li>
                     </ul>
+
+                    <div class="section-title">Ecosystem</div>
+                    <ul>
+                        <li><a href="../../docs/enforcecore.html">EnforceCore</a></li>
+                    </ul>
                 </nav>
             </aside>
             
@@ -101,10 +107,15 @@
 <p><strong>Read this if:</strong> You&#39;re testing AKIOS on AWS, need to understand performance expectations, or want to validate security on your infrastructure.</p>
 <p><strong>Time needed:</strong> 20 minutes setup + 10 minutes testing = ~30 minutes total.</p>
 <h2>Quick Decision: Which Instance?</h2>
-<p><strong>Just testing locally?</strong> Start with <strong>t3.medium</strong> (~$15/month)</p>
+<p><strong>Just testing / budget baseline?</strong> Start with <strong>t4g.micro</strong> (~$3/month)</p>
+<ul>
+<li>1 vCPU (ARM64), 1GB RAM</li>
+<li>Our validated baseline (v1.0.7)</li>
+<li>Cheapest way to verify AKIOS works</li>
+</ul>
+<p><strong>General testing?</strong> Use <strong>t3.medium</strong> (~$15/month)</p>
 <ul>
 <li>2 vCPU, 4GB RAM</li>
-<li>Our validated baseline</li>
 <li>Good for development and learning</li>
 </ul>
 <p><strong>Small production workload?</strong> Use <strong>t3.large</strong> (~$30/month)</p>
@@ -119,15 +130,16 @@
 <li>Sustained performance (no burst limits)</li>
 <li>Best for always-on workloads</li>
 </ul>
-<p><strong>Unsure?</strong> Start with t3.medium. Test it. Upgrade if needed.</p>
+<p><strong>Unsure?</strong> Start with t4g.micro. Test it. Upgrade if needed.</p>
 <h2>Performance to Expect</h2>
-<p>On t3.medium (our tested baseline):</p>
+<p>On t4g.micro (our validated baseline as of v1.0.7):</p>
 <ul>
-<li><strong>Startup:</strong> ~25ms per workflow</li>
-<li><strong>Throughput:</strong> ~44 workflows per second</li>
-<li><strong>Memory:</strong> ~21MB per workflow</li>
+<li><strong>Security pipeline:</strong> ~0.47ms (full pipeline: PII + policy + audit + budget)</li>
+<li><strong>PII scan:</strong> ~0.46ms (53 regex patterns)</li>
+<li><strong>Merkle hash:</strong> ~0.001ms (SHA-256)</li>
+<li><strong>Docker cold start:</strong> ~1.4s</li>
 </ul>
-<p><strong>Real talk:</strong> These numbers apply to t3.medium. Performance on other instances depends on CPU cores, region, and your workload. <strong>Test your specific instance to verify.</strong></p>
+<p><strong>Real talk:</strong> These numbers are validated on t4g.micro in us-east-1. Performance on other instances should be comparable or better. <strong>Run the benchmark script on your instance to verify.</strong></p>
 <h2>4-Step Setup</h2>
 <h3>1. Create Instance</h3>
 <p>AWS Console → EC2 → Launch Instances:</p>
@@ -208,7 +220,7 @@ cat audit/audit_events.jsonl | head -3
 <p>✅ <strong>We provide:</strong></p>
 <ul>
 <li>Secure sandbox isolation</li>
-<li>PII redaction (50+ patterns)</li>
+<li>PII redaction (53 patterns)</li>
 <li>Audit logging</li>
 <li>Budget controls for LLM API calls</li>
 </ul>
@@ -227,7 +239,7 @@ cat audit/audit_events.jsonl | head -3
 <li><a href="./best-practices.mdx">Best Practices</a> — Workflow patterns</li>
 </ul>
 <hr>
-<p><strong>Legal:</strong> AKIOS is provided &quot;as-is.&quot; You&#39;re responsible for AWS security, costs, and validating performance on your chosen infrastructure. We validate baseline performance on t3.medium in us-east-1 only.</p>
+<p><strong>Legal:</strong> AKIOS is provided &quot;as-is.&quot; You&#39;re responsible for AWS security, costs, and validating performance on your chosen infrastructure. We validate baseline performance on t4g.micro in us-east-1 only.</p>
 
             </main>
         </div>
@@ -256,6 +268,7 @@ cat audit/audit_events.jsonl | head -3
           <a href="../../docs/index.html">Docs</a>
           <a href="../../blog/index.html">Blog</a>
           <a href="../../community.html">Community</a>
+          <a href="../../docs/enforcecore.html">EnforceCore</a>
           <a href="../../docs/faq-glossary.html">FAQ</a>
           <a href="../../legal.html">Legal</a>
         </div>
@@ -605,7 +618,8 @@ cat audit/audit_events.jsonl | head -3
         { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
         { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
         { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
       ];
 
       function getDocsBase() {
@@ -760,6 +774,41 @@ cat audit/audit_events.jsonl | head -3
   </script>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+    (function() {
+      var blocks = document.querySelectorAll('pre code.language-mermaid');
+      if (blocks.length) {
+        blocks.forEach(function(el) {
+          var pre = el.parentElement;
+          var div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = el.textContent;
+          pre.replaceWith(div);
+        });
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: 'base',
+          themeVariables: {
+            primaryColor: isDark ? '#164e63' : '#ecfeff',
+            primaryBorderColor: '#06b6d4',
+            primaryTextColor: isDark ? '#fafafa' : '#18181b',
+            lineColor: '#06b6d4',
+            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
+            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
+            background: isDark ? '#09090b' : '#ffffff',
+            mainBkg: isDark ? '#164e63' : '#ecfeff',
+            nodeBorder: '#06b6d4',
+            clusterBkg: isDark ? '#131316' : '#fafafa',
+            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
+            titleColor: isDark ? '#fafafa' : '#18181b',
+            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
+          }
+        });
+      }
+    })();
+    </script>
     <script>
         (function() {
             const path = window.location.pathname;

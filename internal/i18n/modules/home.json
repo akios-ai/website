@@ -17,7 +17,7 @@
       "why_audit_title": "Auditable Logs",
       "why_audit_body": "Ship auditable logs and reproducible builds. Every action is signed and traceable.",
       "why_pii_title": "PII Redaction",
-      "why_pii_body": "Real-time PII detection and redaction built-in. 50+ patterns catch emails, SSNs, credit cards, API keys, and more — before data reaches any provider.",
+      "why_pii_body": "Real-time PII detection and redaction built-in. 53 patterns catch emails, SSNs, credit cards, API keys, and more — before data reaches any provider.",
       "why_cost_title": "Cost & Loop Kills",
       "why_cost_body": "Hard kill-switches for API costs and infinite loops. Enforce budgets per workflow.",
       "why_minimal_title": "Minimal & Native",
@@ -35,7 +35,7 @@
       "security_title_2": "Syscall Filtering",
       "security_item_2": "Default‑deny policy on network and filesystem. Only explicitly allowed calls pass.",
       "security_title_3": "PII Redaction",
-      "security_item_3": "50+ patterns detect and redact sensitive data in real time — on all inputs and outputs.",
+      "security_item_3": "53 patterns detect and redact sensitive data in real time — on all inputs and outputs.",
       "security_title_4": "Tamper-Proof Audit",
       "security_item_4": "Every action is cryptographically signed into a Merkle chain. Logs can't be altered after the fact.",
       "security_title_5": "Cost & Loop Kill-Switches",
@@ -70,7 +70,19 @@
       "support_title": "Need help or to report an issue? Use GitHub Discussions or Issues — no contact form to keep support open and transparent.",
       "support_question": "Have a question? Visit the Community page or use GitHub Discussions/Issues for open, transparent support.",
       "support_discord": "Join Discord →",
-      "support_discussions": "GitHub Discussions →"
+      "support_discussions": "GitHub Discussions →",
+      "enforcecore_heading": "EnforceCore",
+      "enforcecore_description": "The open-source enforcement framework extracted from AKIOS. Runtime policy enforcement, PII redaction, Merkle audit, and resource guards — for any Python agent framework.",
+      "enforcecore_policy_title": "Policy Engine",
+      "enforcecore_policy_desc": "Declarative YAML policies evaluated at every call boundary. Mandatory, not advisory.",
+      "enforcecore_redactor_title": "PII Redactor",
+      "enforcecore_redactor_desc": "Real-time detection and redaction on inputs and outputs. Configurable strategies.",
+      "enforcecore_auditor_title": "Merkle Auditor",
+      "enforcecore_auditor_desc": "SHA-256 Merkle tree audit trail. Tamper-proof, cryptographically chained.",
+      "enforcecore_guard_title": "Resource Guard",
+      "enforcecore_guard_desc": "Cross-platform resource limits: time, memory, cost. Automatic kill-switch.",
+      "enforcecore_cta_docs": "Read the Docs",
+      "enforcecore_cta_github": "View on GitHub"
     }
   },
   "fr": {
@@ -109,7 +121,7 @@
       "security_title_2": "Filtrage des syscalls",
       "security_item_2": "Politique deny-par-défaut sur réseau et filesystem. Seuls les appels explicitement autorisés passent.",
       "security_title_3": "Rédaction PII",
-      "security_item_3": "50+ patterns détectent et masquent les données sensibles en temps réel — sur toutes les entrées/sorties.",
+      "security_item_3": "53 patterns détectent et masquent les données sensibles en temps réel — sur toutes les entrées/sorties.",
       "security_title_4": "Audit infalsifiable",
       "security_item_4": "Chaque action est signée cryptographiquement dans une chaîne Merkle. Les logs ne peuvent être altérés.",
       "security_title_5": "Kill-switch coût & boucle",
@@ -144,7 +156,19 @@
       "support_title": "Besoin d'aide ou de signaler un bug ? Passez par GitHub Discussions ou Issues — pas de formulaire privé pour garder le support ouvert.",
       "support_question": "Une question ? Rendez-vous sur la page Communauté ou passez par GitHub Discussions/Issues pour un support transparent.",
       "support_discord": "Rejoindre Discord →",
-      "support_discussions": "GitHub Discussions →"
+      "support_discussions": "GitHub Discussions →",
+      "enforcecore_heading": "EnforceCore",
+      "enforcecore_description": "Le framework d'enforcement open-source extrait d'AKIOS. Application des politiques, rédaction PII, audit Merkle et gardes de ressources — pour tout framework d'agents Python.",
+      "enforcecore_policy_title": "Policy Engine",
+      "enforcecore_policy_desc": "Politiques YAML déclaratives évaluées à chaque frontière d'appel. Obligatoires, pas consultatives.",
+      "enforcecore_redactor_title": "PII Redactor",
+      "enforcecore_redactor_desc": "Détection et rédaction en temps réel sur entrées et sorties. Stratégies configurables.",
+      "enforcecore_auditor_title": "Merkle Auditor",
+      "enforcecore_auditor_desc": "Piste d'audit Merkle SHA-256. Infalsifiable, chaînée cryptographiquement.",
+      "enforcecore_guard_title": "Resource Guard",
+      "enforcecore_guard_desc": "Limites de ressources multi-plateformes : temps, mémoire, coût. Kill-switch automatique.",
+      "enforcecore_cta_docs": "Lire la documentation",
+      "enforcecore_cta_github": "Voir sur GitHub"
     }
   }
 }

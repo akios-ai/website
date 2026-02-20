@@ -113,7 +113,7 @@ akios run templates/hello-workflow.yml</code></pre>
       <p class="code-caption">{{i18n.home.quickstart_caption}}</p>
       <pre><code>[akios] environment: native linux (kernel-hard)
 [akios] sandbox: seccomp-bpf, cgroups v2
-[akios] pii: redaction enabled (50+ patterns)
+[akios] pii: redaction enabled (53 patterns)
 [akios] audit: Merkle trail initialized
 [akios] workflow: completed successfully in 1.2s</code></pre>
       
@@ -225,6 +225,36 @@ akios run templates/hello-workflow.yml</code></pre>
       </div>
       <div class="case-studies-cta">
         <a href="case-studies/index.html" class="quickstart-link">{{i18n.case_studies_home.view_all}}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- EnforceCore Section -->
+  <section class="section bg-alt">
+    <div class="page">
+      <h2 class="section-heading">{{i18n.home.enforcecore_heading}}</h2>
+      <p>{{i18n.home.enforcecore_description}}</p>
+      <div class="features-grid">
+        <div class="feature">
+          <h3>{{i18n.home.enforcecore_policy_title}}</h3>
+          <p>{{i18n.home.enforcecore_policy_desc}}</p>
+        </div>
+        <div class="feature">
+          <h3>{{i18n.home.enforcecore_redactor_title}}</h3>
+          <p>{{i18n.home.enforcecore_redactor_desc}}</p>
+        </div>
+        <div class="feature">
+          <h3>{{i18n.home.enforcecore_auditor_title}}</h3>
+          <p>{{i18n.home.enforcecore_auditor_desc}}</p>
+        </div>
+        <div class="feature">
+          <h3>{{i18n.home.enforcecore_guard_title}}</h3>
+          <p>{{i18n.home.enforcecore_guard_desc}}</p>
+        </div>
+      </div>
+      <div class="hero-actions" style="margin-top: var(--space-4);">
+        <a href="docs/enforcecore.html" class="btn btn-primary">{{i18n.home.enforcecore_cta_docs}}</a>
+        <a href="https://github.com/akios-ai/enforcecore" class="btn btn-outline" rel="noopener">{{i18n.home.enforcecore_cta_github}}</a>
       </div>
     </div>
   </section>

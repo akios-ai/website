@@ -24,6 +24,7 @@
         <a href="../../blog/index.html">Blog</a>
         <a href="../../case-studies/index.html">Case Studies</a>
         <a href="../../community.html">Community</a>
+        <a href="../../docs/enforcecore.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -91,6 +92,11 @@
                         <li><a href="../../docs/deployment.html">Deployment</a></li>
                         <li><a href="../../docs/ec2-deployment.html">EC2 Deployment</a></li>
                         <li><a href="../../docs/migration-guide.html">Migration Guide</a></li>
+                    </ul>
+
+                    <div class="section-title">Ecosystem</div>
+                    <ul>
+                        <li><a href="../../docs/enforcecore.html">EnforceCore</a></li>
                     </ul>
                 </nav>
             </aside>
@@ -377,8 +383,19 @@ akios output archive hello-workflow.yml --name archive.tar.gz
 <pre><code class="language-bash"># Activate full security (PII redaction, HTTPS lock, sandbox, audit)
 akios cage up
 
+# Ablation flags — disable individual components for benchmarking
+akios cage up --no-pii      # Skip PII redaction
+akios cage up --no-audit    # Skip audit logging
+akios cage up --no-budget   # Skip budget enforcement
+
 # Relax security for development (destroys session data by default)
 akios cage down
+
+# Multi-pass secure erasure (DOD 5220.22-M)
+akios cage down --passes 3
+
+# Fast teardown (truncate-only, dev/CI)
+akios cage down --fast
 
 # Dev mode — relax protections, keep data for debugging
 akios cage down --keep-data
@@ -392,7 +409,7 @@ akios security down
 akios security status
 </code></pre>
 <p><strong><code>cage up</code></strong> activates: PII Redaction (enabled), HTTPS Network (locked — LLM APIs and <code>allowed_domains</code> pass through), Sandbox (enforced), Audit Logging (enabled).</p>
-<p><strong><code>cage down</code></strong> (default) <strong>destroys all session data</strong> — <code>audit/</code>, <code>data/output/</code>, <code>data/input/</code> are permanently deleted. This is the cage&#39;s core promise: zero data residue when the cage goes down.</p>
+<p><strong><code>cage down</code></strong> (default) <strong>destroys all session data</strong> — <code>audit/</code>, <code>data/output/</code>, <code>data/input/</code> are permanently deleted. This is the cage&#39;s core promise: zero data residue when the cage goes down. Use <code>--passes N</code> for multi-pass overwrite (DOD 5220.22-M requires 3). Use <code>--fast</code> for truncate-only teardown in dev/CI environments.</p>
 <p><strong><code>cage down --keep-data</code></strong> relaxes protections without wiping data (development convenience only).</p>
 <p><strong><code>cage status</code></strong> displays current posture (ACTIVE / RELAXED / CUSTOM) and protection table.</p>
 <h3><code>akios protect</code> — PII Protection Analysis</h3>
@@ -409,6 +426,9 @@ akios protect scan data/input/document.txt --json
 </code></pre>
 <p><strong><code>preview</code></strong> scans workflow inputs for PII and shows safe prompt construction.</p>
 <p><strong><code>scan</code></strong> scans a file for PII and displays detected sensitive data categories.</p>
+<p><strong><code>show-prompt</code></strong> displays the internal PII detection prompt template used by the redaction engine. Useful for auditing how PII matching is configured.</p>
+<pre><code class="language-bash">akios protect show-prompt
+</code></pre>
 <h3><code>akios audit verify</code> — Verify Audit Integrity</h3>
 <p>Verify the Merkle-chain integrity of the cryptographic audit trail.</p>
 <pre><code class="language-bash">akios audit verify
@@ -438,6 +458,36 @@ akios timeline --json
 <pre><code class="language-bash">akios testing
 </code></pre>
 <p>Displays mock mode status, API key availability, and testing recommendations.</p>
+<h3><code>akios http</code> — HTTP Agent (v1.0.7)</h3>
+<p>Direct HTTP agent for making rate-limited, PII-redacted HTTP requests within the security cage.</p>
+<pre><code class="language-bash"># Make a GET request
+akios http GET https://api.example.com/data
+
+# POST with data
+akios http POST https://api.example.com/submit --data &#39;{&quot;key&quot;: &quot;value&quot;}&#39;
+</code></pre>
+<p>Requires <code>network_access_allowed: true</code> and the target domain in <code>allowed_domains</code>. All requests are HTTPS-only, rate-limited (10 req/min), and PII-scanned.</p>
+<h3><code>akios workflow validate</code> — Workflow Validation (v1.0.7)</h3>
+<p>Validate workflow YAML files against the schema without executing them.</p>
+<pre><code class="language-bash"># Validate a workflow file
+akios workflow validate workflows/my-workflow.yml
+
+# Validate with JSON output
+akios workflow validate workflows/my-workflow.yml --json
+</code></pre>
+<p>Checks: valid YAML structure, required fields present, agent names exist, action names valid for each agent, parameter types correct, step references resolve.</p>
+<h3><code>akios audit rotate</code> — Rotate Audit Log (v1.0.7)</h3>
+<p>Archive the current audit chain and start a fresh one.</p>
+<pre><code class="language-bash">akios audit rotate
+akios audit rotate --json
+</code></pre>
+<p>The existing chain is moved to <code>audit/archive/</code> with a timestamp. A new empty chain is initialized. Use this for long-running deployments to keep audit files manageable.</p>
+<h3><code>akios audit stats</code> — Audit Statistics (v1.0.7)</h3>
+<p>Show aggregate statistics across the audit trail.</p>
+<pre><code class="language-bash">akios audit stats
+akios audit stats --json
+</code></pre>
+<p>Displays: total entries, chain length, time span, entries per day, most common actions, PII detections count, and chain integrity status.</p>
 <h2>LLM Provider/Model Validation</h2>
 <p>AKIOS validates LLM provider and model compatibility at startup to prevent API failures.</p>
 <table>
@@ -595,6 +645,7 @@ akios --version
           <a href="../../docs/index.html">Docs</a>
           <a href="../../blog/index.html">Blog</a>
           <a href="../../community.html">Community</a>
+          <a href="../../docs/enforcecore.html">EnforceCore</a>
           <a href="../../docs/faq-glossary.html">FAQ</a>
           <a href="../../legal.html">Legal</a>
         </div>
@@ -944,7 +995,8 @@ akios --version
         { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
         { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
         { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
       ];
 
       function getDocsBase() {
@@ -1099,6 +1151,41 @@ akios --version
   </script>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+    (function() {
+      var blocks = document.querySelectorAll('pre code.language-mermaid');
+      if (blocks.length) {
+        blocks.forEach(function(el) {
+          var pre = el.parentElement;
+          var div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = el.textContent;
+          pre.replaceWith(div);
+        });
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: 'base',
+          themeVariables: {
+            primaryColor: isDark ? '#164e63' : '#ecfeff',
+            primaryBorderColor: '#06b6d4',
+            primaryTextColor: isDark ? '#fafafa' : '#18181b',
+            lineColor: '#06b6d4',
+            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
+            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
+            background: isDark ? '#09090b' : '#ffffff',
+            mainBkg: isDark ? '#164e63' : '#ecfeff',
+            nodeBorder: '#06b6d4',
+            clusterBkg: isDark ? '#131316' : '#fafafa',
+            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
+            titleColor: isDark ? '#fafafa' : '#18181b',
+            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
+          }
+        });
+      }
+    })();
+    </script>
     <script>
         (function() {
             const path = window.location.pathname;

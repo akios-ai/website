@@ -51,7 +51,12 @@
       "post_8_category": "Release",
       "post_8_title": "AKIOS v1.0.7: Audit Integrity, Workflow Validation, and 53 PII Patterns",
       "post_8_excerpt": "Real Merkle proofs, PII fail-safe hardening, workflow validation, ablation benchmarking, audit stats/rotate, and 10 new digital identity patterns.",
-      "post_8_time": "6"
+      "post_8_time": "6",
+      "post_9_date": "February 20, 2026",
+      "post_9_category": "Release",
+      "post_9_title": "Introducing EnforceCore: Runtime Enforcement for AI Agents",
+      "post_9_excerpt": "Open-source enforcement framework extracted from AKIOS. Policy engine, PII redaction, Merkle audit, and resource guards — in a single decorator. Apache 2.0.",
+      "post_9_time": "5"
     },
     "blog_post": {
       "table_of_contents": "On This Page"
@@ -109,7 +114,12 @@
       "post_8_category": "Publication",
       "post_8_title": "AKIOS v1.0.7 : Intégrité d'audit, validation de workflows et 53 modèles PII",
       "post_8_excerpt": "Preuves Merkle réelles, fail-safe PII, validation de workflows, benchmarking par ablation, statistiques et rotation d'audit, et 10 nouveaux modèles d'identité numérique.",
-      "post_8_time": "6"
+      "post_8_time": "6",
+      "post_9_date": "20 février 2026",
+      "post_9_category": "Publication",
+      "post_9_title": "Présentation d'EnforceCore : Application des règles à l'exécution pour agents IA",
+      "post_9_excerpt": "Framework open source d'application des règles extrait d'AKIOS. Moteur de politiques, expurgation PII, audit Merkle et garde de ressources — en un seul décorateur. Apache 2.0.",
+      "post_9_time": "5"
     },
     "blog_post": {
       "table_of_contents": "Sur cette page"

@@ -1,6 +1,55 @@
 # Migration Guide
 
-Upgrade to AKIOS V1.0 from earlier versions. This guide walks you through the process step-by-step.
+Upgrade to the latest AKIOS version from earlier releases. This guide covers both the V1.0.7 update and the original pre-V1.0 migration.
+
+## Upgrading to V1.0.7 (from V1.0.x)
+
+V1.0.7 is a drop-in upgrade with no breaking changes. Update via your installation method:
+
+```bash
+# Pip
+pip install --upgrade akios
+
+# Docker — pull latest image
+docker pull akiosai/akios:v{{version}}
+
+# Verify
+akios --version
+```
+
+### What's New in V1.0.7
+
+**New CLI commands:**
+- `akios http` — Direct HTTP agent for rate-limited, PII-redacted requests
+- `akios workflow validate` — Validate workflow YAML against schema without executing
+- `akios audit rotate` — Archive current audit chain, start fresh
+- `akios audit stats` — Aggregate statistics across the audit trail
+- `akios protect show-prompt` — Inspect the PII detection prompt template
+
+**New cage options:**
+- `akios cage up --no-pii` / `--no-audit` / `--no-budget` — Ablation flags for benchmarking individual components
+- `akios cage down --passes N` — Multi-pass secure erasure (DOD 5220.22-M with `--passes 3`)
+- `akios cage down --fast` — Truncate-only teardown for dev/CI
+
+**Security improvements:**
+- 53 PII detection patterns (up from 50+), including healthcare markers (NPI, DEA, MRN)
+- PII fail-safe: if the scanner errors, input/output is blocked (fail-closed)
+- HTTPS enforcement: all external API calls restricted to HTTPS at the transport layer
+- Weighted compliance scoring in `akios status --security`
+
+**Verification after upgrade:**
+```bash
+akios --version                    # Should show {{version}}
+akios status --security            # Verify all protections active
+akios workflow validate templates/hello-workflow.yml  # Test new command
+akios doctor                       # Run diagnostics
+```
+
+No configuration changes, workflow updates, or data migration needed.
+
+---
+
+## Upgrading to V1.0 (from pre-V1.0)
 
 ## Before You Start
 

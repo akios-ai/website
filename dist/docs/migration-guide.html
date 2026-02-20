@@ -24,6 +24,7 @@
         <a href="../blog/index.html">Blog</a>
         <a href="../case-studies/index.html">Case Studies</a>
         <a href="../community.html">Community</a>
+        <a href="../docs/enforcecore.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -92,12 +93,59 @@
                         <li><a href="../docs/ec2-deployment.html">EC2 Deployment</a></li>
                         <li><a href="../docs/migration-guide.html">Migration Guide</a></li>
                     </ul>
+
+                    <div class="section-title">Ecosystem</div>
+                    <ul>
+                        <li><a href="../docs/enforcecore.html">EnforceCore</a></li>
+                    </ul>
                 </nav>
             </aside>
             
             <main class="docs-content">
                 <h1>Migration Guide</h1>
-<p>Upgrade to AKIOS V1.0 from earlier versions. This guide walks you through the process step-by-step.</p>
+<p>Upgrade to the latest AKIOS version from earlier releases. This guide covers both the V1.0.7 update and the original pre-V1.0 migration.</p>
+<h2>Upgrading to V1.0.7 (from V1.0.x)</h2>
+<p>V1.0.7 is a drop-in upgrade with no breaking changes. Update via your installation method:</p>
+<pre><code class="language-bash"># Pip
+pip install --upgrade akios
+
+# Docker — pull latest image
+docker pull akiosai/akios:v1.0.7
+
+# Verify
+akios --version
+</code></pre>
+<h3>What&#39;s New in V1.0.7</h3>
+<p><strong>New CLI commands:</strong></p>
+<ul>
+<li><code>akios http</code> — Direct HTTP agent for rate-limited, PII-redacted requests</li>
+<li><code>akios workflow validate</code> — Validate workflow YAML against schema without executing</li>
+<li><code>akios audit rotate</code> — Archive current audit chain, start fresh</li>
+<li><code>akios audit stats</code> — Aggregate statistics across the audit trail</li>
+<li><code>akios protect show-prompt</code> — Inspect the PII detection prompt template</li>
+</ul>
+<p><strong>New cage options:</strong></p>
+<ul>
+<li><code>akios cage up --no-pii</code> / <code>--no-audit</code> / <code>--no-budget</code> — Ablation flags for benchmarking individual components</li>
+<li><code>akios cage down --passes N</code> — Multi-pass secure erasure (DOD 5220.22-M with <code>--passes 3</code>)</li>
+<li><code>akios cage down --fast</code> — Truncate-only teardown for dev/CI</li>
+</ul>
+<p><strong>Security improvements:</strong></p>
+<ul>
+<li>53 PII detection patterns (up from 50+), including healthcare markers (NPI, DEA, MRN)</li>
+<li>PII fail-safe: if the scanner errors, input/output is blocked (fail-closed)</li>
+<li>HTTPS enforcement: all external API calls restricted to HTTPS at the transport layer</li>
+<li>Weighted compliance scoring in <code>akios status --security</code></li>
+</ul>
+<p><strong>Verification after upgrade:</strong></p>
+<pre><code class="language-bash">akios --version                    # Should show 1.0.7
+akios status --security            # Verify all protections active
+akios workflow validate templates/hello-workflow.yml  # Test new command
+akios doctor                       # Run diagnostics
+</code></pre>
+<p>No configuration changes, workflow updates, or data migration needed.</p>
+<hr>
+<h2>Upgrading to V1.0 (from pre-V1.0)</h2>
 <h2>Before You Start</h2>
 <p><strong>✓ Checklist:</strong></p>
 <ul>
@@ -389,6 +437,7 @@ mv wrapper.sh akios
           <a href="../docs/index.html">Docs</a>
           <a href="../blog/index.html">Blog</a>
           <a href="../community.html">Community</a>
+          <a href="../docs/enforcecore.html">EnforceCore</a>
           <a href="../docs/faq-glossary.html">FAQ</a>
           <a href="../legal.html">Legal</a>
         </div>
@@ -738,7 +787,8 @@ mv wrapper.sh akios
         { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
         { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
         { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
       ];
 
       function getDocsBase() {
@@ -893,6 +943,41 @@ mv wrapper.sh akios
   </script>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+    (function() {
+      var blocks = document.querySelectorAll('pre code.language-mermaid');
+      if (blocks.length) {
+        blocks.forEach(function(el) {
+          var pre = el.parentElement;
+          var div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = el.textContent;
+          pre.replaceWith(div);
+        });
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: 'base',
+          themeVariables: {
+            primaryColor: isDark ? '#164e63' : '#ecfeff',
+            primaryBorderColor: '#06b6d4',
+            primaryTextColor: isDark ? '#fafafa' : '#18181b',
+            lineColor: '#06b6d4',
+            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
+            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
+            background: isDark ? '#09090b' : '#ffffff',
+            mainBkg: isDark ? '#164e63' : '#ecfeff',
+            nodeBorder: '#06b6d4',
+            clusterBkg: isDark ? '#131316' : '#fafafa',
+            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
+            titleColor: isDark ? '#fafafa' : '#18181b',
+            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
+          }
+        });
+      }
+    })();
+    </script>
     <script>
         (function() {
             const path = window.location.pathname;

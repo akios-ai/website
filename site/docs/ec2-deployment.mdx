@@ -8,9 +8,13 @@ Want to test AKIOS at scale? This guide helps you set up on AWS and validate per
 
 ## Quick Decision: Which Instance?
 
-**Just testing locally?** Start with **t3.medium** (~$15/month)
+**Just testing / budget baseline?** Start with **t4g.micro** (~$3/month)
+- 1 vCPU (ARM64), 1GB RAM
+- Our validated baseline (v1.0.7)
+- Cheapest way to verify AKIOS works
+
+**General testing?** Use **t3.medium** (~$15/month)
 - 2 vCPU, 4GB RAM
-- Our validated baseline
 - Good for development and learning
 
 **Small production workload?** Use **t3.large** (~$30/month)
@@ -23,16 +27,17 @@ Want to test AKIOS at scale? This guide helps you set up on AWS and validate per
 - Sustained performance (no burst limits)
 - Best for always-on workloads
 
-**Unsure?** Start with t3.medium. Test it. Upgrade if needed.
+**Unsure?** Start with t4g.micro. Test it. Upgrade if needed.
 
 ## Performance to Expect
 
-On t3.medium (our tested baseline):
-- **Startup:** ~25ms per workflow
-- **Throughput:** ~44 workflows per second
-- **Memory:** ~21MB per workflow
+On t4g.micro (our validated baseline as of v1.0.7):
+- **Security pipeline:** ~0.47ms (full pipeline: PII + policy + audit + budget)
+- **PII scan:** ~0.46ms (53 regex patterns)
+- **Merkle hash:** ~0.001ms (SHA-256)
+- **Docker cold start:** ~1.4s
 
-**Real talk:** These numbers apply to t3.medium. Performance on other instances depends on CPU cores, region, and your workload. **Test your specific instance to verify.**
+**Real talk:** These numbers are validated on t4g.micro in us-east-1. Performance on other instances should be comparable or better. **Run the benchmark script on your instance to verify.**
 
 ## 4-Step Setup
 
@@ -131,7 +136,7 @@ pip install --upgrade akios
 
 ✅ **We provide:**
 - Secure sandbox isolation
-- PII redaction (50+ patterns)
+- PII redaction (53 patterns)
 - Audit logging
 - Budget controls for LLM API calls
 
@@ -151,4 +156,4 @@ pip install --upgrade akios
 
 ---
 
-**Legal:** AKIOS is provided "as-is." You're responsible for AWS security, costs, and validating performance on your chosen infrastructure. We validate baseline performance on t3.medium in us-east-1 only.
+**Legal:** AKIOS is provided "as-is." You're responsible for AWS security, costs, and validating performance on your chosen infrastructure. We validate baseline performance on t4g.micro in us-east-1 only.

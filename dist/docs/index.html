@@ -24,6 +24,7 @@
         <a href="../blog/index.html">Blog</a>
         <a href="../case-studies/index.html">Case Studies</a>
         <a href="../community.html">Community</a>
+        <a href="../docs/enforcecore.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -91,6 +92,11 @@
                         <li><a href="../docs/deployment.html">Deployment</a></li>
                         <li><a href="../docs/ec2-deployment.html">EC2 Deployment</a></li>
                         <li><a href="../docs/migration-guide.html">Migration Guide</a></li>
+                    </ul>
+
+                    <div class="section-title">Ecosystem</div>
+                    <ul>
+                        <li><a href="../docs/enforcecore.html">EnforceCore</a></li>
                     </ul>
                 </nav>
             </aside>
@@ -176,7 +182,7 @@
   </a>
   <a href="migration-guide.html" class="docs-card">
     <h3 class="docs-card-title">Migration →</h3>
-    <p class="docs-card-text">Move to V1.0 pip/Docker safely.</p>
+    <p class="docs-card-text">Upgrade to V1.0.7 or migrate from pre-V1.0 safely.</p>
   </a>
   <a href="faq-glossary.html" class="docs-card">
     <h3 class="docs-card-title">FAQ & Glossary →</h3>
@@ -184,11 +190,28 @@
   </a>
 </div>
 
-<h3>New in V1.0.5</h3>
+<h3>New in V1.0.7</h3>
 <div class="features-grid docs-cards">
   <a href="workflow-schema.html" class="docs-card">
     <h3 class="docs-card-title">Workflow Schema →</h3>
     <p class="docs-card-text">YAML structure for defining agent workflows with validation.</p>
+  </a>
+  <a href="cli-reference.html" class="docs-card">
+    <h3 class="docs-card-title">New CLI Commands →</h3>
+    <p class="docs-card-text">Workflow validation, audit management, HTTP agent, and prompt inspection.</p>
+  </a>
+  <a href="security.html" class="docs-card">
+    <h3 class="docs-card-title">Security Updates →</h3>
+    <p class="docs-card-text">53 PII patterns, ablation benchmarking, configurable erasure, and PII fail-safe.</p>
+  </a>
+</div>
+
+<h3>Ecosystem</h3>
+<div class="features-grid docs-cards">
+  <a href="enforcecore.html" class="docs-card docs-card-featured">
+    <div class="docs-card-badge">Open Source</div>
+    <h3 class="docs-card-title">EnforceCore →</h3>
+    <p class="docs-card-text">Runtime enforcement framework for AI agents. Policy engine, PII redaction, Merkle audit, resource guards — framework-agnostic, Apache 2.0.</p>
   </a>
 </div>
 
@@ -228,6 +251,7 @@
           <a href="../docs/index.html">Docs</a>
           <a href="../blog/index.html">Blog</a>
           <a href="../community.html">Community</a>
+          <a href="../docs/enforcecore.html">EnforceCore</a>
           <a href="../docs/faq-glossary.html">FAQ</a>
           <a href="../legal.html">Legal</a>
         </div>
@@ -577,7 +601,8 @@
         { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
         { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
         { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
       ];
 
       function getDocsBase() {
@@ -732,6 +757,41 @@
   </script>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+    (function() {
+      var blocks = document.querySelectorAll('pre code.language-mermaid');
+      if (blocks.length) {
+        blocks.forEach(function(el) {
+          var pre = el.parentElement;
+          var div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = el.textContent;
+          pre.replaceWith(div);
+        });
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: 'base',
+          themeVariables: {
+            primaryColor: isDark ? '#164e63' : '#ecfeff',
+            primaryBorderColor: '#06b6d4',
+            primaryTextColor: isDark ? '#fafafa' : '#18181b',
+            lineColor: '#06b6d4',
+            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
+            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
+            background: isDark ? '#09090b' : '#ffffff',
+            mainBkg: isDark ? '#164e63' : '#ecfeff',
+            nodeBorder: '#06b6d4',
+            clusterBkg: isDark ? '#131316' : '#fafafa',
+            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
+            titleColor: isDark ? '#fafafa' : '#18181b',
+            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
+          }
+        });
+      }
+    })();
+    </script>
     <script>
         (function() {
             const path = window.location.pathname;
