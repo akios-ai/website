@@ -40,6 +40,7 @@
         <a href="./blog/index.html">Blog</a>
         <a href="./case-studies/index.html">Case Studies</a>
         <a href="./community.html">Community</a>
+        <a href="./docs/enforcecore.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -115,7 +116,7 @@
         </div>
         <div class="feature">
           <h3>PII Redaction</h3>
-          <p>Real-time PII detection and redaction built-in. 50+ patterns catch emails, SSNs, credit cards, API keys, and more — before data reaches any provider.</p>
+          <p>Real-time PII detection and redaction built-in. 53 patterns catch emails, SSNs, credit cards, API keys, and more — before data reaches any provider.</p>
         </div>
         <div class="feature">
           <h3>Auditable Logs</h3>
@@ -152,7 +153,7 @@ akios run templates/hello-workflow.yml</code></pre>
       <p class="code-caption">Expected output:</p>
       <pre><code>[akios] environment: native linux (kernel-hard)
 [akios] sandbox: seccomp-bpf, cgroups v2
-[akios] pii: redaction enabled (50+ patterns)
+[akios] pii: redaction enabled (53 patterns)
 [akios] audit: Merkle trail initialized
 [akios] workflow: completed successfully in 1.2s</code></pre>
       
@@ -180,7 +181,7 @@ akios run templates/hello-workflow.yml</code></pre>
       <ul class="security-list">
         <li class="security-item"><strong>Process Isolation</strong><span>Kernel controls (cgroups v2 + seccomp‑bpf) enforce hard boundaries between every agent process.</span></li>
         <li class="security-item"><strong>Syscall Filtering</strong><span>Default‑deny policy on network and filesystem. Only explicitly allowed calls pass.</span></li>
-        <li class="security-item"><strong>PII Redaction</strong><span>50+ patterns detect and redact sensitive data in real time — on all inputs and outputs.</span></li>
+        <li class="security-item"><strong>PII Redaction</strong><span>53 patterns detect and redact sensitive data in real time — on all inputs and outputs.</span></li>
         <li class="security-item"><strong>Tamper-Proof Audit</strong><span>Every action is cryptographically signed into a Merkle chain. Logs can't be altered after the fact.</span></li>
         <li class="security-item"><strong>Cost & Loop Kill-Switches</strong><span>Hard budget limits per workflow. Runaway agents are terminated, not throttled.</span></li>
         <li class="security-item"><strong>Sandbox-First Execution</strong><span>The sandbox is enforced before any tool call. No code runs outside the boundary.</span></li>
@@ -268,6 +269,36 @@ akios run templates/hello-workflow.yml</code></pre>
     </div>
   </section>
 
+  <!-- EnforceCore Section -->
+  <section class="section bg-alt">
+    <div class="page">
+      <h2 class="section-heading">EnforceCore</h2>
+      <p>The open-source enforcement framework extracted from AKIOS. Runtime policy enforcement, PII redaction, Merkle audit, and resource guards — for any Python agent framework.</p>
+      <div class="features-grid">
+        <div class="feature">
+          <h3>Policy Engine</h3>
+          <p>Declarative YAML policies evaluated at every call boundary. Mandatory, not advisory.</p>
+        </div>
+        <div class="feature">
+          <h3>PII Redactor</h3>
+          <p>Real-time detection and redaction on inputs and outputs. Configurable strategies.</p>
+        </div>
+        <div class="feature">
+          <h3>Merkle Auditor</h3>
+          <p>SHA-256 Merkle tree audit trail. Tamper-proof, cryptographically chained.</p>
+        </div>
+        <div class="feature">
+          <h3>Resource Guard</h3>
+          <p>Cross-platform resource limits: time, memory, cost. Automatic kill-switch.</p>
+        </div>
+      </div>
+      <div class="hero-actions" style="margin-top: var(--space-4);">
+        <a href="docs/enforcecore.html" class="btn btn-primary">Read the Docs</a>
+        <a href="https://github.com/akios-ai/enforcecore" class="btn btn-outline" rel="noopener">View on GitHub</a>
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ Section -->
   <section class="section">
     <div class="page">
@@ -343,6 +374,7 @@ akios run templates/hello-workflow.yml</code></pre>
           <a href="./docs/index.html">Docs</a>
           <a href="./blog/index.html">Blog</a>
           <a href="./community.html">Community</a>
+          <a href="./docs/enforcecore.html">EnforceCore</a>
           <a href="./docs/faq-glossary.html">FAQ</a>
           <a href="./legal.html">Legal</a>
         </div>
@@ -692,7 +724,8 @@ akios run templates/hello-workflow.yml</code></pre>
         { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
         { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
         { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
       ];
 
       function getDocsBase() {

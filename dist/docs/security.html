@@ -24,6 +24,7 @@
         <a href="../blog/index.html">Blog</a>
         <a href="../case-studies/index.html">Case Studies</a>
         <a href="../community.html">Community</a>
+        <a href="../docs/enforcecore.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -92,6 +93,11 @@
                         <li><a href="../docs/ec2-deployment.html">EC2 Deployment</a></li>
                         <li><a href="../docs/migration-guide.html">Migration Guide</a></li>
                     </ul>
+
+                    <div class="section-title">Ecosystem</div>
+                    <ul>
+                        <li><a href="../docs/enforcecore.html">EnforceCore</a></li>
+                    </ul>
                 </nav>
             </aside>
             
@@ -151,12 +157,24 @@ akios doctor
 <pre><code class="language-bash"># Full cage down — destroy ALL session data (default)
 akios cage down
 
+# Multi-pass secure erasure (DOD 5220.22-M)
+akios cage down --passes 3
+
+# Fast teardown (truncate-only, dev/CI)
+akios cage down --fast
+
 # Dev mode — relax protections but keep data for debugging
 akios cage down --keep-data
 </code></pre>
 <blockquote>
 <p><strong>Warning:</strong> <code>cage down</code> permanently destroys <code>audit/</code>, <code>data/output/</code>, and <code>data/input/</code>. This is the cage&#39;s core security promise: zero data residue when the cage goes down. Use <code>--keep-data</code> only during active development.</p>
 </blockquote>
+<p><strong>Ablation flags (v1.0.7):</strong> Benchmark the overhead of individual cage components by selectively disabling them:</p>
+<pre><code class="language-bash">akios cage up --no-pii      # Disable PII redaction only
+akios cage up --no-audit    # Disable audit only
+akios cage up --no-budget   # Disable budget enforcement only
+</code></pre>
+<p>These flags are for benchmarking and testing only — never use them in production.</p>
 <h3>1. Sandbox &amp; Isolation</h3>
 <p><strong>What it does:</strong> Keeps AI agents in a controlled environment</p>
 <ul>
@@ -172,13 +190,13 @@ akios cage down --keep-data
 </code></pre>
 <h3>2. PII Redaction</h3>
 <p><strong>What it does:</strong> Automatically removes sensitive data</p>
-<p><strong>Protected data types (50+ patterns):</strong></p>
+<p><strong>Protected data types (53 patterns across 6 categories):</strong></p>
 <ul>
 <li>Email addresses, phone numbers</li>
 <li>Social Security numbers, credit cards</li>
 <li>API keys, passwords, tokens</li>
 <li>IP addresses, MAC addresses</li>
-<li>Medical records, health data</li>
+<li>Medical records, health data (NPI, DEA, MRN)</li>
 <li>Financial account numbers</li>
 </ul>
 <p><strong>Applied twice:</strong></p>
@@ -229,10 +247,29 @@ akios cage down --keep-data
 <td><code>«CREDIT_CARD»</code></td>
 <td>4111-1111-1111-1111 → <code>«CREDIT_CARD»</code></td>
 </tr>
+<tr>
+<td>NPI</td>
+<td><code>«NPI»</code></td>
+<td>1234567890 → <code>«NPI»</code></td>
+</tr>
+<tr>
+<td>DEA</td>
+<td><code>«DEA»</code></td>
+<td>AB1234567 → <code>«DEA»</code></td>
+</tr>
+<tr>
+<td>MRN</td>
+<td><code>«MRN»</code></td>
+<td>MRN-2024-001 → <code>«MRN»</code></td>
+</tr>
 </tbody></table>
 <p><strong>Scan files before processing:</strong></p>
 <pre><code class="language-bash">akios protect scan data/input/document.txt
 akios protect preview templates/workflow.yml
+</code></pre>
+<p><strong>PII fail-safe (v1.0.7):</strong> If the PII scanner itself encounters an error during processing, the entire input/output is blocked rather than passed through unredacted. This fail-closed behavior ensures sensitive data never leaks due to scanner failures.</p>
+<pre><code class="language-bash"># Inspect PII prompt template
+akios protect show-prompt
 </code></pre>
 <h3>3. Cost Kill-Switches</h3>
 <p><strong>What it does:</strong> Prevents surprise AI bills</p>
@@ -258,6 +295,21 @@ akios protect preview templates/workflow.yml
 <pre><code class="language-bash">akios logs --limit 5
 # You should see recent actions with timestamps
 </code></pre>
+<p><strong>Audit management (v1.0.7):</strong></p>
+<pre><code class="language-bash"># Rotate audit log — archive current chain, start fresh
+akios audit rotate
+
+# View aggregate audit statistics
+akios audit stats
+</code></pre>
+<h2>HTTPS Enforcement (v1.0.7)</h2>
+<p>All external API calls made by AKIOS are restricted to HTTPS. Plain HTTP requests are rejected at the transport layer. This applies to:</p>
+<ul>
+<li>LLM provider calls (OpenAI, Anthropic, Grok, Mistral, Gemini)</li>
+<li>HTTP agent requests to <code>allowed_domains</code></li>
+<li>Any external call made within the security cage</li>
+</ul>
+<p>There is no option to downgrade to HTTP. This is a structural guarantee, not a configuration choice.</p>
 <h2>Check Your Security Status</h2>
 <p><strong>Quick check:</strong></p>
 <pre><code class="language-bash">akios status
@@ -346,7 +398,7 @@ allowed_domains:
 <tbody><tr>
 <td>Healthcare</td>
 <td>HIPAA, HITECH</td>
-<td>PHI redaction, access logging, audit proof</td>
+<td>PHI redaction (NPI/DEA/MRN), access logging, audit proof</td>
 </tr>
 <tr>
 <td>Banking</td>
@@ -379,6 +431,7 @@ allowed_domains:
 <td>DCP redaction, RGS compliance, data lifecycle</td>
 </tr>
 </tbody></table>
+<p><strong>Weighted compliance scoring (v1.0.7):</strong> AKIOS computes a compliance readiness score based on which security components are active.  Each component is weighted by its contribution to a given regulatory framework. Run <code>akios status --security</code> to see your current compliance score.</p>
 <h2>Report Security Issues</h2>
 <p><strong>Found a vulnerability?</strong> Email <strong><a href="mailto:security@akioud.ai">security@akioud.ai</a></strong> (private only — do NOT report via public GitHub issues)</p>
 <p><strong>Include:</strong></p>
@@ -457,6 +510,7 @@ allowed_domains:
           <a href="../docs/index.html">Docs</a>
           <a href="../blog/index.html">Blog</a>
           <a href="../community.html">Community</a>
+          <a href="../docs/enforcecore.html">EnforceCore</a>
           <a href="../docs/faq-glossary.html">FAQ</a>
           <a href="../legal.html">Legal</a>
         </div>
@@ -806,7 +860,8 @@ allowed_domains:
         { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
         { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
         { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
       ];
 
       function getDocsBase() {
@@ -961,6 +1016,41 @@ allowed_domains:
   </script>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+    (function() {
+      var blocks = document.querySelectorAll('pre code.language-mermaid');
+      if (blocks.length) {
+        blocks.forEach(function(el) {
+          var pre = el.parentElement;
+          var div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = el.textContent;
+          pre.replaceWith(div);
+        });
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: 'base',
+          themeVariables: {
+            primaryColor: isDark ? '#164e63' : '#ecfeff',
+            primaryBorderColor: '#06b6d4',
+            primaryTextColor: isDark ? '#fafafa' : '#18181b',
+            lineColor: '#06b6d4',
+            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
+            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
+            background: isDark ? '#09090b' : '#ffffff',
+            mainBkg: isDark ? '#164e63' : '#ecfeff',
+            nodeBorder: '#06b6d4',
+            clusterBkg: isDark ? '#131316' : '#fafafa',
+            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
+            titleColor: isDark ? '#fafafa' : '#18181b',
+            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
+          }
+        });
+      }
+    })();
+    </script>
     <script>
         (function() {
             const path = window.location.pathname;

@@ -40,6 +40,7 @@
         <a href="../blog/index.html">Blog</a>
         <a href="../case-studies/index.html">Études de cas</a>
         <a href="../community.html">Communauté</a>
+        <a href="../docs/enforcecore.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -152,7 +153,7 @@ akios run templates/hello-workflow.yml</code></pre>
       <p class="code-caption">Sortie attendue :</p>
       <pre><code>[akios] environment: native linux (kernel-hard)
 [akios] sandbox: seccomp-bpf, cgroups v2
-[akios] pii: redaction enabled (50+ patterns)
+[akios] pii: redaction enabled (53 patterns)
 [akios] audit: Merkle trail initialized
 [akios] workflow: completed successfully in 1.2s</code></pre>
       
@@ -180,7 +181,7 @@ akios run templates/hello-workflow.yml</code></pre>
       <ul class="security-list">
         <li class="security-item"><strong>Isolation des processus</strong><span>Contrôles kernel (cgroups v2 + seccomp-bpf) pour des frontières strictes entre chaque processus agent.</span></li>
         <li class="security-item"><strong>Filtrage des syscalls</strong><span>Politique deny-par-défaut sur réseau et filesystem. Seuls les appels explicitement autorisés passent.</span></li>
-        <li class="security-item"><strong>Rédaction PII</strong><span>50+ patterns détectent et masquent les données sensibles en temps réel — sur toutes les entrées/sorties.</span></li>
+        <li class="security-item"><strong>Rédaction PII</strong><span>53 patterns détectent et masquent les données sensibles en temps réel — sur toutes les entrées/sorties.</span></li>
         <li class="security-item"><strong>Audit infalsifiable</strong><span>Chaque action est signée cryptographiquement dans une chaîne Merkle. Les logs ne peuvent être altérés.</span></li>
         <li class="security-item"><strong>Kill-switch coût & boucle</strong><span>Limites budgétaires strictes par workflow. Les agents incontrôlés sont terminés, pas ralentis.</span></li>
         <li class="security-item"><strong>Exécution sandbox-first</strong><span>La sandbox est appliquée avant tout appel d'outil. Aucun code ne s'exécute hors de la frontière.</span></li>
@@ -268,6 +269,36 @@ akios run templates/hello-workflow.yml</code></pre>
     </div>
   </section>
 
+  <!-- EnforceCore Section -->
+  <section class="section bg-alt">
+    <div class="page">
+      <h2 class="section-heading">EnforceCore</h2>
+      <p>Le framework d'enforcement open-source extrait d'AKIOS. Application des politiques, rédaction PII, audit Merkle et gardes de ressources — pour tout framework d'agents Python.</p>
+      <div class="features-grid">
+        <div class="feature">
+          <h3>Policy Engine</h3>
+          <p>Politiques YAML déclaratives évaluées à chaque frontière d'appel. Obligatoires, pas consultatives.</p>
+        </div>
+        <div class="feature">
+          <h3>PII Redactor</h3>
+          <p>Détection et rédaction en temps réel sur entrées et sorties. Stratégies configurables.</p>
+        </div>
+        <div class="feature">
+          <h3>Merkle Auditor</h3>
+          <p>Piste d'audit Merkle SHA-256. Infalsifiable, chaînée cryptographiquement.</p>
+        </div>
+        <div class="feature">
+          <h3>Resource Guard</h3>
+          <p>Limites de ressources multi-plateformes : temps, mémoire, coût. Kill-switch automatique.</p>
+        </div>
+      </div>
+      <div class="hero-actions" style="margin-top: var(--space-4);">
+        <a href="docs/enforcecore.html" class="btn btn-primary">Lire la documentation</a>
+        <a href="https://github.com/akios-ai/enforcecore" class="btn btn-outline" rel="noopener">Voir sur GitHub</a>
+      </div>
+    </div>
+  </section>
+
   <!-- FAQ Section -->
   <section class="section">
     <div class="page">
@@ -343,6 +374,7 @@ akios run templates/hello-workflow.yml</code></pre>
           <a href="../docs/index.html">Docs</a>
           <a href="../blog/index.html">Blog</a>
           <a href="../community.html">Community</a>
+          <a href="../docs/enforcecore.html">EnforceCore</a>
           <a href="../docs/faq-glossary.html">FAQ</a>
           <a href="../legal.html">Legal</a>
         </div>
@@ -692,7 +724,8 @@ akios run templates/hello-workflow.yml</code></pre>
         { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
         { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
         { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
       ];
 
       function getDocsBase() {

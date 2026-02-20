@@ -24,6 +24,7 @@
         <a href="../blog/index.html">Blog</a>
         <a href="../case-studies/index.html">Case Studies</a>
         <a href="../community.html">Community</a>
+        <a href="../docs/enforcecore.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -92,11 +93,16 @@
                         <li><a href="../docs/ec2-deployment.html">EC2 Deployment</a></li>
                         <li><a href="../docs/migration-guide.html">Migration Guide</a></li>
                     </ul>
+
+                    <div class="section-title">Ecosystem</div>
+                    <ul>
+                        <li><a href="../docs/enforcecore.html">EnforceCore</a></li>
+                    </ul>
                 </nav>
             </aside>
             
             <main class="docs-content">
-                <h1>Core Concepts (AKIOS V1.0)</h1>
+                <h1>Core Concepts</h1>
 <p>Security-first runtime for AI agents: sandbox, PII redaction, audit, and cost/loop kills on every run.</p>
 <h2>Platform security levels</h2>
 <table>
@@ -127,7 +133,7 @@
 <h2>Core protections</h2>
 <ul>
 <li><strong>Sandbox &amp; quotas</strong>: syscall filtering, CPU/memory/file limits, default-deny network.</li>
-<li><strong>PII redaction</strong>: &gt;50 patterns on inputs/outputs, configurable aggressiveness.</li>
+<li><strong>PII redaction</strong>: 53 detection patterns across 6 categories on inputs/outputs, configurable aggressiveness.</li>
 <li><strong>Audit</strong>: Merkle-style, tamper-evident logs with PDF/JSON export.</li>
 <li><strong>Cost/loop kills</strong>: budgets and token caps, loop detection.</li>
 </ul>
@@ -138,21 +144,44 @@
 <li><strong>llm</strong> — token/cost-tracked calls to OpenAI, Anthropic, Grok, Mistral, Gemini.</li>
 <li><strong>tool_executor</strong> — allowlisted commands (17 safe commands) in a sandboxed subprocess.</li>
 </ul>
-<h2>Environment detection (v1.0.5)</h2>
+<h2>Environment detection (v1.0.5+)</h2>
 <p>AKIOS auto-detects its runtime environment at startup (&lt;5ms):</p>
 <ul>
 <li>Container type: native, Docker, Kubernetes, Podman, CI/CD (GitHub Actions, GitLab, Jenkins)</li>
 <li>Terminal capabilities: Unicode support, color depth, TTY detection</li>
 <li>Adjusts defaults (symbol mode, colors, output format) per environment</li>
 </ul>
-<h2>Rich terminal UI (v1.0.5)</h2>
+<h2>Rich terminal UI (v1.0.5+)</h2>
 <p>Semantic color scheme with structured output: <code>print_success()</code>, <code>print_warning()</code>, <code>print_error()</code>, <code>print_table()</code>, <code>print_panel()</code>. Respects <code>NO_COLOR</code> and <code>FORCE_COLOR</code> standards.</p>
-<h2>Accessibility (v1.0.5)</h2>
+<h2>Accessibility (v1.0.5+)</h2>
 <ul>
 <li><strong>Symbol modes</strong>: Unicode (default), ASCII (CI/log-safe), Minimal (screen readers)</li>
 <li><strong>Colorblind modes</strong>: protanopia, deuteranopia, tritanopia, achromatopsia</li>
 <li><strong>7 built-in themes</strong>: default, dark, light, nord, solarized-dark/light, high-contrast</li>
 </ul>
+<h2>Workflow validation (v1.0.7)</h2>
+<p>YAML workflow definitions are validated at load time against the workflow schema. Validation catches structural errors, missing agent references, and invalid step configurations before execution begins.</p>
+<pre><code class="language-bash">akios workflow validate my_workflow.yml
+</code></pre>
+<h2>Audit management (v1.0.7)</h2>
+<p>Audit logs support rotation and statistics. Rotate creates a new audit chain while archiving the old one. Stats shows aggregate metrics across the audit trail.</p>
+<pre><code class="language-bash">akios audit rotate
+akios audit stats
+</code></pre>
+<h2>Cage controls (v1.0.7)</h2>
+<p>The security cage supports ablation flags for benchmarking individual components and configurable erasure for secure data destruction.</p>
+<p><strong>Ablation flags</strong> — Run with specific protections disabled to benchmark overhead:</p>
+<pre><code class="language-bash">akios cage up --no-pii     # Disable PII redaction only
+akios cage up --no-audit   # Disable audit only
+akios cage up --no-budget  # Disable budget enforcement only
+</code></pre>
+<p><strong>Secure erasure</strong> — Configure data destruction passes on cage teardown:</p>
+<pre><code class="language-bash">akios cage down             # Single-pass overwrite (default)
+akios cage down --passes 3  # DOD 5220.22-M (3-pass)
+akios cage down --fast      # Truncate-only (dev/CI)
+</code></pre>
+<h2>EnforceCore</h2>
+<p>The enforcement engine inside AKIOS has been extracted into an independent open-source framework: <a href="enforcecore.html">EnforceCore</a>. EnforceCore provides the same policy enforcement, PII redaction, Merkle audit, and resource guards — available to any Python agent framework under Apache 2.0.</p>
 <h2>Architecture</h2>
 <p>Single-process runtime, no sidecars. State is ephemeral per run; persistence is file-based (data/, audit/). Deployable as pip package or Docker (wrapper or direct). Minimal surface = easy to audit and operate in air‑gapped or high-assurance environments.</p>
 
@@ -183,6 +212,7 @@
           <a href="../docs/index.html">Docs</a>
           <a href="../blog/index.html">Blog</a>
           <a href="../community.html">Community</a>
+          <a href="../docs/enforcecore.html">EnforceCore</a>
           <a href="../docs/faq-glossary.html">FAQ</a>
           <a href="../legal.html">Legal</a>
         </div>
@@ -532,7 +562,8 @@
         { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
         { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
         { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' }
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
       ];
 
       function getDocsBase() {
@@ -687,6 +718,41 @@
   </script>
 
 
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+    (function() {
+      var blocks = document.querySelectorAll('pre code.language-mermaid');
+      if (blocks.length) {
+        blocks.forEach(function(el) {
+          var pre = el.parentElement;
+          var div = document.createElement('div');
+          div.className = 'mermaid';
+          div.textContent = el.textContent;
+          pre.replaceWith(div);
+        });
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        mermaid.initialize({
+          startOnLoad: true,
+          theme: 'base',
+          themeVariables: {
+            primaryColor: isDark ? '#164e63' : '#ecfeff',
+            primaryBorderColor: '#06b6d4',
+            primaryTextColor: isDark ? '#fafafa' : '#18181b',
+            lineColor: '#06b6d4',
+            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
+            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
+            background: isDark ? '#09090b' : '#ffffff',
+            mainBkg: isDark ? '#164e63' : '#ecfeff',
+            nodeBorder: '#06b6d4',
+            clusterBkg: isDark ? '#131316' : '#fafafa',
+            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
+            titleColor: isDark ? '#fafafa' : '#18181b',
+            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
+          }
+        });
+      }
+    })();
+    </script>
     <script>
         (function() {
             const path = window.location.pathname;
