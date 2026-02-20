@@ -19,6 +19,17 @@ echo "📦 Step 1: Syncing..."
 cd "$BASE"
 bash scripts/copy-to-public.sh
 
+# Verify deploy.yml survived the sync
+cd "$PUBLIC"
+if [ ! -s .github/workflows/deploy.yml ]; then
+  echo "⚠️  deploy.yml was corrupted during sync! Restoring..."
+  git checkout HEAD -- .github/workflows/deploy.yml || {
+    echo "❌ Failed to restore deploy.yml!"
+    exit 1
+  }
+  echo "✅ deploy.yml restored"
+fi
+
 # Step 2: Build
 echo ""
 echo "🔨 Step 2: Building..."

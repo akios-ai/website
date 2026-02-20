@@ -234,11 +234,11 @@ akios run templates/hello-workflow.yml</code></pre>
     <div class="page">
       <h2 class="section-heading">{{i18n.home.enforcecore_heading}}</h2>
       <p>{{i18n.home.enforcecore_description}}</p>
-      <div style="display: grid; grid-template-columns: 280px 1fr; gap: var(--space-6); align-items: center; margin: var(--space-5) 0;">
-        <div style="display: flex; align-items: center; justify-content: center;">
-          <img src="{{root}}/assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="max-width: 100%; height: auto;" loading="lazy">
+      <div class="enforcecore-layout">
+        <div class="enforcecore-logo">
+          <img src="{{root}}/assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" loading="lazy">
         </div>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-4);">
+        <div class="enforcecore-features">
           <div class="feature">
             <h3>{{i18n.home.enforcecore_policy_title}}</h3>
             <p>{{i18n.home.enforcecore_policy_desc}}</p>
@@ -304,10 +304,10 @@ akios run templates/hello-workflow.yml</code></pre>
     <div class="page">
       <div class="callout callout-featured">
         <h3>{{i18n.home.support_title}}</h3>
-        <p style="text-align: center;">{{i18n.home.support_question}}</p>
-        <div style="display: flex; justify-content: center; gap: var(--space-3); margin-top: var(--space-3);">
-          <a href="https://discord.gg/akios" style="color: var(--action); text-decoration: none; font-weight: 500;">{{i18n.home.support_discord}}</a>
-          <a href="https://github.com/akios-ai/akios/discussions" style="color: var(--action); text-decoration: none; font-weight: 500;">{{i18n.home.support_discussions}}</a>
+        <p class="support-text">{{i18n.home.support_question}}</p>
+        <div class="support-actions">
+          <a href="https://discord.gg/akios">{{i18n.home.support_discord}}</a>
+          <a href="https://github.com/akios-ai/akios/discussions">{{i18n.home.support_discussions}}</a>
         </div>
       </div>
     </div>

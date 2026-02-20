@@ -488,25 +488,25 @@
       var searchTrigger = document.getElementById('search-trigger');
 
       var docPages = [
-        { title: 'Quickstart', url: 'quickstart.html', section: 'Getting Started' },
-        { title: 'Installation', url: 'installation.html', section: 'Getting Started' },
-        { title: 'Concepts', url: 'concepts.html', section: 'Getting Started' },
-        { title: 'CLI Reference', url: 'cli-reference.html', section: 'Reference' },
-        { title: 'Configuration', url: 'config-reference.html', section: 'Reference' },
-        { title: 'API Reference', url: 'api-reference.html', section: 'Reference' },
-        { title: 'Policy Schema', url: 'policy-schema.html', section: 'Reference' },
-        { title: 'Workflow Schema', url: 'workflow-schema.html', section: 'Reference' },
-        { title: 'Security', url: 'security.html', section: 'Security' },
-        { title: 'Best Practices', url: 'best-practices.html', section: 'Guides' },
-        { title: 'Deployment', url: 'deployment.html', section: 'Guides' },
-        { title: 'EC2 Deployment', url: 'ec2-deployment.html', section: 'Guides' },
-        { title: 'Migration Guide', url: 'migration-guide.html', section: 'Guides' },
-        { title: 'Debugging', url: 'debugging.html', section: 'Guides' },
-        { title: 'Integration: API', url: 'integration-api.html', section: 'Integration' },
-        { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration' },
-        { title: 'Use Cases', url: 'use-cases.html', section: 'Guides' },
-        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference' },
-        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem' }
+        { title: 'Quickstart', url: 'quickstart.html', section: 'Getting Started', keywords: 'install pip init hello workflow setup begin start' },
+        { title: 'Installation', url: 'installation.html', section: 'Getting Started', keywords: 'pip install python requirements dependencies setup docker' },
+        { title: 'Concepts', url: 'concepts.html', section: 'Getting Started', keywords: 'sandbox agents policies audit PII control plane data plane architecture' },
+        { title: 'CLI Reference', url: 'cli-reference.html', section: 'Reference', keywords: 'akios run init command terminal shell flags options' },
+        { title: 'Configuration', url: 'config-reference.html', section: 'Reference', keywords: 'config yaml toml settings options parameters environment variables' },
+        { title: 'API Reference', url: 'api-reference.html', section: 'Reference', keywords: 'python api functions classes methods endpoints SDK' },
+        { title: 'Policy Schema', url: 'policy-schema.html', section: 'Reference', keywords: 'policy rules enforcement allow deny budget limits governance YAML' },
+        { title: 'Workflow Schema', url: 'workflow-schema.html', section: 'Reference', keywords: 'workflow template YAML steps agents pipeline orchestration' },
+        { title: 'Security', url: 'security.html', section: 'Security', keywords: 'sandbox seccomp cgroups isolation kernel PII redaction Merkle audit trail' },
+        { title: 'Best Practices', url: 'best-practices.html', section: 'Guides', keywords: 'production tips patterns recommendations optimization' },
+        { title: 'Deployment', url: 'deployment.html', section: 'Guides', keywords: 'deploy production server docker compose hosting cloud' },
+        { title: 'EC2 Deployment', url: 'ec2-deployment.html', section: 'Guides', keywords: 'AWS EC2 t4g micro ARM cloud deploy Amazon Linux' },
+        { title: 'Migration Guide', url: 'migration-guide.html', section: 'Guides', keywords: 'upgrade migrate version breaking changes v1.0.7 update' },
+        { title: 'Debugging', url: 'debugging.html', section: 'Guides', keywords: 'debug logs errors troubleshoot trace verbose' },
+        { title: 'Integration: API', url: 'integration-api.html', section: 'Integration', keywords: 'REST API HTTP webhook integration connect external' },
+        { title: 'Integration: Documents', url: 'integration-document-processing.html', section: 'Integration', keywords: 'document processing PDF OCR text extraction files' },
+        { title: 'Use Cases', url: 'use-cases.html', section: 'Guides', keywords: 'healthcare banking legal insurance pharma government compliance HIPAA' },
+        { title: 'FAQ & Glossary', url: 'faq-glossary.html', section: 'Reference', keywords: 'frequently asked questions glossary terms definitions help' },
+        { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem', keywords: 'enforcecore framework policy PII redactor Merkle auditor resource guard open source Apache' }
       ];
 
       function getDocsBase() {
@@ -527,7 +527,7 @@
         if (query) {
           var q = query.toLowerCase();
           pages = docPages.filter(function(p) {
-            return p.title.toLowerCase().includes(q) || p.section.toLowerCase().includes(q);
+            return p.title.toLowerCase().includes(q) || p.section.toLowerCase().includes(q) || (p.keywords && p.keywords.toLowerCase().includes(q));
           });
         }
         if (pages.length === 0) {

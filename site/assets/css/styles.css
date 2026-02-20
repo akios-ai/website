@@ -15,6 +15,7 @@
 
   /* Brand */
   --accent: #06b6d4;      /* Cyan-500 */
+  --accent-rgb: 6, 182, 212;
   --accent-dim: rgba(6, 182, 212, 0.10);
 
   /* Actions (AA) */
@@ -709,7 +710,7 @@ blockquote p:last-child {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
-  background: #fff;
+  background: var(--bg);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
   position: relative;
   color: var(--text);
@@ -758,7 +759,7 @@ blockquote p:last-child {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-3);
-  background: #fff;
+  background: var(--bg);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
 
@@ -793,7 +794,7 @@ blockquote p:last-child {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-4);
-  background: #fff;
+  background: var(--bg);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
@@ -854,7 +855,7 @@ blockquote p:last-child {
   border-left: 4px solid var(--accent);
   border-radius: var(--radius);
   padding: var(--space-4);
-  background: #fff;
+  background: var(--bg);
   box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
 }
 
@@ -1809,6 +1810,7 @@ Mobile: Single column blog layout
   --text: #fafafa;
   --muted: #a1a1aa;
   --accent: #22d3ee;
+  --accent-rgb: 34, 211, 238;
   --accent-dim: rgba(34, 211, 238, 0.10);
   --action: #06b6d4;
   --action-hover: #22d3ee;
@@ -2350,6 +2352,92 @@ Mobile: Single column blog layout
 
 [data-theme="dark"] .back-to-top {
   background: var(--bg-alt);
+}
+
+/* =============================================
+   ENFORCECORE LANDING SECTION LAYOUT
+   ============================================= */
+
+.enforcecore-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-6);
+  align-items: center;
+  margin: var(--space-5) 0;
+}
+
+.enforcecore-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enforcecore-logo img {
+  max-width: 100%;
+  height: auto;
+}
+
+.enforcecore-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 768px) {
+  .enforcecore-layout {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    text-align: center;
+  }
+
+  .enforcecore-logo {
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  .enforcecore-features {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =============================================
+   SUPPORT CALLOUT ACTIONS
+   ============================================= */
+
+.support-text {
+  text-align: center;
+}
+
+.support-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.support-actions a {
+  color: var(--action);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.support-actions a:hover {
+  color: var(--accent);
+}
+
+/* =============================================
+   REDUCED MOTION
+   ============================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 
