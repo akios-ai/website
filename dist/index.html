@@ -271,35 +271,31 @@ akios run templates/hello-workflow.yml</code></pre>
 
   <!-- EnforceCore Section -->
   <section class="section bg-alt">
-    <div class="page hero-grid">
-      <figure class="hero-figure" style="display: flex; align-items: center; justify-content: center;">
-        <img src="./assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="max-width: 280px; height: auto;" loading="lazy">
-      </figure>
-      <div class="hero hero-left">
-        <h2 class="section-heading" style="margin-top: 0;">EnforceCore</h2>
-        <p>The open-source enforcement framework we designed as the foundation of AKIOS. Runtime policy enforcement, PII redaction, Merkle audit, and resource guards — for any Python agent framework.</p>
-        <div class="features-grid" style="margin-top: var(--space-4);">
-          <div class="feature">
-            <h3>Policy Engine</h3>
-            <p>Declarative YAML policies evaluated at every call boundary. Mandatory, not advisory.</p>
-          </div>
-          <div class="feature">
-            <h3>PII Redactor</h3>
-            <p>Real-time detection and redaction on inputs and outputs. Configurable strategies.</p>
-          </div>
-          <div class="feature">
-            <h3>Merkle Auditor</h3>
-            <p>SHA-256 Merkle tree audit trail. Tamper-proof, cryptographically chained.</p>
-          </div>
-          <div class="feature">
-            <h3>Resource Guard</h3>
-            <p>Cross-platform resource limits: time, memory, cost. Automatic kill-switch.</p>
-          </div>
+    <div class="page" style="position: relative;">
+      <img src="./assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="position: absolute; top: 0; right: 0; max-width: 180px; height: auto; opacity: 0.9;" loading="lazy">
+      <h2 class="section-heading">EnforceCore</h2>
+      <p>The open-source enforcement framework we designed as the foundation of AKIOS. Runtime policy enforcement, PII redaction, Merkle audit, and resource guards — for any Python agent framework.</p>
+      <div class="features-grid">
+        <div class="feature">
+          <h3>Policy Engine</h3>
+          <p>Declarative YAML policies evaluated at every call boundary. Mandatory, not advisory.</p>
         </div>
-        <div class="hero-actions" style="margin-top: var(--space-4);">
-          <a href="docs/enforcecore.html" class="btn btn-primary">Read the Docs</a>
-          <a href="https://github.com/akios-ai/enforcecore" class="btn btn-outline" rel="noopener">View on GitHub</a>
+        <div class="feature">
+          <h3>PII Redactor</h3>
+          <p>Real-time detection and redaction on inputs and outputs. Configurable strategies.</p>
         </div>
+        <div class="feature">
+          <h3>Merkle Auditor</h3>
+          <p>SHA-256 Merkle tree audit trail. Tamper-proof, cryptographically chained.</p>
+        </div>
+        <div class="feature">
+          <h3>Resource Guard</h3>
+          <p>Cross-platform resource limits: time, memory, cost. Automatic kill-switch.</p>
+        </div>
+      </div>
+      <div class="hero-actions" style="margin-top: var(--space-4);">
+        <a href="docs/enforcecore.html" class="btn btn-primary">Read the Docs</a>
+        <a href="https://github.com/akios-ai/enforcecore" class="btn btn-outline" rel="noopener">View on GitHub</a>
       </div>
     </div>
   </section>
