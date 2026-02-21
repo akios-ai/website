@@ -24,7 +24,7 @@
         <a href="../../blog/index.html">Blog</a>
         <a href="../../case-studies/index.html">Case Studies</a>
         <a href="../../community.html">Community</a>
-        <a href="../../docs/enforcecore.html">EnforceCore</a>
+        <a href="../../enforcecore/index.html">EnforceCore</a>
         <a href="https://github.com/akios-ai/akios" target="_blank" rel="noopener">GitHub ↗</a>
       </nav>
       <div class="header-actions">
@@ -510,7 +510,7 @@ steps:
           <a href="../../docs/index.html">Docs</a>
           <a href="../../blog/index.html">Blog</a>
           <a href="../../community.html">Community</a>
-          <a href="../../docs/enforcecore.html">EnforceCore</a>
+          <a href="../../enforcecore/index.html">EnforceCore</a>
           <a href="../../docs/faq-glossary.html">FAQ</a>
           <a href="../../legal.html">Legal</a>
         </div>
@@ -864,6 +864,17 @@ steps:
         { title: 'EnforceCore', url: 'enforcecore.html', section: 'Ecosystem', keywords: 'enforcecore framework policy PII redactor Merkle auditor resource guard open source Apache' }
       ];
 
+      var enforcecoreDocs = [
+        { title: 'EnforceCore Overview', url: '/enforcecore/index.html', section: 'EnforceCore', keywords: 'enforcecore overview runtime enforcement AI agents policy PII open source', absolute: true },
+        { title: 'EC Quick Start', url: '/enforcecore/quickstart.html', section: 'EnforceCore', keywords: 'enforcecore quickstart install getting started tutorial decorator', absolute: true },
+        { title: 'EC Architecture', url: '/enforcecore/architecture.html', section: 'EnforceCore', keywords: 'enforcecore architecture pipeline enforcer policy engine redactor auditor guard', absolute: true },
+        { title: 'EC API Reference', url: '/enforcecore/api-reference.html', section: 'EnforceCore', keywords: 'enforcecore api enforce decorator enforcer policy redactor auditor hardening', absolute: true },
+        { title: 'EC Integrations', url: '/enforcecore/integrations.html', section: 'EnforceCore', keywords: 'enforcecore langgraph crewai autogen integration adapter framework', absolute: true },
+        { title: 'EC Evaluation', url: '/enforcecore/evaluation.html', section: 'EnforceCore', keywords: 'enforcecore evaluation adversarial testing benchmark containment threats', absolute: true },
+        { title: 'EC Troubleshooting', url: '/enforcecore/troubleshooting.html', section: 'EnforceCore', keywords: 'enforcecore troubleshooting faq errors debugging common issues', absolute: true },
+        { title: 'EC Roadmap', url: '/enforcecore/roadmap.html', section: 'EnforceCore', keywords: 'enforcecore roadmap releases versions changelog future plans', absolute: true }
+      ];
+
       function getDocsBase() {
         var p = window.location.pathname;
         if (p.includes('/fr/')) {
@@ -879,22 +890,35 @@ steps:
       function renderResults(query) {
         var base = getDocsBase();
         var pages = docPages;
+        var ecPages = enforcecoreDocs;
         if (query) {
           var q = query.toLowerCase();
           pages = docPages.filter(function(p) {
             return p.title.toLowerCase().includes(q) || p.section.toLowerCase().includes(q) || (p.keywords && p.keywords.toLowerCase().includes(q));
           });
+          ecPages = enforcecoreDocs.filter(function(p) {
+            return p.title.toLowerCase().includes(q) || p.section.toLowerCase().includes(q) || (p.keywords && p.keywords.toLowerCase().includes(q));
+          });
         }
-        if (pages.length === 0) {
+        var allResults = pages.length + ecPages.length;
+        if (allResults === 0) {
           searchResults.innerHTML = '<div class="search-no-results">No results found</div>';
           return;
         }
         var heading = query ? '' : '<div class="search-hint">Top docs &middot; use &uarr;&darr; to navigate</div>';
-        searchResults.innerHTML = heading + pages.map(function(p) {
+        var docsHtml = pages.map(function(p) {
           return '<a class="search-result" href="' + base + p.url + '">' +
             '<span class="search-result-title">' + p.title + '</span>' +
             '<span class="search-result-section">' + p.section + '</span></a>';
         }).join('');
+        var ecHtml = ecPages.map(function(p) {
+          var isFr = window.location.pathname.includes('/fr/');
+          var url = isFr ? '/fr' + p.url : p.url;
+          return '<a class="search-result" href="' + url + '">' +
+            '<span class="search-result-title">' + p.title + '</span>' +
+            '<span class="search-result-section">' + p.section + '</span></a>';
+        }).join('');
+        searchResults.innerHTML = heading + docsHtml + ecHtml;
       }
 
       function openSearch() {

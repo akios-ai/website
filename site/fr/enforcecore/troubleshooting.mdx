@@ -1,0 +1,161 @@
+---
+title: EnforceCore — Dépannage & FAQ
+keywords: enforcecore dépannage FAQ erreurs débogage problèmes courants aide
+---
+
+# Dépannage & FAQ
+
+---
+
+## Erreurs Courantes
+
+### `InvalidToolNameError`
+
+Le nom d'outil contient des caractères non autorisés. Caractères valides : `[a-zA-Z0-9_.\-:<>]`.
+
+**Solution :** Passer un `tool_name` explicite et valide.
+
+### `InputTooLargeError`
+
+Les arguments combinés dépassent 10 Mo (défaut).
+
+**Solution :** Réduire la taille ou augmenter la limite :
+```python
+check_input_size(args, kwargs, max_bytes=50 * 1024 * 1024)
+```
+
+### `EnforcementDepthError`
+
+Un outil protégé a appelé un autre outil protégé, dépassant la profondeur max de 10.
+
+**Solution :** Vérifier les chaînes récursives d'enforcement.
+
+### `ToolDeniedError`
+
+La politique n'autorise pas l'outil appelé.
+
+**Solution :** Ajouter le nom de l'outil à `allowed_tools` :
+```yaml
+rules:
+  allowed_tools:
+    - "votre_outil"
+```
+
+### `CostLimitError`
+
+Le coût cumulé dépasse le budget dans `resource_limits.max_cost_usd`.
+
+### `ResourceLimitError`
+
+L'appel a dépassé `resource_limits.max_call_duration_seconds`.
+
+### `PolicyLoadError`
+
+`@enforce` utilisé sans politique et aucune politique par défaut configurée.
+
+**Solution :**
+```bash
+ENFORCECORE_DEFAULT_POLICY=policies/default.yaml
+```
+
+---
+
+## Conseils de Débogage
+
+### Activer les logs de débogage
+
+```bash
+ENFORCECORE_LOG_LEVEL=DEBUG
+```
+
+### Vérifier la portée d'enforcement
+
+```python
+from enforcecore import get_enforcement_depth, get_enforcement_chain
+print(f"Profondeur : {get_enforcement_depth()}")
+print(f"Chaîne : {get_enforcement_chain()}")
+```
+
+### Vérifier l'intégrité de la piste d'audit
+
+```python
+from enforcecore import verify_trail
+result = verify_trail("audit.jsonl")
+```
+
+### Tester votre politique
+
+```python
+from enforcecore.eval import ScenarioRunner
+from enforcecore.core.policy import Policy
+
+policy = Policy.from_file("policy.yaml")
+runner = ScenarioRunner(policy)
+suite = runner.run_all()
+print(f"Confinement : {suite.containment_rate:.0%}")
+```
+
+---
+
+## FAQ
+
+### Qu'est-ce qu'EnforceCore ?
+
+Une couche d'enforcement runtime pour les agents IA. Intercepte les appels d'outils/API à la frontière du code et applique des règles de politique.
+
+### En quoi c'est différent des garde-fous de prompt ?
+
+Les garde-fous de prompt *demandent* au modèle de bien se comporter — ils peuvent être contournés. EnforceCore opère à la **frontière d'exécution** — l'enforcement au niveau du code est incontournable.
+
+### Est-ce compatible avec mon framework ?
+
+Oui. Fonctionne avec tout système d'agent Python : `@enforce()`, LangGraph, CrewAI, AutoGen.
+
+### Que signifie « fail-closed » ?
+
+Si quelque chose échoue pendant l'enforcement, l'appel est **bloqué** — jamais autorisé. C'est le comportement par défaut.
+
+### Quelles catégories PII sont supportées ?
+
+| Catégorie | Exemple | Placeholder |
+|---|---|---|
+| `email` | `john@example.com` | `<EMAIL>` |
+| `phone` | `(555) 123-4567` | `<PHONE>` |
+| `ssn` | `123-45-6789` | `<SSN>` |
+| `credit_card` | `4111-1111-1111-1111` | `<CREDIT_CARD>` |
+| `ip_address` | `192.168.1.100` | `<IP_ADDRESS>` |
+
+### Quelle est la surcharge d'enforcement ?
+
+| Composant | Surcharge |
+|---|---|
+| Évaluation de politique | < 1ms |
+| Rédaction PII | 0.1–0.5ms |
+| Entrée d'audit | < 1ms |
+| **Total typique** | **8–20ms** |
+
+---
+
+## Notes de Plateforme
+
+| Fonctionnalité | Linux | macOS | Windows |
+|---|---|---|---|
+| Limites de temps | ✓ | ✓ | ✓ |
+| Limites mémoire | ✓ | ~ (consultatif) | ✗ |
+| Suivi des coûts | ✓ | ✓ | ✓ |
+| KillSwitch | ✓ | ✓ | ✓ |
+
+---
+
+## Variables d'Environnement
+
+| Variable | Défaut | Description |
+|---|---|---|
+| `ENFORCECORE_DEFAULT_POLICY` | `None` | Chemin de politique |
+| `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Répertoire d'audit |
+| `ENFORCECORE_AUDIT_ENABLED` | `true` | Activer l'audit |
+| `ENFORCECORE_REDACTION_ENABLED` | `true` | Activer la rédaction |
+| `ENFORCECORE_LOG_LEVEL` | `INFO` | Niveau de log |
+| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Budget global |
+| `ENFORCECORE_FAIL_OPEN` | `false` | Contournement |
+| `ENFORCECORE_DEV_MODE` | `false` | Mode développement |

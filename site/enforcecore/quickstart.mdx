@@ -1,0 +1,200 @@
+---
+title: EnforceCore — Quick Start
+keywords: enforcecore quickstart getting started install policy decorator tutorial
+---
+
+# Quick Start
+
+Get EnforceCore protecting your AI agent in under 5 minutes.
+
+---
+
+## Install
+
+```bash
+pip install enforcecore
+```
+
+Requires Python 3.11+. Dependencies: Pydantic v2, PyYAML, structlog, cryptography.
+
+---
+
+## 1. Create a Policy
+
+Create a `policy.yaml` file that defines what your agent is allowed to do:
+
+```yaml
+name: "my-agent-policy"
+version: "1.0"
+
+rules:
+  allowed_tools:
+    - "search_web"
+    - "read_file"
+    - "calculator"
+
+  denied_tools:
+    - "execute_shell"
+    - "send_email"
+
+  pii_redaction:
+    enabled: true
+    categories:
+      - email
+      - phone
+      - ssn
+      - credit_card
+      - ip_address
+
+  resource_limits:
+    max_call_duration_seconds: 30
+    max_memory_mb: 256
+    max_cost_usd: 1.00
+
+on_violation: "block"
+```
+
+---
+
+## 2. Protect Your Tools
+
+Use the `@enforce` decorator on any function your agent calls:
+
+```python
+from enforcecore import enforce
+
+# Async functions
+@enforce(policy="policy.yaml")
+async def search_web(query: str) -> str:
+    return await api.search(query)
+
+# Sync functions
+@enforce(policy="policy.yaml")
+def read_file(path: str) -> str:
+    return open(path).read()
+```
+
+That's it. Every call now passes through the enforcement pipeline:
+
+1. **Pre-call** — Policy evaluation, tool name validation, input size check
+2. **Redact inputs** — PII detected and replaced before the tool sees the data
+3. **Execute** — Tool runs inside resource guard (time/memory/cost limits)
+4. **Redact outputs** — PII detected and replaced before response is returned
+5. **Audit** — Merkle-chained entry recorded in tamper-proof trail
+
+---
+
+## 3. Inline Policies
+
+For quick prototyping, skip the YAML file:
+
+```python
+@enforce(
+    allowed_tools=["search_web", "calculator"],
+    pii_redaction=True,
+    max_cost_usd=5.0,
+)
+async def my_tool(args: dict) -> str:
+    ...
+```
+
+---
+
+## 4. Context Manager
+
+When the decorator doesn't fit (wrapping third-party code, dynamic tool names):
+
+```python
+from enforcecore import enforce
+
+async def run_agent_tool(tool_name: str, args: dict) -> dict:
+    async with enforce(policy="policy.yaml", tool_name=tool_name) as ctx:
+        result = await execute_tool(tool_name, args)
+        ctx.record_result(result)
+    return result
+```
+
+---
+
+## 5. Programmatic Control
+
+For full control, use the `Enforcer` class directly:
+
+```python
+from enforcecore import Enforcer, Policy
+
+# Load policy
+enforcer = Enforcer(Policy.from_file("policy.yaml"))
+
+# Enforce a call
+result = await enforcer.enforce_async(search_fn, "query", tool_name="search_web")
+
+# Access metadata
+print(enforcer.policy_name)                 # "my-agent-policy"
+print(enforcer.guard.cost_tracker.total_cost)  # Cumulative spend
+```
+
+---
+
+## 6. Verify Your Audit Trail
+
+Every enforced call (allowed or blocked) is recorded in a Merkle-chained JSONL file:
+
+```python
+from enforcecore import verify_trail, load_trail
+
+# Verify integrity
+result = verify_trail("audit.jsonl")
+print(result.is_valid)        # True
+print(result.total_entries)   # Number of recorded calls
+print(result.chain_intact)    # No tampering
+
+# Load for analysis
+trail = load_trail("audit.jsonl")
+for entry in trail:
+    print(f"{entry.tool_name} → {entry.decision}")
+```
+
+---
+
+## 7. Test Your Policies
+
+Run the built-in adversarial evaluation suite to verify your policies actually block threats:
+
+```python
+from enforcecore.core.policy import Policy
+from enforcecore.eval import ScenarioRunner
+
+policy = Policy.from_file("policy.yaml")
+runner = ScenarioRunner(policy)
+suite = runner.run_all()
+
+print(f"Containment rate: {suite.containment_rate:.0%}")
+# Expected: 100% — all 13 adversarial scenarios blocked
+```
+
+---
+
+## Configuration
+
+All settings can be overridden via environment variables:
+
+```bash
+ENFORCECORE_DEFAULT_POLICY=policies/default.yaml
+ENFORCECORE_AUDIT_PATH=./audit_logs/
+ENFORCECORE_AUDIT_ENABLED=true
+ENFORCECORE_REDACTION_ENABLED=true
+ENFORCECORE_LOG_LEVEL=INFO
+ENFORCECORE_COST_BUDGET_USD=100.0
+ENFORCECORE_FAIL_OPEN=false   # NEVER set to true in production
+ENFORCECORE_DEV_MODE=false
+```
+
+---
+
+## Next Steps
+
+- [Architecture →](architecture.html) — Understand the enforcement pipeline
+- [API Reference →](api-reference.html) — Complete API surface (68 exports)
+- [Integrations →](integrations.html) — LangGraph, CrewAI, AutoGen adapters
+- [Evaluation Suite →](evaluation.html) — Test your policies against 13 adversarial scenarios

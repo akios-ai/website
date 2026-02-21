@@ -1,0 +1,142 @@
+---
+title: EnforceCore — Runtime Enforcement for AI Agents
+keywords: enforcecore runtime enforcement AI agents policy PII redactor Merkle auditor resource guard open source
+---
+
+# EnforceCore
+
+**Lightweight, open-source runtime enforcement for any Python-based AI agent.**
+
+EnforceCore is a modular enforcement framework that intercepts every external call your agent makes — tool calls, API requests, file access — and applies mandatory policy checks, PII redaction, resource limits, and tamper-proof audit logging.
+
+It operates at the **runtime call boundary** — the only layer that cannot be jailbroken, bypassed, or prompt-injected away.
+
+```python
+from enforcecore import enforce
+
+@enforce(policy="policy.yaml")
+async def search_web(query: str) -> str:
+    return await api.search(query)
+
+# If "search_web" is not in allowed_tools → blocked. Period.
+# PII in query → auto-redacted before the call.
+# Every call → cryptographic audit entry.
+```
+
+---
+
+## Why EnforceCore
+
+The AI agent ecosystem is racing to build more capable autonomous systems. But almost nobody is building the **control layer**.
+
+Most "safety" solutions are prompt-level guardrails — suggestions to the LLM that can be bypassed, ignored, or jailbroken. They operate at the wrong layer.
+
+**EnforceCore enforces at the code boundary.** Policies are mandatory, not advisory. If a call violates policy, it is blocked — before it ever executes.
+
+### Enforce, don't suggest
+Policies are mandatory. A denied tool call never executes. There is no "override" prompt.
+
+### Framework-agnostic
+Works with LangGraph, CrewAI, AutoGen, or plain Python. No lock-in.
+
+### Verifiable
+Every enforced call produces a SHA-256 Merkle-chained audit entry. The full trail is tamper-proof and cryptographically verifiable.
+
+### Lightweight
+8–20ms typical overhead. Negligible compared to tool call latency (100ms–10s).
+
+---
+
+## Core Components
+
+| Component | What it does |
+|---|---|
+| **Policy Engine** | Declarative YAML + Pydantic v2 policies. Allowed/denied tools, conditions, violation handling. |
+| **PII Redactor** | Regex-based detection of 5 PII categories. Auto-redacts inputs and outputs. ~0.1–0.5ms per call. |
+| **Merkle Auditor** | SHA-256 chained audit trail. Every call logged. Tamper detection built in. JSONL format. |
+| **Resource Guard** | Time limits, memory limits, cost tracking. Cross-platform (Linux, macOS, Windows). |
+| **Integration Adapters** | Drop-in adapters for LangGraph, CrewAI, AutoGen. ~20–50 lines each. |
+| **Evaluation Suite** | 13 adversarial scenarios across 7 threat categories. Benchmark suite with P95/P99 stats. |
+
+---
+
+## Install
+
+```bash
+pip install enforcecore
+```
+
+Python 3.11+ required. No heavy dependencies — Pydantic v2, PyYAML, structlog, cryptography.
+
+---
+
+## Quick Start
+
+### 1. Define a policy
+
+```yaml
+# policy.yaml
+name: "my-agent-policy"
+version: "1.0"
+
+rules:
+  allowed_tools:
+    - "search_web"
+    - "calculator"
+  denied_tools:
+    - "execute_shell"
+  pii_redaction:
+    enabled: true
+    categories: [email, phone, ssn]
+  resource_limits:
+    max_call_duration_seconds: 30
+    max_cost_usd: 5.00
+
+on_violation: "block"
+```
+
+### 2. Protect your tools
+
+```python
+from enforcecore import enforce
+
+@enforce(policy="policy.yaml")
+async def search_web(query: str) -> str:
+    return await api.search(query)
+
+@enforce(policy="policy.yaml")
+def calculator(expression: str) -> str:
+    return str(eval(expression))
+```
+
+### 3. Verify your audit trail
+
+```python
+from enforcecore import verify_trail
+
+result = verify_trail("audit.jsonl")
+assert result.is_valid     # True — chain intact
+assert result.chain_intact  # No tampering detected
+```
+
+That's it. Three lines of enforcement code. Full policy control, PII redaction, resource limits, and a cryptographic audit trail — all automatic.
+
+---
+
+## Who is this for?
+
+- **Agent developers** who need production-grade safety without rewriting their stack
+- **Enterprises** deploying AI agents in regulated environments (finance, healthcare, legal)
+- **Researchers** studying runtime verification, sandboxing, and formal guarantees for agents
+- **Teams** preparing for EU AI Act compliance requirements
+
+---
+
+## Open Source
+
+EnforceCore is Apache 2.0 licensed. No hidden commercial agenda in the core.
+
+- [GitHub Repository](https://github.com/akios-ai/enforcecore)
+- [Architecture →](architecture.html)
+- [API Reference →](api-reference.html)
+- [Quick Start →](quickstart.html)
