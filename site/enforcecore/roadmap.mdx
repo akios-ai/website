@@ -1,0 +1,160 @@
+---
+title: EnforceCore — Roadmap
+keywords: enforcecore roadmap releases versions v1.0 changelog future plans
+---
+
+# Roadmap
+
+EnforceCore ships incrementally. Each release adds one well-tested, well-documented component. No release ships without full test coverage, updated documentation, and passing CI.
+
+---
+
+## Released Versions
+
+### v1.0.0 — Core Enforcer + Policy Engine
+
+The foundation. Minimal viable enforcement framework.
+
+- `@enforce(policy=...)` decorator (sync + async)
+- `enforce()` context manager
+- Policy Engine with Pydantic v2 models + YAML loading
+- Pre-call rule evaluation (allowed/denied tools)
+- `EnforcementViolation` exception hierarchy
+- Configuration via pydantic-settings
+- Structured logging via structlog
+- 94 tests, 97% coverage
+
+### v1.0.1 — PII Redactor
+
+Real-time PII detection and redaction.
+
+- Regex-based detection — no heavy deps (no spaCy, no Presidio)
+- 5 PII categories: email, phone, SSN, credit card, IP address
+- 4 strategies: placeholder, mask, hash, remove
+- Auto-wired into enforce pipeline (input + output)
+- ~0.1–0.5ms per call
+- 161 tests, 97% coverage
+
+### v1.0.2 — Merkle Auditor
+
+Tamper-proof, cryptographically verifiable audit trails.
+
+- SHA-256 Merkle chain linking entries
+- 14-field AuditEntry with timing and redaction stats
+- Cross-session chain continuity
+- `verify_trail()` with tamper detection
+- JSONL format with thread-safe append
+- 213 tests, 96% coverage
+
+### v1.0.3 — Resource Guard
+
+Cross-platform resource limits and hard termination.
+
+- Time limits (all platforms)
+- Memory limits (Linux strict, macOS advisory)
+- Cumulative cost tracking with configurable budget
+- KillSwitch for hard termination
+- Platform detection abstraction
+- 284 tests, 96% coverage
+
+### v1.0.4 — Framework Integrations
+
+Drop-in adapters for popular agent frameworks.
+
+- LangGraph / LangChain adapter
+- CrewAI adapter
+- AutoGen adapter
+- No hard dependencies on any framework
+- `wrap_with_policy()` for custom adapters
+- 334 tests, 96% coverage
+
+### v1.0.5 — Evaluation Suite
+
+Adversarial testing framework for agent containment.
+
+- 13 adversarial scenarios across 7 threat categories
+- ScenarioRunner with category/severity/tag filtering
+- BenchmarkRunner with 7 per-component benchmarks
+- Markdown report generation
+- CLI: `enforcecore eval`
+
+### v1.0.6 — Hardening + Polish
+
+Production readiness and security hardening.
+
+- Tool name validation (charset, length)
+- Input size validation (10 MB default)
+- Enforcement scope tracking (contextvars, max depth 10)
+- Deep recursive PII redaction (nested data structures)
+- Unicode hardening (NFC, homoglyphs, URL/HTML decoding)
+- Dev-mode gating for fail_open
+- Thread-safe policy cache
+- Auditor: `max_entries` parameter, optimized resume
+- **544 tests, 96% coverage**
+- **Stable public API (68 exports)**
+
+---
+
+## Current Status
+
+All v1.0.x releases have shipped. The public API is considered stable after v1.0.6.
+
+| Metric | Value |
+|---|---|
+| Tests | 544 |
+| Coverage | 96% |
+| Public exports | 68 |
+| PII categories | 5 |
+| Adversarial scenarios | 13 |
+| Threat categories | 7 |
+| Framework adapters | 3 |
+| Dependencies | 4 (Pydantic v2, PyYAML, structlog, cryptography) |
+
+---
+
+## Future Directions
+
+These are potential future work — not committed:
+
+### v1.1 — Network Enforcement
+Domain filtering, request inspection, and network-level policy rules.
+
+### v1.2 — Policy Hub
+Community repository of reusable, audited policies.
+
+### v1.3 — Formal Verification
+Integration with model checkers for mathematical policy guarantees.
+
+### v1.4 — Multi-Language Support
+TypeScript and Go bindings for non-Python ecosystems.
+
+### v2.0 — Distributed Enforcement
+Enforcement for multi-agent systems across processes and machines.
+
+---
+
+## Tech Stack
+
+| Dependency | Role | Why |
+|---|---|---|
+| **Pydantic v2** | Policy validation, settings | Industry standard, fast, great DX |
+| **pydantic-settings** | Configuration management | Env vars + YAML + defaults |
+| **PyYAML** | Policy file loading | YAML policies are human-readable |
+| **structlog** | Structured logging | Context-rich, JSON-serializable |
+| **cryptography** | Merkle chain hashing | Battle-tested SHA-256 |
+| **Hatch** | Build system | Modern PEP 517 builder |
+
+### Platform Support
+
+| Python | Linux | macOS | Windows |
+|---|---|---|---|
+| 3.11+ | ✓ Full | ✓ Full | ✓ Most features |
+
+---
+
+## Contributing
+
+EnforceCore is Apache 2.0 licensed. Contributions are welcome.
+
+- [GitHub Repository](https://github.com/akios-ai/enforcecore)
+- [Issue Tracker](https://github.com/akios-ai/enforcecore/issues)

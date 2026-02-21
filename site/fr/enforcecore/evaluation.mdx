@@ -1,0 +1,126 @@
+---
+title: EnforceCore — Suite d'Évaluation
+keywords: enforcecore évaluation adversarial test scénarios benchmark confinement menaces sécurité
+---
+
+# Suite d'Évaluation
+
+EnforceCore inclut un framework d'évaluation adversariale intégré. Validez que vos politiques bloquent réellement les menaces et mesurez la surcharge d'enforcement.
+
+---
+
+## Démarrage Rapide
+
+```python
+from enforcecore.core.policy import Policy
+from enforcecore.eval import ScenarioRunner, BenchmarkRunner, generate_report
+
+policy = Policy.from_file("policies/strict.yaml")
+
+runner = ScenarioRunner(policy)
+suite = runner.run_all()
+print(f"Confinement : {suite.containment_rate:.0%}")
+
+bench = BenchmarkRunner(policy=policy)
+benchmarks = bench.run_all(iterations=1000)
+
+report = generate_report(suite, benchmarks)
+```
+
+---
+
+## Catégories de Menaces
+
+**13 scénarios adversariaux** sur **7 catégories** :
+
+| Catégorie | Description | Scénarios |
+|---|---|---|
+| **Abus d'outils** | Appel d'outils hors de la liste autorisée | 3 |
+| **Exfiltration de données** | Fuite via sorties surdimensionnées ou PII | 2 |
+| **Épuisement de ressources** | Dépassement de limites temps/coûts | 2 |
+| **Évasion de politique** | Usurpation de noms d'outils, variation de casse | 2 |
+| **Fuite PII** | Données personnelles dans les arguments | 1 |
+| **Escalade de privilèges** | Tester tous les outils refusés | 1 |
+| **Injection de prompt** | Payloads d'injection dans arguments ou noms | 2 |
+
+---
+
+## Exécution des Scénarios
+
+### Tous les Scénarios
+
+```python
+runner = ScenarioRunner(policy)
+suite = runner.run_all()
+```
+
+### Filtrer par Catégorie
+
+```python
+from enforcecore.eval import ThreatCategory
+suite = runner.run_all(category=ThreatCategory.TOOL_ABUSE)
+```
+
+### Exécution Rapide (HAUTE + CRITIQUE)
+
+```python
+suite = runner.run_quick()
+```
+
+---
+
+## Comprendre les Résultats
+
+```python
+print(suite.total)             # Total de scénarios
+print(suite.contained)         # Menaces bloquées ✅
+print(suite.escaped)           # Menaces non bloquées ❌
+print(suite.containment_rate)  # confinés / (confinés + échappés)
+```
+
+| Résultat | Signification |
+|---|---|
+| `CONTAINED` | Menace bloquée par l'enforcement ✅ |
+| `ESCAPED` | Menace NON bloquée ❌ |
+| `ERROR` | Échec inattendu de l'exécution ⚠️ |
+| `SKIPPED` | Scénario non applicable |
+
+---
+
+## Benchmarks de Performance
+
+| Benchmark | Ce qu'il mesure |
+|---|---|
+| `policy_pre_call` | Enforcement pré-appel |
+| `policy_post_call` | Évaluation post-appel |
+| `pii_redaction` | Scan et rédaction PII |
+| `audit_record` | Entrée d'audit Merkle |
+| `guard_overhead` | Surcharge du guard |
+| `enforcer_e2e` | Pipeline complet (sans PII) |
+| `enforcer_e2e_with_pii` | Pipeline complet + PII |
+
+```python
+bench = BenchmarkRunner()
+suite = bench.run_all(iterations=1000)
+
+for r in suite.results:
+    print(f"{r.name}: {r.mean_ms:.3f}ms ({r.ops_per_second:,.0f} ops/s)")
+```
+
+---
+
+## CLI
+
+```bash
+enforcecore eval --scenarios all --output results/
+enforcecore eval --scenario data-exfiltration --policy my_policy.yaml
+```
+
+---
+
+## Bonnes Pratiques
+
+1. **Tester avec plusieurs politiques.** Une politique stricte devrait avoir 100% de confinement.
+2. **Exécuter les benchmarks sur des environnements propres.** Utilisez `iterations=1000` minimum.
+3. **Ajouter l'évaluation au CI.** Détecter automatiquement les régressions de politique.
+4. **Sauvegarder les rapports.** Écrire dans des fichiers pour la comparaison historique.

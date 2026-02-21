@@ -29,6 +29,21 @@
       "api_reference": "API Reference",
       "debugging": "Debugging"
     },
+    "ec_sidebar": {
+      "getting_started": "Getting Started",
+      "overview": "Overview",
+      "quickstart": "Quick Start",
+      "core": "Core",
+      "architecture": "Architecture",
+      "api_reference": "API Reference",
+      "integrations": "Integrations",
+      "testing": "Testing",
+      "evaluation": "Evaluation Suite",
+      "resources": "Resources",
+      "troubleshooting": "Troubleshooting & FAQ",
+      "roadmap": "Roadmap",
+      "github": "GitHub"
+    },
     "meta": {
       "lang_label": "Language",
       "lang_switch_label": "FR",
@@ -79,6 +94,21 @@
       "cli_reference": "Référence CLI",
       "api_reference": "Référence API",
       "debugging": "Débogage"
+    },
+    "ec_sidebar": {
+      "getting_started": "Démarrage",
+      "overview": "Vue d'ensemble",
+      "quickstart": "Démarrage rapide",
+      "core": "Cœur",
+      "architecture": "Architecture",
+      "api_reference": "Référence API",
+      "integrations": "Intégrations",
+      "testing": "Tests",
+      "evaluation": "Suite d'évaluation",
+      "resources": "Ressources",
+      "troubleshooting": "Dépannage & FAQ",
+      "roadmap": "Feuille de route",
+      "github": "GitHub"
     },
     "meta": {
       "lang_label": "Langue",

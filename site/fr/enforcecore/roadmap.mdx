@@ -1,0 +1,132 @@
+---
+title: EnforceCore — Feuille de Route
+keywords: enforcecore feuille de route versions v1.0 changelog plans futurs
+---
+
+# Feuille de Route
+
+EnforceCore est livré de manière incrémentale. Chaque version ajoute un composant bien testé et documenté.
+
+---
+
+## Versions Publiées
+
+### v1.0.0 — Core Enforcer + Policy Engine
+
+La fondation. Cadre d'enforcement minimal viable.
+
+- Décorateur `@enforce(policy=...)` (sync + async)
+- Context manager `enforce()`
+- Policy Engine avec modèles Pydantic v2 + chargement YAML
+- 94 tests, 97% de couverture
+
+### v1.0.1 — Rédacteur PII
+
+Détection et rédaction PII en temps réel.
+
+- Détection regex — aucune dépendance lourde
+- 5 catégories PII, 4 stratégies de rédaction
+- ~0.1–0.5ms par appel
+- 161 tests, 97% de couverture
+
+### v1.0.2 — Auditeur Merkle
+
+Pistes d'audit inviolables et vérifiables.
+
+- Chaîne Merkle SHA-256
+- Continuité inter-sessions
+- Détection de falsification
+- 213 tests, 96% de couverture
+
+### v1.0.3 — Resource Guard
+
+Limites de ressources multi-plateformes.
+
+- Limites de temps (toutes plateformes)
+- Limites mémoire (Linux strict, macOS consultatif)
+- Suivi cumulatif des coûts
+- KillSwitch
+- 284 tests, 96% de couverture
+
+### v1.0.4 — Intégrations Framework
+
+Adaptateurs pour les frameworks d'agents populaires.
+
+- LangGraph / LangChain, CrewAI, AutoGen
+- Aucune dépendance requise sur les frameworks
+- 334 tests, 96% de couverture
+
+### v1.0.5 — Suite d'Évaluation
+
+Framework de test adversarial.
+
+- 13 scénarios adversariaux, 7 catégories de menaces
+- Benchmarks avec P95/P99
+- Génération de rapports Markdown
+
+### v1.0.6 — Hardening + Polish
+
+Préparation à la production et renforcement de la sécurité.
+
+- Validation des noms d'outils et de la taille des entrées
+- Suivi de portée d'enforcement (contextvars)
+- Rédaction PII récursive profonde
+- Protection unicode (NFC, homoglyphes, URL/HTML)
+- **544 tests, 96% de couverture**
+- **API publique stable (68 exports)**
+
+---
+
+## État Actuel
+
+| Métrique | Valeur |
+|---|---|
+| Tests | 544 |
+| Couverture | 96% |
+| Exports publics | 68 |
+| Catégories PII | 5 |
+| Scénarios adversariaux | 13 |
+| Catégories de menaces | 7 |
+| Adaptateurs framework | 3 |
+| Dépendances | 4 |
+
+---
+
+## Directions Futures
+
+### v1.1 — Enforcement Réseau
+Filtrage de domaines et inspection de requêtes.
+
+### v1.2 — Policy Hub
+Dépôt communautaire de politiques réutilisables et auditées.
+
+### v1.3 — Vérification Formelle
+Intégration de model checkers pour des garanties mathématiques.
+
+### v1.4 — Support Multi-Langages
+Liaisons TypeScript et Go.
+
+### v2.0 — Enforcement Distribué
+Enforcement pour systèmes multi-agents distribués.
+
+---
+
+## Stack Technique
+
+| Dépendance | Rôle |
+|---|---|
+| **Pydantic v2** | Validation de politiques, settings |
+| **pydantic-settings** | Gestion de configuration |
+| **PyYAML** | Chargement de fichiers de politique |
+| **structlog** | Logging structuré |
+| **cryptography** | Hachage Merkle SHA-256 |
+| **Hatch** | Système de build |
+
+---
+
+## Contribuer
+
+EnforceCore est sous licence Apache 2.0. Les contributions sont bienvenues.
+
+- [Dépôt GitHub](https://github.com/akios-ai/enforcecore)
+- [Issue Tracker](https://github.com/akios-ai/enforcecore/issues)

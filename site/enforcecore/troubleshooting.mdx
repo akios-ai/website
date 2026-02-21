@@ -1,0 +1,205 @@
+---
+title: EnforceCore — Troubleshooting & FAQ
+keywords: enforcecore troubleshooting FAQ errors debugging common issues fix help
+---
+
+# Troubleshooting & FAQ
+
+---
+
+## Common Errors
+
+### `InvalidToolNameError: Tool name contains invalid characters`
+
+The tool name contains characters outside the allowed set: `[a-zA-Z0-9_.\-:<>]`.
+
+**Fix:** Pass a valid `tool_name` explicitly:
+```python
+enforcer.enforce_sync(my_func, arg, tool_name="my_tool")
+```
+
+### `InputTooLargeError: Input size exceeds limit`
+
+Combined string/bytes arguments exceed 10 MB (default).
+
+**Fix:** Reduce input size, or increase the limit:
+```python
+from enforcecore import check_input_size
+check_input_size(args, kwargs, max_bytes=50 * 1024 * 1024)  # 50 MB
+```
+
+### `EnforcementDepthError: Nesting depth exceeds maximum`
+
+An enforced tool called another enforced tool, exceeding the max depth of 10.
+
+**Fix:** Check for recursive chains. The error includes the call chain for debugging.
+
+### `ToolDeniedError: Tool not in allowed list`
+
+The policy does not allow the tool being called.
+
+**Fix:** Add the tool name to `allowed_tools` in your policy:
+```yaml
+rules:
+  allowed_tools:
+    - "your_tool_name"  # Add this
+```
+
+### `CostLimitError: Cumulative cost exceeds budget`
+
+Total recorded cost exceeded the budget in `resource_limits.max_cost_usd`.
+
+**Fix:** Increase the budget, or reset the tracker:
+```python
+enforcer.guard.cost_tracker.reset()
+```
+
+### `ResourceLimitError: Call duration exceeded`
+
+Tool call exceeded `resource_limits.max_call_duration_seconds`.
+
+**Fix:** Increase the time limit or optimize the tool.
+
+### `PolicyLoadError: No policy provided`
+
+`@enforce` was used without a policy and no default is configured.
+
+**Fix:** Pass a policy, or set an env var:
+```bash
+ENFORCECORE_DEFAULT_POLICY=policies/default.yaml
+```
+
+### `RuntimeWarning: fail_open is enabled without ENFORCECORE_DEV_MODE=1`
+
+`fail_open=True` is set but you're not in dev mode.
+
+**Fix:** Either disable `fail_open` (recommended) or acknowledge dev mode:
+```bash
+ENFORCECORE_FAIL_OPEN=false          # Production
+ENFORCECORE_DEV_MODE=1               # Development only
+```
+
+---
+
+## Debugging Tips
+
+### Enable debug logging
+
+```bash
+ENFORCECORE_LOG_LEVEL=DEBUG
+```
+
+Shows every enforcement decision, redaction event, and audit entry.
+
+### Check enforcement scope
+
+```python
+from enforcecore import get_enforcement_depth, get_enforcement_chain
+print(f"Depth: {get_enforcement_depth()}")
+print(f"Chain: {get_enforcement_chain()}")
+```
+
+### Verify audit trail integrity
+
+```python
+from enforcecore import verify_trail
+result = verify_trail("audit.jsonl")
+if not result.is_valid:
+    for error in result.errors:
+        print(f"  ERROR: {error}")
+```
+
+### Test your policy
+
+```python
+from enforcecore.eval import ScenarioRunner
+from enforcecore.core.policy import Policy
+
+policy = Policy.from_file("policy.yaml")
+runner = ScenarioRunner(policy)
+suite = runner.run_all()
+print(f"Containment: {suite.containment_rate:.0%}")
+```
+
+---
+
+## FAQ
+
+### What is EnforceCore?
+
+A runtime enforcement layer for AI agents. It intercepts tool/API calls at the code boundary and applies policy-driven rules — blocking denied calls, redacting PII, enforcing resource limits, and recording tamper-proof audit trails.
+
+### How is this different from prompt guardrails?
+
+Prompt guardrails *ask* the model to behave — they can be jailbroken. EnforceCore operates at the **runtime call boundary** — code-level enforcement that cannot be bypassed.
+
+### Does EnforceCore work with my framework?
+
+Yes. Works with **any** Python agent system: plain Python (`@enforce()`), LangGraph, CrewAI, AutoGen — all via `@enforced_tool()` adapters. No hard framework dependency.
+
+### What does "fail-closed" mean?
+
+If anything goes wrong during enforcement, the call is **blocked** — never allowed through. This is the safe default.
+
+### Does it protect against unicode PII evasion?
+
+Yes. Since v1.0.6: NFC normalization, zero-width character stripping, homoglyph detection (~40 confusables), and URL/HTML entity decoding. All automatic before PII pattern matching.
+
+### What PII categories are supported?
+
+| Category | Example | Placeholder |
+|---|---|---|
+| `email` | `john@example.com` | `<EMAIL>` |
+| `phone` | `(555) 123-4567` | `<PHONE>` |
+| `ssn` | `123-45-6789` | `<SSN>` |
+| `credit_card` | `4111-1111-1111-1111` | `<CREDIT_CARD>` |
+| `ip_address` | `192.168.1.100` | `<IP_ADDRESS>` |
+
+### Why regex instead of spaCy/Presidio?
+
+Presidio requires spaCy + Pydantic v1, incompatible with Python 3.14. Regex is zero-dep, portable, and ~0.1–0.5ms per call.
+
+### What's the enforcement overhead?
+
+| Component | Overhead |
+|---|---|
+| Policy evaluation | < 1ms |
+| PII redaction | 0.1–0.5ms |
+| Audit entry | < 1ms |
+| **Typical total** | **8–20ms** |
+
+Negligible compared to tool call latency (100ms–10s).
+
+### How does the Merkle chain work?
+
+Each audit entry contains the SHA-256 hash of the preceding entry. Any modification, deletion, insertion, or reordering is detectable by `verify_trail()`.
+
+### Can I resume the chain across sessions?
+
+Yes. The auditor reads the last entry's hash from an existing trail file and continues the chain seamlessly.
+
+---
+
+## Platform Notes
+
+| Feature | Linux | macOS | Windows |
+|---|---|---|---|
+| Time limits | ✓ | ✓ | ✓ |
+| Memory limits | ✓ (RLIMIT_AS) | ~ (advisory) | ✗ |
+| Cost tracking | ✓ | ✓ | ✓ |
+| KillSwitch | ✓ | ✓ | ✓ |
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `ENFORCECORE_DEFAULT_POLICY` | `None` | Default policy path |
+| `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Audit directory |
+| `ENFORCECORE_AUDIT_ENABLED` | `true` | Enable auditing |
+| `ENFORCECORE_REDACTION_ENABLED` | `true` | Enable PII redaction |
+| `ENFORCECORE_LOG_LEVEL` | `INFO` | Log level |
+| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Global cost budget |
+| `ENFORCECORE_FAIL_OPEN` | `false` | Allow bypass on errors |
+| `ENFORCECORE_DEV_MODE` | `false` | Dev mode flag |

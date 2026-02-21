@@ -1,0 +1,211 @@
+---
+title: EnforceCore — Référence API
+keywords: enforcecore api référence enforce décorateur enforcer politique rédacteur auditeur guard
+---
+
+# Référence API
+
+EnforceCore expose 68 symboles publics depuis le package `enforcecore`. Cette page documente la surface API complète.
+
+---
+
+## API Principale
+
+### Décorateur `@enforce()`
+
+```python
+from enforcecore import enforce
+
+@enforce(policy="policies/agent.yaml")
+async def search_web(query: str) -> str:
+    return await api.search(query)
+
+# Fonctions sync
+@enforce(policy="policies/agent.yaml")
+def read_file(path: str) -> str:
+    return open(path).read()
+
+# Politique inline
+@enforce(
+    allowed_tools=["search_web", "calculator"],
+    pii_redaction=True,
+    max_cost_usd=5.0,
+)
+async def my_tool(args: dict) -> str: ...
+```
+
+### Context Manager `enforce()`
+
+```python
+async def run_agent_tool(tool_name: str, args: dict) -> dict:
+    async with enforce(policy="policy.yaml", tool_name=tool_name) as ctx:
+        result = await execute_tool(tool_name, args)
+        ctx.record_result(result)
+    return result
+```
+
+### Classe `Enforcer`
+
+```python
+from enforcecore import Enforcer, Policy
+
+enforcer = Enforcer(Policy.from_file("policy.yaml"))
+result = await enforcer.enforce_async(search_fn, "query", tool_name="search_web")
+```
+
+---
+
+## API Politique
+
+```python
+from enforcecore import Policy, load_policy
+
+# Depuis YAML
+policy = load_policy("policies/strict.yaml")
+
+# Programmatique
+policy = Policy(
+    name="ma-politique",
+    rules={
+        "allowed_tools": ["search", "calculator"],
+        "pii_redaction": {"enabled": True, "categories": ["email", "phone"]},
+    },
+    on_violation="block",
+)
+```
+
+---
+
+## API Rédacteur
+
+Détection PII par regex — aucune dépendance NLP lourde. ~0.1–0.5ms par appel.
+
+### Catégories PII
+
+| Catégorie | Exemple | Placeholder |
+|---|---|---|
+| `email` | `john@example.com` | `<EMAIL>` |
+| `phone` | `(555) 123-4567` | `<PHONE>` |
+| `ssn` | `123-45-6789` | `<SSN>` |
+| `credit_card` | `4111-1111-1111-1111` | `<CREDIT_CARD>` |
+| `ip_address` | `192.168.1.100` | `<IP_ADDRESS>` |
+
+### Stratégies de Rédaction
+
+| Stratégie | Résultat pour `john@example.com` |
+|---|---|
+| `placeholder` | `<EMAIL>` |
+| `mask` | `****@****.***` |
+| `hash` | `[SHA256:6b0b4806b1e57501]` |
+| `remove` | *(chaîne vide)* |
+
+### Utilisation
+
+```python
+from enforcecore.redactor import Redactor
+
+redactor = Redactor(categories=["email", "phone"])
+result = redactor.redact("Appeler 555-123-4567 ou john@example.com")
+print(result.text)   # "Appeler <PHONE> ou <EMAIL>"
+print(result.count)  # 2
+```
+
+---
+
+## API Auditeur
+
+Pistes d'audit chaînées par Merkle, inviolables.
+
+```python
+from enforcecore import Auditor, verify_trail, load_trail
+
+auditor = Auditor(output_path="audit.jsonl")
+e1 = auditor.record(tool_name="search_web", policy_name="default", decision="allowed")
+
+result = verify_trail("audit.jsonl")
+print(result.is_valid)      # True
+print(result.chain_intact)  # True
+
+trail = load_trail("audit.jsonl", max_entries=100)
+```
+
+---
+
+## API Guard
+
+```python
+from enforcecore.guard import ResourceGuard, CostTracker, KillSwitch
+
+tracker = CostTracker(budget_usd=10.0)
+tracker.record(0.05)
+tracker.check_budget()
+```
+
+---
+
+## API Hardening
+
+```python
+from enforcecore import validate_tool_name, check_input_size, deep_redact
+
+name = validate_tool_name("my_tool")
+check_input_size(args, kwargs)
+redacted = deep_redact(nested_data, redactor.redact_string)
+```
+
+### Protection Unicode
+
+```python
+from enforcecore import prepare_for_detection
+
+clean = prepare_for_detection(text)
+# 1. Normalisation NFC + suppression caractères invisibles
+# 2. Remplacement ~40 caractères confusables
+# 3. Décodage URL/HTML
+```
+
+---
+
+## Hiérarchie des Exceptions
+
+```
+EnforceCoreError              # Exception de base
+├── PolicyError
+├── EnforcementViolation
+│   ├── ToolDeniedError
+│   ├── CostLimitError
+│   └── ResourceLimitError
+├── RedactionError
+├── AuditError
+├── HardeningError
+│   ├── InvalidToolNameError
+│   ├── InputTooLargeError
+│   └── EnforcementDepthError
+└── GuardError
+```
+
+---
+
+## CLI
+
+```bash
+enforcecore validate policies/strict.yaml
+enforcecore verify audit.jsonl
+enforcecore eval --scenarios all --output results/
+enforcecore info
+```
+
+---
+
+## Variables d'Environnement
+
+| Variable | Défaut | Description |
+|---|---|---|
+| `ENFORCECORE_DEFAULT_POLICY` | `None` | Chemin de politique par défaut |
+| `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Répertoire d'audit |
+| `ENFORCECORE_AUDIT_ENABLED` | `true` | Activer l'audit |
+| `ENFORCECORE_REDACTION_ENABLED` | `true` | Activer la rédaction PII |
+| `ENFORCECORE_LOG_LEVEL` | `INFO` | Niveau de log |
+| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Budget global |
+| `ENFORCECORE_FAIL_OPEN` | `false` | Contournement en cas d'erreur |
+| `ENFORCECORE_DEV_MODE` | `false` | Mode développement |

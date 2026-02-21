@@ -1,0 +1,361 @@
+---
+title: EnforceCore — API Reference
+keywords: enforcecore api reference enforce decorator enforcer policy redactor auditor guard hardening exceptions types
+---
+
+# API Reference
+
+EnforceCore exposes 68 public symbols from the top-level `enforcecore` package. This page documents the complete public API surface.
+
+---
+
+## Primary API
+
+### `@enforce()` Decorator
+
+The main entry point. Wraps any callable with policy enforcement.
+
+```python
+from enforcecore import enforce
+
+# From YAML file
+@enforce(policy="policies/agent.yaml")
+async def search_web(query: str) -> str:
+    return await api.search(query)
+
+# Sync functions also work
+@enforce(policy="policies/agent.yaml")
+def read_file(path: str) -> str:
+    return open(path).read()
+
+# Inline policy (quick prototyping)
+@enforce(
+    allowed_tools=["search_web", "calculator"],
+    pii_redaction=True,
+    max_cost_usd=5.0,
+)
+async def my_tool(args: dict) -> str: ...
+
+# Explicit tool name
+@enforce(policy="policy.yaml", tool_name="web_search")
+async def _internal_search(query: str) -> str: ...
+```
+
+**Behavior:**
+- Before call: evaluate pre-call rules, redact inputs
+- During call: enforce resource limits
+- After call: evaluate post-call rules, redact outputs, record audit entry
+- On violation: raise `EnforcementViolation` (call never executes)
+
+### `enforce()` Context Manager
+
+```python
+async def run_agent_tool(tool_name: str, args: dict) -> dict:
+    async with enforce(policy="policy.yaml", tool_name=tool_name) as ctx:
+        result = await execute_tool(tool_name, args)
+        ctx.record_result(result)
+    return result
+```
+
+### `Enforcer` Class
+
+```python
+from enforcecore import Enforcer, Policy
+
+enforcer = Enforcer(Policy.from_file("policy.yaml"))
+
+# Sync
+result = enforcer.enforce_sync(search_fn, "query", tool_name="search_web")
+
+# Async
+result = await enforcer.enforce_async(search_fn, "query", tool_name="search_web")
+
+# Properties
+print(enforcer.policy_name)  # "my-policy"
+print(enforcer.policy)       # Policy instance
+```
+
+---
+
+## Policy API
+
+### Loading Policies
+
+```python
+from enforcecore import Policy, load_policy
+
+# From YAML
+policy = load_policy("policies/strict.yaml")
+
+# Programmatic
+policy = Policy(
+    name="my-policy",
+    rules={
+        "allowed_tools": ["search", "calculator"],
+        "pii_redaction": {"enabled": True, "categories": ["email", "phone"]},
+        "resource_limits": {"max_call_duration_seconds": 30},
+    },
+    on_violation="block",
+)
+
+# Validate without loading
+errors = Policy.validate_file("policies/strict.yaml")
+```
+
+### Policy Model
+
+```python
+class Policy(BaseModel):
+    name: str
+    version: str = "1.0"
+    rules: PolicyRules
+    on_violation: Literal["block", "log", "redact"] = "block"
+
+class PolicyRules(BaseModel):
+    allowed_tools: list[str] | None = None    # None = all allowed
+    denied_tools: list[str] = []
+    pii_redaction: PIIRedactionConfig = PIIRedactionConfig()
+    resource_limits: ResourceLimits = ResourceLimits()
+    network: NetworkPolicy = NetworkPolicy()
+    max_output_size_bytes: int | None = None
+    redact_output: bool = True
+```
+
+---
+
+## Redactor API
+
+Regex-based PII detection — no heavy NLP dependencies. ~0.1–0.5ms per call.
+
+### PII Categories
+
+| Category | Example | Placeholder |
+|---|---|---|
+| `email` | `john@example.com` | `<EMAIL>` |
+| `phone` | `(555) 123-4567` | `<PHONE>` |
+| `ssn` | `123-45-6789` | `<SSN>` |
+| `credit_card` | `4111-1111-1111-1111` | `<CREDIT_CARD>` |
+| `ip_address` | `192.168.1.100` | `<IP_ADDRESS>` |
+
+### Redaction Strategies
+
+| Strategy | Result for `john@example.com` |
+|---|---|
+| `placeholder` | `<EMAIL>` |
+| `mask` | `****@****.***` |
+| `hash` | `[SHA256:6b0b4806b1e57501]` |
+| `remove` | *(empty string)* |
+
+### Usage
+
+```python
+from enforcecore.redactor import Redactor, RedactionResult
+
+redactor = Redactor(categories=["email", "phone"])
+
+# Detection only
+entities = redactor.detect("Email john@example.com")
+for e in entities:
+    print(f"  {e.category}: {e.text!r} at [{e.start}:{e.end}]")
+
+# Full redaction
+result = redactor.redact("Call 555-123-4567 or john@example.com")
+print(result.text)           # "Call <PHONE> or <EMAIL>"
+print(result.count)          # 2
+print(result.was_redacted)   # True
+```
+
+---
+
+## Auditor API
+
+Merkle-chained, tamper-proof audit trails.
+
+### AuditEntry Fields
+
+| Field | Type | Description |
+|---|---|---|
+| `entry_id` | `str` | UUID v4 |
+| `timestamp` | `str` | ISO 8601 UTC |
+| `tool_name` | `str` | Tool called |
+| `policy_name` | `str` | Policy applied |
+| `decision` | `str` | `"allowed"` or `"blocked"` |
+| `violation_type` | `str \| None` | Error class (if blocked) |
+| `overhead_ms` | `float` | Enforcement overhead |
+| `input_redactions` | `int` | PII redacted from inputs |
+| `output_redactions` | `int` | PII redacted from outputs |
+| `previous_hash` | `str` | SHA-256 of preceding entry |
+| `entry_hash` | `str` | SHA-256 of this entry |
+
+### Usage
+
+```python
+from enforcecore import Auditor, verify_trail, load_trail
+
+# Create auditor
+auditor = Auditor(output_path="audit.jsonl")
+
+# Record entries (Merkle-chained automatically)
+e1 = auditor.record(tool_name="search_web", policy_name="default", decision="allowed")
+e2 = auditor.record(tool_name="delete_file", policy_name="default", decision="blocked",
+                     violation_type="ToolDeniedError")
+print(e2.previous_hash == e1.entry_hash)  # True — chain linked
+
+# Verify trail
+result = verify_trail("audit.jsonl")
+print(result.is_valid)      # True
+print(result.chain_intact)  # True
+
+# Load entries
+trail = load_trail("audit.jsonl")
+recent = load_trail("audit.jsonl", max_entries=100)  # Last 100 only
+```
+
+### Cross-Session Continuity
+
+The auditor resumes the Merkle chain from an existing trail file:
+
+```python
+# Session 1
+a1 = Auditor(output_path="trail.jsonl")
+a1.record(tool_name="tool_a", policy_name="p")
+
+# Session 2 — chain resumes automatically
+a2 = Auditor(output_path="trail.jsonl")
+a2.record(tool_name="tool_b", policy_name="p")
+
+assert verify_trail("trail.jsonl").is_valid  # True — chain intact
+```
+
+---
+
+## Guard API
+
+Cross-platform resource limits and hard termination.
+
+```python
+from enforcecore.guard import ResourceGuard, CostTracker, KillSwitch
+
+# Cost tracking
+tracker = CostTracker(budget_usd=10.0)
+tracker.record(0.05)
+tracker.check_budget()          # Passes — under budget
+
+# Kill switch
+ks = KillSwitch()
+ks.trip("memory exceeded 256MB")
+ks.check("tool", "policy")     # Raises ResourceLimitError
+
+# Resource guard
+guard = ResourceGuard(cost_tracker=tracker, kill_switch=ks)
+result = await guard.execute_async(
+    my_func, (arg,), {},
+    max_duration_seconds=30.0,
+)
+```
+
+---
+
+## Hardening API
+
+Input validation, scope tracking, and unicode protection (v1.0.6+).
+
+### Input Validation
+
+```python
+from enforcecore import validate_tool_name, check_input_size, deep_redact
+
+# Validate tool names (rejects empty, overlength, invalid chars)
+name = validate_tool_name("my_tool")  # Returns stripped name
+
+# Check input payload size (default: 10 MB)
+check_input_size(args, kwargs)  # Raises InputTooLargeError if exceeded
+
+# Recursive PII redaction on nested data
+redacted = deep_redact(nested_data, redactor.redact_string, max_depth=10)
+```
+
+### Enforcement Scope Tracking
+
+```python
+from enforcecore import (
+    enter_enforcement, exit_enforcement,
+    get_enforcement_depth, get_enforcement_chain,
+)
+
+enter_enforcement("tool_a")
+print(get_enforcement_depth())  # 1
+print(get_enforcement_chain())  # ["tool_a"]
+
+# Max depth: 10 (raises EnforcementDepthError if exceeded)
+```
+
+### Unicode Hardening
+
+Protects against PII evasion via zero-width characters, homoglyphs, and URL/HTML encoding:
+
+```python
+from enforcecore import normalize_unicode, normalize_homoglyphs, prepare_for_detection
+
+# Full pipeline (called automatically by Redactor.detect())
+clean = prepare_for_detection(text)
+# 1. NFC normalization + strip zero-width chars
+# 2. Replace ~40 confusable chars (Cyrillic, Greek, fullwidth)
+# 3. Decode URL percent-encoding and HTML entities
+```
+
+---
+
+## Exception Hierarchy
+
+```python
+EnforceCoreError              # Base exception
+├── PolicyError
+│   ├── PolicyLoadError       # File not found / unparseable
+│   └── PolicyValidationError # Schema violation
+├── EnforcementViolation
+│   ├── ToolDeniedError       # Tool not allowed
+│   ├── DomainDeniedError     # Network domain blocked
+│   ├── CostLimitError        # Budget exceeded
+│   └── ResourceLimitError    # Resource limit breached
+├── RedactionError            # PII error (fails closed)
+├── AuditError                # Audit error (fails closed)
+├── HardeningError
+│   ├── InvalidToolNameError  # Bad tool name
+│   ├── InputTooLargeError    # Payload too large
+│   └── EnforcementDepthError # Recursive depth exceeded
+└── GuardError                # Resource guard failure
+```
+
+---
+
+## CLI
+
+```bash
+# Validate a policy file
+enforcecore validate policies/strict.yaml
+
+# Verify an audit trail
+enforcecore verify audit.jsonl
+
+# Run evaluation suite
+enforcecore eval --scenarios all --output results/
+
+# Show version and platform info
+enforcecore info
+```
+
+---
+
+## Environment Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `ENFORCECORE_DEFAULT_POLICY` | `None` | Default policy file path |
+| `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Audit trail directory |
+| `ENFORCECORE_AUDIT_ENABLED` | `true` | Enable/disable auditing |
+| `ENFORCECORE_REDACTION_ENABLED` | `true` | Enable/disable PII redaction |
+| `ENFORCECORE_LOG_LEVEL` | `INFO` | Structured log level |
+| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Global cost budget |
+| `ENFORCECORE_FAIL_OPEN` | `false` | Allow bypass on errors |
+| `ENFORCECORE_DEV_MODE` | `false` | Development mode flag |

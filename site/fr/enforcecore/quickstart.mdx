@@ -1,0 +1,173 @@
+---
+title: EnforceCore — Démarrage Rapide
+keywords: enforcecore démarrage rapide installation politique décorateur tutoriel
+---
+
+# Démarrage Rapide
+
+Protégez votre agent IA avec EnforceCore en moins de 5 minutes.
+
+---
+
+## Installation
+
+```bash
+pip install enforcecore
+```
+
+Python 3.11+ requis. Dépendances : Pydantic v2, PyYAML, structlog, cryptography.
+
+---
+
+## 1. Créer une Politique
+
+Créez un fichier `policy.yaml` qui définit ce que votre agent peut faire :
+
+```yaml
+name: "ma-politique-agent"
+version: "1.0"
+
+rules:
+  allowed_tools:
+    - "search_web"
+    - "read_file"
+    - "calculator"
+  denied_tools:
+    - "execute_shell"
+    - "send_email"
+  pii_redaction:
+    enabled: true
+    categories: [email, phone, ssn, credit_card, ip_address]
+  resource_limits:
+    max_call_duration_seconds: 30
+    max_memory_mb: 256
+    max_cost_usd: 1.00
+
+on_violation: "block"
+```
+
+---
+
+## 2. Protéger vos Outils
+
+Utilisez le décorateur `@enforce` sur toute fonction appelée par votre agent :
+
+```python
+from enforcecore import enforce
+
+# Fonctions async
+@enforce(policy="policy.yaml")
+async def search_web(query: str) -> str:
+    return await api.search(query)
+
+# Fonctions sync
+@enforce(policy="policy.yaml")
+def read_file(path: str) -> str:
+    return open(path).read()
+```
+
+Chaque appel passe maintenant par le pipeline d'enforcement :
+
+1. **Pré-appel** — Évaluation de politique, validation du nom d'outil, vérification de taille
+2. **Rédaction entrées** — Données personnelles détectées et remplacées
+3. **Exécution** — L'outil s'exécute avec les limites de ressources
+4. **Rédaction sorties** — Données personnelles redactées dans la réponse
+5. **Audit** — Entrée chaînée par Merkle enregistrée
+
+---
+
+## 3. Politiques Inline
+
+Pour le prototypage rapide, sans fichier YAML :
+
+```python
+@enforce(
+    allowed_tools=["search_web", "calculator"],
+    pii_redaction=True,
+    max_cost_usd=5.0,
+)
+async def my_tool(args: dict) -> str: ...
+```
+
+---
+
+## 4. Context Manager
+
+Pour du code tiers ou des noms d'outils dynamiques :
+
+```python
+from enforcecore import enforce
+
+async def run_agent_tool(tool_name: str, args: dict) -> dict:
+    async with enforce(policy="policy.yaml", tool_name=tool_name) as ctx:
+        result = await execute_tool(tool_name, args)
+        ctx.record_result(result)
+    return result
+```
+
+---
+
+## 5. Contrôle Programmatique
+
+```python
+from enforcecore import Enforcer, Policy
+
+enforcer = Enforcer(Policy.from_file("policy.yaml"))
+result = await enforcer.enforce_async(search_fn, "query", tool_name="search_web")
+```
+
+---
+
+## 6. Vérifier la Piste d'Audit
+
+Chaque appel est enregistré dans un fichier JSONL chaîné par Merkle :
+
+```python
+from enforcecore import verify_trail, load_trail
+
+result = verify_trail("audit.jsonl")
+print(result.is_valid)        # True
+print(result.chain_intact)    # Aucune falsification
+
+trail = load_trail("audit.jsonl")
+for entry in trail:
+    print(f"{entry.tool_name} → {entry.decision}")
+```
+
+---
+
+## 7. Tester vos Politiques
+
+```python
+from enforcecore.core.policy import Policy
+from enforcecore.eval import ScenarioRunner
+
+policy = Policy.from_file("policy.yaml")
+runner = ScenarioRunner(policy)
+suite = runner.run_all()
+print(f"Taux de confinement : {suite.containment_rate:.0%}")
+```
+
+---
+
+## Configuration
+
+```bash
+ENFORCECORE_DEFAULT_POLICY=policies/default.yaml
+ENFORCECORE_AUDIT_PATH=./audit_logs/
+ENFORCECORE_AUDIT_ENABLED=true
+ENFORCECORE_REDACTION_ENABLED=true
+ENFORCECORE_LOG_LEVEL=INFO
+ENFORCECORE_COST_BUDGET_USD=100.0
+ENFORCECORE_FAIL_OPEN=false
+ENFORCECORE_DEV_MODE=false
+```
+
+---
+
+## Prochaines Étapes
+
+- [Architecture →](architecture.html) — Comprendre le pipeline d'enforcement
+- [Référence API →](api-reference.html) — Surface API complète (68 exports)
+- [Intégrations →](integrations.html) — Adaptateurs LangGraph, CrewAI, AutoGen
+- [Suite d'évaluation →](evaluation.html) — Tester avec 13 scénarios adversariaux
