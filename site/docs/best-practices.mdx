@@ -153,29 +153,37 @@ steps:
     action: stat
     parameters:
       path: "data/input/document.txt"
-    # Skip if too large
-    skip_if: "$(.size > 10485760)"  # 10MB
+    # Skip if too large (condition uses AST-safe evaluator)
+    condition: "size <= 10485760"  # 10MB
     
   - name: "Process document"
     agent: llm
     action: complete
 ```
 
+> **Tip:** Use `condition` for conditional step execution. The older `skip_if` syntax still works as an alias.
+
 ### Error Handling
 
-Handle failures gracefully:
+Handle failures gracefully with `on_error`:
 
 ```yaml
 steps:
   - name: "Fetch data from API"
     agent: http
     action: get
+    on_error: retry          # retry, skip, or fail (default)
     parameters:
       url: "https://api.example.com/data"
       retry_count: 3        # Retry on failure
       retry_delay: 5        # Wait 5 seconds
       timeout: 30           # 30 second timeout
 ```
+
+**`on_error` strategies:**
+- `fail` — Stop workflow immediately (default)
+- `skip` — Log warning and continue to next step
+- `retry` — Retry with `retry_count` and `retry_delay`
 
 ## Security Practices
 
@@ -243,7 +251,7 @@ Redacts:
 - Phone numbers
 - Credit cards
 - Social Security Numbers
-- 50+ other patterns
+- 53 other patterns (including insurance identifiers)
 
 ## Performance Optimization
 
@@ -274,12 +282,12 @@ steps:
   - name: "Process if small"
     agent: llm
     action: complete
-    skip_if: "$(.size > 1048576)"  # Skip if > 1MB
+    condition: "size <= 1048576"  # Only if ≤ 1MB
     
   - name: "Summarize if large"
     agent: llm
     action: complete
-    skip_if: "$(.size <= 1048576)"  # Only if > 1MB
+    condition: "size > 1048576"   # Only if > 1MB
     parameters:
       prompt: "Generate brief summary only"
 ```

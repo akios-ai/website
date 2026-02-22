@@ -455,7 +455,7 @@ akios testing
 
 Displays mock mode status, API key availability, and testing recommendations.
 
-### `akios http` — HTTP Agent (v1.0.7)
+### `akios http` — HTTP Agent
 
 Direct HTTP agent for making rate-limited, PII-redacted HTTP requests within the security cage.
 
@@ -469,7 +469,7 @@ akios http POST https://api.example.com/submit --data '{"key": "value"}'
 
 Requires `network_access_allowed: true` and the target domain in `allowed_domains`. All requests are HTTPS-only, rate-limited (10 req/min), and PII-scanned.
 
-### `akios workflow validate` — Workflow Validation (v1.0.7)
+### `akios workflow validate` — Workflow Validation
 
 Validate workflow YAML files against the schema without executing them.
 
@@ -483,7 +483,7 @@ akios workflow validate workflows/my-workflow.yml --json
 
 Checks: valid YAML structure, required fields present, agent names exist, action names valid for each agent, parameter types correct, step references resolve.
 
-### `akios audit rotate` — Rotate Audit Log (v1.0.7)
+### `akios audit rotate` — Rotate Audit Log
 
 Archive the current audit chain and start a fresh one.
 
@@ -494,7 +494,7 @@ akios audit rotate --json
 
 The existing chain is moved to `audit/archive/` with a timestamp. A new empty chain is initialized. Use this for long-running deployments to keep audit files manageable.
 
-### `akios audit stats` — Audit Statistics (v1.0.7)
+### `akios audit stats` — Audit Statistics
 
 Show aggregate statistics across the audit trail.
 

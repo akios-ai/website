@@ -204,6 +204,13 @@ network_access_allowed: true
 <li><strong>Default:</strong> <code>false</code></li>
 <li><strong>Recommended:</strong> Enable for regulated environments</li>
 </ul>
+<p><strong><code>context_keywords: []</code></strong></p>
+<ul>
+<li>Domain-specific keywords that suppress false-positive PII matches</li>
+<li>Example: <code>[&quot;policy_number&quot;, &quot;account_ref&quot;]</code> prevents these terms from being redacted as potential PII</li>
+<li>Useful for insurance, banking, and other domains with structured identifiers</li>
+<li><strong>Default:</strong> <code>[]</code> (empty list)</li>
+</ul>
 <p><strong><code>redaction_strategy: &quot;mask&quot;</code></strong></p>
 <ul>
 <li>How to handle PII: <code>mask</code>, <code>hash</code>, or <code>remove</code></li>
@@ -300,6 +307,7 @@ allowed_domains:
 <ul>
 <li>Logging detail: <code>DEBUG</code>, <code>INFO</code>, <code>WARNING</code>, <code>ERROR</code></li>
 <li><strong>Default:</strong> <code>INFO</code></li>
+<li>Since v1.0.10, AKIOS uses Python&#39;s <code>logging</code> module with structured JSON output</li>
 </ul>
 <h2>Environment overrides</h2>
 <pre><code class="language-bash">export AKIOS_CPU_LIMIT=0.5
@@ -346,6 +354,13 @@ environment: &quot;testing&quot;
 <p><strong>Reconfigure everything:</strong></p>
 <pre><code class="language-bash">akios setup --force
 </code></pre>
+<p><strong>Export JSON Schema (v1.0.9+):</strong></p>
+<p>AKIOS can auto-generate a JSON Schema from its Pydantic config model for use with external validators, IDE autocompletion, or CI pipelines:</p>
+<pre><code class="language-bash">akios config schema &gt; akios-config-schema.json
+</code></pre>
+<blockquote>
+<p><strong>Note:</strong> The list of allowed AI models (<code>ALLOWED_MODELS</code>) is managed via Pydantic settings, so model validation is automatic and schema-aware.</p>
+</blockquote>
 <h2>Security Best Practices</h2>
 <p><strong>✓ Do:</strong></p>
 <ul>

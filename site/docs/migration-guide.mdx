@@ -1,10 +1,10 @@
 # Migration Guide
 
-Upgrade to the latest AKIOS version from earlier releases. This guide covers both the V1.0.7 update and the original pre-V1.0 migration.
+Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.0.11 update and the original pre-V1.0 migration.
 
-## Upgrading to V1.0.7 (from V1.0.x)
+## Upgrading to V1.0.11 (from V1.0.x)
 
-V1.0.7 is a drop-in upgrade with no breaking changes. Update via your installation method:
+V1.0.11 is a drop-in upgrade with no breaking CLI or workflow changes. Update via your installation method:
 
 ```bash
 # Pip
@@ -17,31 +17,57 @@ docker pull akiosai/akios:v{{version}}
 akios --version
 ```
 
-### What's New in V1.0.7
+> **Note:** AKIOS now requires **Python 3.9+** (Python 3.8 is EOL). If you're on 3.8, upgrade Python first.
 
-**New CLI commands:**
-- `akios http` — Direct HTTP agent for rate-limited, PII-redacted requests
-- `akios workflow validate` — Validate workflow YAML against schema without executing
-- `akios audit rotate` — Archive current audit chain, start fresh
-- `akios audit stats` — Aggregate statistics across the audit trail
-- `akios protect show-prompt` — Inspect the PII detection prompt template
+### What's New in V1.0.11
 
-**New cage options:**
-- `akios cage up --no-pii` / `--no-audit` / `--no-budget` — Ablation flags for benchmarking individual components
-- `akios cage down --passes N` — Multi-pass secure erasure (DOD 5220.22-M with `--passes 3`)
-- `akios cage down --fast` — Truncate-only teardown for dev/CI
+**v1.0.9 — Science + Orchestration:**
+- **Conditional execution** — `condition` field on workflow steps for branching logic
+- **Error recovery** — `on_error` field (`skip` / `fail` / `retry`) for resilient workflows
+- **LangGraph integration** — 215-line working example of LangGraph tool calls through AKIOS enforcement
+- **TLA+ formal verification** — 130-line model-checked safety invariants for the enforcement pipeline
+- **Pluggable PII backend** — `PIIDetectorProtocol` interface for custom PII detectors
+- **Insurance PII patterns** — policy numbers, group numbers, claim numbers, prior-authorization detection
+- **`context_keywords` gate** — suppress false-positive PII matches without surrounding context
+- **Weighted compliance scoring** — security 50%, audit 30%, cost 20%
+- **Config JSON Schema** — auto-generated from Pydantic settings for IDE auto-completion
 
-**Security improvements:**
-- 53 PII detection patterns (up from 50+), including healthcare markers (NPI, DEA, MRN)
-- PII fail-safe: if the scanner errors, input/output is blocked (fail-closed)
-- HTTPS enforcement: all external API calls restricted to HTTPS at the transport layer
-- Weighted compliance scoring in `akios status --security`
+**v1.0.10 — Hardening:**
+- **Non-root Docker** — containers no longer run as root by default
+- **Safe condition evaluator** — AST-based evaluator replaces `eval()` + token blocklist (eliminates code injection)
+- **Engine split** — monolith broken into `StepExecutor`, `TemplateRenderer`, `OutputExtractor`, `ConditionEvaluator`
+- **Structured logging** — ~380 `print()` calls replaced with Python `logging` module
+
+**v1.0.11 — Cleanup & Hardening:**
+- **PyPDF2 → pypdf** — replaced deprecated `PyPDF2` with actively maintained `pypdf`
+- **Python 3.9+** — dropped Python 3.8 support (EOL)
+- **Wrapper fallback fix** — `detect_version()` now reads dynamically from `VERSION` file
+- **Pre-release gate hardening** — version sync validation across all sources
+
+### Migration Notes
+
+**Python 3.8 users:** Upgrade to Python 3.9+ before updating AKIOS:
+```bash
+# Check your Python version
+python3 --version
+
+# If < 3.9, upgrade first
+```
+
+**PyPDF2 users:** If you use PyPDF2 in custom scripts alongside AKIOS:
+```python
+# Old (deprecated)
+import PyPDF2
+
+# New
+import pypdf
+```
 
 **Verification after upgrade:**
 ```bash
 akios --version                    # Should show {{version}}
 akios status --security            # Verify all protections active
-akios workflow validate templates/hello-workflow.yml  # Test new command
+akios workflow validate templates/hello-workflow.yml  # Test validation
 akios doctor                       # Run diagnostics
 ```
 

@@ -377,6 +377,44 @@ except Exception as e:
     print(f"Security validation failed: {e}")
 ```
 
+## Engine Sub-Modules (v1.0.10+)
+
+As of v1.0.10, the engine monolith has been split into focused modules:
+
+| Module | Responsibility |
+|--------|---------------|
+| `StepExecutor` | Executes individual workflow steps |
+| `TemplateRenderer` | Handles template variable interpolation |
+| `OutputExtractor` | Extracts and probes output values from step results |
+| `ConditionEvaluator` | AST-based safe expression evaluator for `condition` fields |
+
+```python
+# All modules are accessible via the engine
+from akios.core.runtime.engine import RuntimeEngine
+
+engine = RuntimeEngine()
+# Sub-modules are used internally — the RuntimeEngine API is unchanged
+```
+
+## PIIDetectorProtocol
+
+Custom PII detection backends implement the `PIIDetectorProtocol` interface:
+
+```python
+from akios.security.pii import PIIDetectorProtocol
+
+class CustomDetector(PIIDetectorProtocol):
+    def detect(self, text: str) -> list:
+        # Your custom detection logic
+        ...
+    
+    def redact(self, text: str) -> str:
+        # Your custom redaction logic
+        ...
+```
+
+The default regex-based detector covers 53 patterns with >95% accuracy.
+
 ## Legacy Compatibility
 
 For backward compatibility:

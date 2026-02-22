@@ -179,7 +179,69 @@ steps:
 <td>Yes</td>
 <td>Action-specific parameters</td>
 </tr>
+<tr>
+<td><code>condition</code></td>
+<td>string</td>
+<td>No</td>
+<td>Expression that must evaluate to true for the step to execute</td>
+</tr>
+<tr>
+<td><code>on_error</code></td>
+<td>string</td>
+<td>No</td>
+<td>Error recovery strategy: <code>skip</code>, <code>fail</code> (default), or <code>retry</code></td>
+</tr>
 </tbody></table>
+<h2>Conditional Execution</h2>
+<p>Use the <code>condition</code> field to run steps conditionally. Conditions are evaluated using a safe AST-based evaluator — no arbitrary code execution.</p>
+<pre><code class="language-yaml">steps:
+  - agent: filesystem
+    action: read
+    parameters:
+      path: &quot;data/input/report.pdf&quot;
+
+  - agent: llm
+    action: complete
+    condition: &quot;previous_output != &#39;&#39;&quot;
+    parameters:
+      prompt: &quot;Summarize: {previous_output}&quot;
+</code></pre>
+<p>Supported expressions: comparisons (<code>==</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>), boolean operators (<code>and</code>, <code>or</code>, <code>not</code>), and string checks (<code>in</code>, <code>not in</code>).</p>
+<h2>Error Recovery</h2>
+<p>Use the <code>on_error</code> field to control what happens when a step fails:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fail</code></td>
+<td>Stop the workflow immediately (default)</td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td>Log the error and continue to the next step</td>
+</tr>
+<tr>
+<td><code>retry</code></td>
+<td>Retry with exponential backoff</td>
+</tr>
+</tbody></table>
+<pre><code class="language-yaml">steps:
+  - agent: http
+    action: get
+    on_error: retry
+    parameters:
+      url: &quot;https://api.example.com/data&quot;
+
+  - agent: llm
+    action: complete
+    on_error: skip
+    parameters:
+      prompt: &quot;Analyze: {previous_output}&quot;
+</code></pre>
 <h2>Available Agents &amp; Actions</h2>
 <h3>LLM Agent</h3>
 <p><strong>Actions:</strong> <code>complete</code>, <code>chat</code></p>

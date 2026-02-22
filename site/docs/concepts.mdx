@@ -37,14 +37,14 @@ Semantic color scheme with structured output: `print_success()`, `print_warning(
 - **Colorblind modes**: protanopia, deuteranopia, tritanopia, achromatopsia
 - **7 built-in themes**: default, dark, light, nord, solarized-dark/light, high-contrast
 
-## Workflow validation (v1.0.7)
+## Workflow validation
 YAML workflow definitions are validated at load time against the workflow schema. Validation catches structural errors, missing agent references, and invalid step configurations before execution begins.
 
 ```bash
 akios workflow validate my_workflow.yml
 ```
 
-## Audit management (v1.0.7)
+## Audit management
 Audit logs support rotation and statistics. Rotate creates a new audit chain while archiving the old one. Stats shows aggregate metrics across the audit trail.
 
 ```bash
@@ -52,7 +52,7 @@ akios audit rotate
 akios audit stats
 ```
 
-## Cage controls (v1.0.7)
+## Cage controls
 The security cage supports ablation flags for benchmarking individual components and configurable erasure for secure data destruction.
 
 **Ablation flags** — Run with specific protections disabled to benchmark overhead:

@@ -226,25 +226,35 @@ sandbox_enabled: true         # Always true
     action: stat
     parameters:
       path: &quot;data/input/document.txt&quot;
-    # Skip if too large
-    skip_if: &quot;$(.size &gt; 10485760)&quot;  # 10MB
+    # Skip if too large (condition uses AST-safe evaluator)
+    condition: &quot;size &lt;= 10485760&quot;  # 10MB
     
   - name: &quot;Process document&quot;
     agent: llm
     action: complete
 </code></pre>
+<blockquote>
+<p><strong>Tip:</strong> Use <code>condition</code> for conditional step execution. The older <code>skip_if</code> syntax still works as an alias.</p>
+</blockquote>
 <h3>Error Handling</h3>
-<p>Handle failures gracefully:</p>
+<p>Handle failures gracefully with <code>on_error</code>:</p>
 <pre><code class="language-yaml">steps:
   - name: &quot;Fetch data from API&quot;
     agent: http
     action: get
+    on_error: retry          # retry, skip, or fail (default)
     parameters:
       url: &quot;https://api.example.com/data&quot;
       retry_count: 3        # Retry on failure
       retry_delay: 5        # Wait 5 seconds
       timeout: 30           # 30 second timeout
 </code></pre>
+<p><strong><code>on_error</code> strategies:</strong></p>
+<ul>
+<li><code>fail</code> — Stop workflow immediately (default)</li>
+<li><code>skip</code> — Log warning and continue to next step</li>
+<li><code>retry</code> — Retry with <code>retry_count</code> and <code>retry_delay</code></li>
+</ul>
 <h2>Security Practices</h2>
 <h3>Restrict File Access</h3>
 <p>Only allow necessary paths:</p>
@@ -294,7 +304,7 @@ redaction_strategy: &quot;mask&quot;
 <li>Phone numbers</li>
 <li>Credit cards</li>
 <li>Social Security Numbers</li>
-<li>50+ other patterns</li>
+<li>53 other patterns (including insurance identifiers)</li>
 </ul>
 <h2>Performance Optimization</h2>
 <h3>Set Appropriate Limits</h3>
@@ -318,12 +328,12 @@ memory_limit_mb: 256
   - name: &quot;Process if small&quot;
     agent: llm
     action: complete
-    skip_if: &quot;$(.size &gt; 1048576)&quot;  # Skip if &gt; 1MB
+    condition: &quot;size &lt;= 1048576&quot;  # Only if ≤ 1MB
     
   - name: &quot;Summarize if large&quot;
     agent: llm
     action: complete
-    skip_if: &quot;$(.size &lt;= 1048576)&quot;  # Only if &gt; 1MB
+    condition: &quot;size &gt; 1048576&quot;   # Only if &gt; 1MB
     parameters:
       prompt: &quot;Generate brief summary only&quot;
 </code></pre>
