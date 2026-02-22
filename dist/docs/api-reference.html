@@ -105,7 +105,7 @@
                 <h1>Python API Reference</h1>
 <p>Use AKIOS programmatically from your Python code. This is useful for integrating AKIOS workflows into larger applications.</p>
 <h2>Installation</h2>
-<pre><code class="language-bash">pip install akios&gt;=1.0.7
+<pre><code class="language-bash">pip install akios&gt;=1.0.11
 </code></pre>
 <h2>Quick Example</h2>
 <pre><code class="language-python">from akios.core.runtime.engine import RuntimeEngine
@@ -417,6 +417,52 @@ try:
 except Exception as e:
     print(f&quot;Security validation failed: {e}&quot;)
 </code></pre>
+<h2>Engine Sub-Modules (v1.0.10+)</h2>
+<p>As of v1.0.10, the engine monolith has been split into focused modules:</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>StepExecutor</code></td>
+<td>Executes individual workflow steps</td>
+</tr>
+<tr>
+<td><code>TemplateRenderer</code></td>
+<td>Handles template variable interpolation</td>
+</tr>
+<tr>
+<td><code>OutputExtractor</code></td>
+<td>Extracts and probes output values from step results</td>
+</tr>
+<tr>
+<td><code>ConditionEvaluator</code></td>
+<td>AST-based safe expression evaluator for <code>condition</code> fields</td>
+</tr>
+</tbody></table>
+<pre><code class="language-python"># All modules are accessible via the engine
+from akios.core.runtime.engine import RuntimeEngine
+
+engine = RuntimeEngine()
+# Sub-modules are used internally — the RuntimeEngine API is unchanged
+</code></pre>
+<h2>PIIDetectorProtocol</h2>
+<p>Custom PII detection backends implement the <code>PIIDetectorProtocol</code> interface:</p>
+<pre><code class="language-python">from akios.security.pii import PIIDetectorProtocol
+
+class CustomDetector(PIIDetectorProtocol):
+    def detect(self, text: str) -&gt; list:
+        # Your custom detection logic
+        ...
+    
+    def redact(self, text: str) -&gt; str:
+        # Your custom redaction logic
+        ...
+</code></pre>
+<p>The default regex-based detector covers 53 patterns with &gt;95% accuracy.</p>
 <h2>Legacy Compatibility</h2>
 <p>For backward compatibility:</p>
 <pre><code class="language-python"># Old name (still works as alias)

@@ -106,7 +106,7 @@
 <p>Get AKIOS running in 2 minutes. Choose the method that works best for you.</p>
 <h2>Quick Install (Most Users)</h2>
 <p><strong>On Linux</strong> (maximum security with kernel-hard isolation):</p>
-<pre><code class="language-bash">pip install akios&gt;=1.0.7
+<pre><code class="language-bash">pip install akios&gt;=1.0.11
 akios init my-project
 cd my-project
 akios run templates/hello-workflow.yml
@@ -159,19 +159,20 @@ cd my-project
 <h3>Option 1: Pip Package (Linux Only)</h3>
 <p>Best for: Developers, CI/CD pipelines, custom extensions, full Python ecosystem access</p>
 <p><strong>What you get:</strong> Native Python installation - access to Python libraries, plugins, and custom extensions (ecosystem integration)</p>
+<p><strong>Requirements:</strong> Python 3.9 or higher</p>
 <p><strong>Linux prerequisites for full kernel-hard security:</strong></p>
 <pre><code class="language-bash"># Install system packages for seccomp support
 sudo apt install libseccomp-dev python3-seccomp
 </code></pre>
 <pre><code class="language-bash"># Ubuntu 24.04+ users: Use pipx instead of pip due to PEP 668
 sudo apt install pipx
-pipx install akios&gt;=1.0.7
+pipx install akios&gt;=1.0.11
 
 # Other users (Ubuntu 20.04/22.04, macOS, Windows):
-pip install akios&gt;=1.0.7
+pip install akios&gt;=1.0.11
 
 # Or install a specific version:
-pip install akios==1.0.7
+pip install akios==1.0.11
 
 # Verify installation
 akios --version
@@ -184,14 +185,14 @@ cd my-project
 <p><strong>What you get:</strong> Containerized deployment works everywhere - same environment on every machine, no Python installation needed</p>
 <p><strong>Option A: Direct Docker (for automation/CI/CD):</strong></p>
 <pre><code class="language-bash"># Pull the Docker image
-docker pull akiosai/akios:v1.0.7
+docker pull akiosai/akios:v1.0.11
 
 # Initialize a new project
-docker run --rm -v &quot;$(pwd):/app&quot; -w /app akiosai/akios:v1.0.7 init my-project
+docker run --rm -v &quot;$(pwd):/app&quot; -w /app akiosai/akios:v1.0.11 init my-project
 
 # Run workflows
 cd my-project
-docker run --rm -v &quot;$(pwd):/app&quot; -w /app akiosai/akios:v1.0.7 run templates/hello-workflow.yml
+docker run --rm -v &quot;$(pwd):/app&quot; -w /app akiosai/akios:v1.0.11 run templates/hello-workflow.yml
 </code></pre>
 <p><strong>Option B: Docker wrapper script (recommended - easier commands):</strong></p>
 <pre><code class="language-bash"># Create wrapper script (one-time setup)

@@ -62,7 +62,7 @@ akios cage down --keep-data
 
 > **Warning:** `cage down` permanently destroys `audit/`, `data/output/`, and `data/input/`. This is the cage's core security promise: zero data residue when the cage goes down. Use `--keep-data` only during active development.
 
-**Ablation flags (v1.0.7):** Benchmark the overhead of individual cage components by selectively disabling them:
+**Ablation flags:** Benchmark the overhead of individual cage components by selectively disabling them:
 
 ```bash
 akios cage up --no-pii      # Disable PII redaction only
@@ -99,10 +99,15 @@ akios status --security
 - IP addresses, MAC addresses
 - Medical records, health data (NPI, DEA, MRN)
 - Financial account numbers
+- Insurance data (policy numbers, group numbers, claim numbers, prior-authorization numbers)
 
 **Applied twice:**
 - Before sending to AI providers (inputs)
 - After receiving from AI providers (outputs)
+
+**Pluggable PII backend:** AKIOS uses a `PIIDetectorProtocol` interface, allowing custom PII detection implementations. The default regex-based detector covers 53 patterns with >95% accuracy.
+
+**Context keywords:** Reduce false-positive PII matches by requiring contextual keywords near a pattern match. Configure `context_keywords` in your policy to require words like "SSN", "social security", or "tax ID" near a numeric pattern before flagging it.
 
 **Verify it's working:**
 ```bash
@@ -130,7 +135,7 @@ akios protect scan data/input/document.txt
 akios protect preview templates/workflow.yml
 ```
 
-**PII fail-safe (v1.0.7):** If the PII scanner itself encounters an error during processing, the entire input/output is blocked rather than passed through unredacted. This fail-closed behavior ensures sensitive data never leaks due to scanner failures.
+**PII fail-safe:** If the PII scanner itself encounters an error during processing, the entire input/output is blocked rather than passed through unredacted. This fail-closed behavior ensures sensitive data never leaks due to scanner failures.
 
 ```bash
 # Inspect PII prompt template
@@ -167,7 +172,7 @@ akios logs --limit 5
 # You should see recent actions with timestamps
 ```
 
-**Audit management (v1.0.7):**
+**Audit management:**
 ```bash
 # Rotate audit log — archive current chain, start fresh
 akios audit rotate
@@ -176,7 +181,7 @@ akios audit rotate
 akios audit stats
 ```
 
-## HTTPS Enforcement (v1.0.7)
+## HTTPS Enforcement
 
 All external API calls made by AKIOS are restricted to HTTPS. Plain HTTP requests are rejected at the transport layer. This applies to:
 - LLM provider calls (OpenAI, Anthropic, Grok, Mistral, Gemini)
@@ -306,7 +311,43 @@ AKIOS audit exports are designed for regulatory examination across sectors:
 | Legal | ABA Rule 1.6, FRE 502 | Privilege protection, case data redaction |
 | EU/France | RGPD, CNIL, ANSSI | DCP redaction, RGS compliance, data lifecycle |
 
-**Weighted compliance scoring (v1.0.7):** AKIOS computes a compliance readiness score based on which security components are active.  Each component is weighted by its contribution to a given regulatory framework. Run `akios status --security` to see your current compliance score.
+**Weighted compliance scoring:** AKIOS computes a compliance readiness score based on which security components are active. Weights: **security 50%**, **audit 30%**, **cost 20%**. Each component is weighted by its contribution to a given regulatory framework. Run `akios status --security` to see your current compliance score.
+
+## Non-Root Docker Containers
+
+As of v1.0.10, the official AKIOS Docker image runs as a non-root `akios` user by default. Containers no longer run as root, reducing the blast radius of any container escape vulnerability.
+
+```bash
+# Official image — already non-root
+docker run --rm akiosai/akios:v{{version}} status
+
+# Verify
+docker run --rm akiosai/akios:v{{version}} id
+# uid=1000(akios) gid=1000(akios)
+```
+
+## Safe Condition Evaluator
+
+Workflow `condition` fields are evaluated using an **AST-based safe evaluator** (v1.0.10). This replaces the previous `eval()` + token blocklist approach, eliminating code injection risk entirely.
+
+The evaluator supports:
+- Comparison operators: `==`, `!=`, `>`, `<`, `>=`, `<=`
+- Boolean operators: `and`, `or`, `not`
+- String operations: `in`, `not in`
+- Variable references: `previous_output`, step outputs
+
+Arbitrary Python code is **not** executed — only safe expressions are evaluated.
+
+## TLA+ Formal Verification
+
+AKIOS includes a 130-line TLA+ specification that formally verifies the safety invariants of the enforcement pipeline. The specification has been model-checked to prove:
+
+- **No PII leakage** — data is always redacted before leaving the cage
+- **Budget enforcement** — workflows are always terminated when budget is exceeded
+- **Audit completeness** — every action is logged before execution proceeds
+- **Sandbox integrity** — isolation constraints are never weakened during execution
+
+See `docs/tla/AKIOSEnforcement.tla` in the repository.
 
 ## Report Security Issues
 

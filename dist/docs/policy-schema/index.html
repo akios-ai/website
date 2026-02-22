@@ -409,7 +409,7 @@ akios run workflow.yml
 </code></pre>
 <h2>Advanced Features</h2>
 <h3>Conditional Execution</h3>
-<p>Skip steps based on conditions:</p>
+<p>Skip steps based on conditions using the <code>condition</code> field. Conditions are evaluated using a safe AST-based evaluator (no <code>eval()</code>, no code injection risk):</p>
 <pre><code class="language-yaml">steps:
   - name: &quot;Check size&quot;
     agent: filesystem
@@ -420,12 +420,52 @@ akios run workflow.yml
   - name: &quot;Process if small&quot;
     agent: llm
     action: complete
-    skip_if: &quot;$(.size &gt; 1048576)&quot;  # Skip if &gt; 1MB
+    condition: &quot;previous_output.size &lt;= 1048576&quot;
     parameters:
       prompt: &quot;Analyze: {{file}}&quot;
 </code></pre>
+<blockquote>
+<p><strong>Note:</strong> The <code>skip_if</code> parameter is still accepted as a backward-compatible alias.</p>
+</blockquote>
+<h3>Error Recovery</h3>
+<p>Control what happens when a step fails using the <code>on_error</code> field:</p>
+<pre><code class="language-yaml">steps:
+  - name: &quot;Fetch data&quot;
+    agent: http
+    action: get
+    on_error: retry        # retry with exponential backoff
+    parameters:
+      url: &quot;https://api.example.com/data&quot;
+
+  - name: &quot;Fallback processing&quot;
+    agent: llm
+    action: complete
+    on_error: skip         # skip on failure, continue workflow
+    parameters:
+      prompt: &quot;Process: {previous_output}&quot;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fail</code></td>
+<td>Stop workflow immediately (default)</td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td>Log the error and continue to next step</td>
+</tr>
+<tr>
+<td><code>retry</code></td>
+<td>Retry with exponential backoff</td>
+</tr>
+</tbody></table>
 <h3>Retry Logic</h3>
-<p>Retry failed steps:</p>
+<p>Retry failed steps with explicit parameters:</p>
 <pre><code class="language-yaml">steps:
   - name: &quot;Fetch data&quot;
     agent: http

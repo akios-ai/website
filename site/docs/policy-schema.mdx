@@ -351,7 +351,7 @@ akios run workflow.yml
 
 ### Conditional Execution
 
-Skip steps based on conditions:
+Skip steps based on conditions using the `condition` field. Conditions are evaluated using a safe AST-based evaluator (no `eval()`, no code injection risk):
 
 ```yaml
 steps:
@@ -364,14 +364,43 @@ steps:
   - name: "Process if small"
     agent: llm
     action: complete
-    skip_if: "$(.size > 1048576)"  # Skip if > 1MB
+    condition: "previous_output.size <= 1048576"
     parameters:
       prompt: "Analyze: {{file}}"
 ```
 
+> **Note:** The `skip_if` parameter is still accepted as a backward-compatible alias.
+
+### Error Recovery
+
+Control what happens when a step fails using the `on_error` field:
+
+```yaml
+steps:
+  - name: "Fetch data"
+    agent: http
+    action: get
+    on_error: retry        # retry with exponential backoff
+    parameters:
+      url: "https://api.example.com/data"
+
+  - name: "Fallback processing"
+    agent: llm
+    action: complete
+    on_error: skip         # skip on failure, continue workflow
+    parameters:
+      prompt: "Process: {previous_output}"
+```
+
+| Value | Behavior |
+|-------|----------|
+| `fail` | Stop workflow immediately (default) |
+| `skip` | Log the error and continue to next step |
+| `retry` | Retry with exponential backoff |
+
 ### Retry Logic
 
-Retry failed steps:
+Retry failed steps with explicit parameters:
 
 ```yaml
 steps:

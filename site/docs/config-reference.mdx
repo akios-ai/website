@@ -123,6 +123,12 @@ network_access_allowed: true
 - **Default:** `false`
 - **Recommended:** Enable for regulated environments
 
+**`context_keywords: []`**
+- Domain-specific keywords that suppress false-positive PII matches
+- Example: `["policy_number", "account_ref"]` prevents these terms from being redacted as potential PII
+- Useful for insurance, banking, and other domains with structured identifiers
+- **Default:** `[]` (empty list)
+
 **`redaction_strategy: "mask"`**
 - How to handle PII: `mask`, `hash`, or `remove`
 - `mask` replaces with `[REDACTED]`
@@ -212,6 +218,7 @@ Subdomains must be added explicitly — they are not automatically allowed.
 **`log_level: "INFO"`**
 - Logging detail: `DEBUG`, `INFO`, `WARNING`, `ERROR`
 - **Default:** `INFO`
+- Since v1.0.10, AKIOS uses Python's `logging` module with structured JSON output
 
 ## Environment overrides
 ```bash
@@ -272,6 +279,16 @@ Shows: Current settings, security level, any configuration issues
 ```bash
 akios setup --force
 ```
+
+**Export JSON Schema (v1.0.9+):**
+
+AKIOS can auto-generate a JSON Schema from its Pydantic config model for use with external validators, IDE autocompletion, or CI pipelines:
+
+```bash
+akios config schema > akios-config-schema.json
+```
+
+> **Note:** The list of allowed AI models (`ALLOWED_MODELS`) is managed via Pydantic settings, so model validation is automatic and schema-aware.
 
 ## Security Best Practices
 

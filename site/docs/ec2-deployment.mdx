@@ -10,7 +10,7 @@ Want to test AKIOS at scale? This guide helps you set up on AWS and validate per
 
 **Just testing / budget baseline?** Start with **t4g.micro** (~$3/month)
 - 1 vCPU (ARM64), 1GB RAM
-- Our validated baseline (v1.0.7)
+- Our validated baseline (v1.0.11)
 - Cheapest way to verify AKIOS works
 
 **General testing?** Use **t3.medium** (~$15/month)
@@ -31,7 +31,7 @@ Want to test AKIOS at scale? This guide helps you set up on AWS and validate per
 
 ## Performance to Expect
 
-On t4g.micro (our validated baseline as of v1.0.7):
+On t4g.micro (our validated baseline as of v1.0.11):
 - **Security pipeline:** ~0.47ms (full pipeline: PII + policy + audit + budget)
 - **PII scan:** ~0.46ms (53 regex patterns)
 - **Merkle hash:** ~0.001ms (SHA-256)

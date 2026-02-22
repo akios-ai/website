@@ -24,14 +24,14 @@ docker run --rm -v $(pwd)/templates:/app/templates akios:latest
 
 ### Run as Non-Root
 
-Always run in Docker as non-root:
+The official AKIOS Docker image runs as a non-root user by default (UID 1000) since v1.0.10. If you build a custom image, always add a non-root user:
 
 ```bash
-# Create user in Dockerfile
+# Custom Dockerfile — create non-root user
 RUN useradd -m -u 1000 akios
 USER akios
 
-# Or use --user flag
+# Or use --user flag at runtime
 docker run --user 1000:1000 my-akios-app
 ```
 
@@ -85,6 +85,17 @@ akios status
 
 # Exit code 0 = healthy, non-zero = unhealthy
 ```
+
+### Structured Logging
+
+Since v1.0.10, AKIOS uses Python's `logging` module with structured JSON output instead of plain `print()` calls. Set the log level via `config.yaml` or environment variable:
+
+```bash
+# Set log level
+export AKIOS_LOG_LEVEL=DEBUG
+```
+
+All log entries include timestamp, level, module, and message fields for easy integration with log aggregation tools.
 
 ### Monitoring Audit Logs
 

@@ -118,6 +118,9 @@ akios doctor
 # Enable debug mode
 akios --debug status
 </code></pre>
+<blockquote>
+<p><strong>Note:</strong> Since v1.0.10, AKIOS uses Python&#39;s <code>logging</code> module with structured JSON output. Set <code>AKIOS_LOG_LEVEL=DEBUG</code> for maximum detail. Log entries include timestamp, level, module, and message.</p>
+</blockquote>
 <h2>Installation Issues</h2>
 <h3>SIGTRAP Crash When Running with sudo (Fixed in v1.0.5)</h3>
 <p>If you experience a SIGTRAP crash when running <code>sudo akios run</code>, upgrade to v1.0.5:</p>
@@ -131,7 +134,7 @@ pip show akios
 
 # Reinstall if needed
 pip uninstall akios
-pip install akios&gt;=1.0.7
+pip install akios&gt;=1.0.11
 
 # Check PATH
 which akios
@@ -252,7 +255,7 @@ export AKIOS_BUDGET_LIMIT_PER_RUN=5.0
 <h2>Docker-Specific Issues</h2>
 <h3>&quot;Docker image outdated&quot;</h3>
 <pre><code class="language-bash"># Pull latest image
-docker pull akiosai/akios:v1.0.7
+docker pull akiosai/akios:v1.0.11
 
 # Or force pull with wrapper
 AKIOS_FORCE_PULL=1 ./akios status
@@ -274,10 +277,10 @@ akios --debug run workflow.yml
 <h3>&quot;Audit logs not persisting in Docker&quot;</h3>
 <p>Docker containers use memory-buffered writes. To ensure persistence:</p>
 <pre><code class="language-bash"># Mount a host directory for audit logs
-docker run --rm -v $(pwd)/audit:/app/audit akiosai/akios:v1.0.7 run workflow.yml
+docker run --rm -v $(pwd)/audit:/app/audit akiosai/akios:v1.0.11 run workflow.yml
 
 # Or use tmpfs for better performance
-docker run --rm --tmpfs /app/audit akiosai/akios:v1.0.7 run workflow.yml
+docker run --rm --tmpfs /app/audit akiosai/akios:v1.0.11 run workflow.yml
 </code></pre>
 <h2>Security Issues</h2>
 <h3>&quot;Security validation failed&quot;</h3>

@@ -207,6 +207,11 @@ akios audit verify
     parameters:
       command: [&quot;python&quot;, &quot;my_script.py&quot;]
 </code></pre>
+<h3>What Python version do I need?</h3>
+<p>AKIOS requires <strong>Python 3.9 or higher</strong>. Python 3.8 reached end-of-life and is no longer supported as of v1.0.9.</p>
+<pre><code class="language-bash"># Check your Python version
+python3 --version
+</code></pre>
 <h3>How do I report security issues?</h3>
 <p>Email: <strong><a href="mailto:security@akioud.ai">security@akioud.ai</a></strong></p>
 <p>For vulnerability reports, see <a href="security.html">Security Policy</a>.</p>
@@ -244,7 +249,7 @@ akios audit verify
 <p>Anything outside these paths is denied.</p>
 <h3>PII Redaction</h3>
 <p>Real-time masking, hashing, or removal of sensitive patterns:</p>
-<p><strong>Redacts 50+ pattern types:</strong></p>
+<p><strong>Redacts 53 pattern types:</strong></p>
 <ul>
 <li>Email addresses</li>
 <li>Phone numbers</li>
@@ -361,6 +366,21 @@ cost_kill_enabled: true         # auto-terminate
 └── audit_summary.json # Audit summary
 </code></pre>
 <p>Each run is isolated and timestamped.</p>
+<h3>Condition</h3>
+<p>A <code>condition</code> field on a workflow step that controls whether the step executes. Evaluated by a safe AST-based evaluator (no <code>eval()</code>). Replaces the older <code>skip_if</code> syntax (which still works as an alias).</p>
+<pre><code class="language-yaml">condition: &quot;file_size &lt;= 10485760&quot;  # Only run if file ≤ 10MB
+</code></pre>
+<h3>On Error</h3>
+<p>The <code>on_error</code> field controls what happens when a step fails:</p>
+<ul>
+<li><code>fail</code> — Stop workflow (default)</li>
+<li><code>skip</code> — Log warning and continue</li>
+<li><code>retry</code> — Retry with <code>retry_count</code> and <code>retry_delay</code></li>
+</ul>
+<h3>PIIDetectorProtocol</h3>
+<p>A pluggable interface (Python Protocol class) for custom PII detection backends. Implement this protocol to add domain-specific PII patterns beyond the built-in 53 patterns.</p>
+<h3>Context Keywords</h3>
+<p>A list of domain-specific terms (e.g., <code>policy_number</code>, <code>account_ref</code>) that suppress false-positive PII matches. Configured via <code>context_keywords</code> in <code>config.yaml</code>.</p>
 <h2>Related Docs</h2>
 <ul>
 <li><strong><a href="concepts.html">Concepts</a></strong> - Core architecture</li>

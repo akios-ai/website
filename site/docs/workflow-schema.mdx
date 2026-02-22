@@ -33,6 +33,53 @@ steps:
 | `action` | string | Yes | Agent-specific action (see below) |
 | `config` | object | No | Agent configuration overrides |
 | `parameters` | object | Yes | Action-specific parameters |
+| `condition` | string | No | Expression that must evaluate to true for the step to execute |
+| `on_error` | string | No | Error recovery strategy: `skip`, `fail` (default), or `retry` |
+
+## Conditional Execution
+
+Use the `condition` field to run steps conditionally. Conditions are evaluated using a safe AST-based evaluator — no arbitrary code execution.
+
+```yaml
+steps:
+  - agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/report.pdf"
+
+  - agent: llm
+    action: complete
+    condition: "previous_output != ''"
+    parameters:
+      prompt: "Summarize: {previous_output}"
+```
+
+Supported expressions: comparisons (`==`, `!=`, `>`, `<`), boolean operators (`and`, `or`, `not`), and string checks (`in`, `not in`).
+
+## Error Recovery
+
+Use the `on_error` field to control what happens when a step fails:
+
+| Value | Behavior |
+|-------|----------|
+| `fail` | Stop the workflow immediately (default) |
+| `skip` | Log the error and continue to the next step |
+| `retry` | Retry with exponential backoff |
+
+```yaml
+steps:
+  - agent: http
+    action: get
+    on_error: retry
+    parameters:
+      url: "https://api.example.com/data"
+
+  - agent: llm
+    action: complete
+    on_error: skip
+    parameters:
+      prompt: "Analyze: {previous_output}"
+```
 
 ## Available Agents & Actions
 

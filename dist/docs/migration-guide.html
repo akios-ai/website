@@ -103,44 +103,66 @@
             
             <main class="docs-content">
                 <h1>Migration Guide</h1>
-<p>Upgrade to the latest AKIOS version from earlier releases. This guide covers both the V1.0.7 update and the original pre-V1.0 migration.</p>
-<h2>Upgrading to V1.0.7 (from V1.0.x)</h2>
-<p>V1.0.7 is a drop-in upgrade with no breaking changes. Update via your installation method:</p>
+<p>Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.0.11 update and the original pre-V1.0 migration.</p>
+<h2>Upgrading to V1.0.11 (from V1.0.x)</h2>
+<p>V1.0.11 is a drop-in upgrade with no breaking CLI or workflow changes. Update via your installation method:</p>
 <pre><code class="language-bash"># Pip
 pip install --upgrade akios
 
 # Docker — pull latest image
-docker pull akiosai/akios:v1.0.7
+docker pull akiosai/akios:v1.0.11
 
 # Verify
 akios --version
 </code></pre>
-<h3>What&#39;s New in V1.0.7</h3>
-<p><strong>New CLI commands:</strong></p>
+<blockquote>
+<p><strong>Note:</strong> AKIOS now requires <strong>Python 3.9+</strong> (Python 3.8 is EOL). If you&#39;re on 3.8, upgrade Python first.</p>
+</blockquote>
+<h3>What&#39;s New in V1.0.11</h3>
+<p><strong>v1.0.9 — Science + Orchestration:</strong></p>
 <ul>
-<li><code>akios http</code> — Direct HTTP agent for rate-limited, PII-redacted requests</li>
-<li><code>akios workflow validate</code> — Validate workflow YAML against schema without executing</li>
-<li><code>akios audit rotate</code> — Archive current audit chain, start fresh</li>
-<li><code>akios audit stats</code> — Aggregate statistics across the audit trail</li>
-<li><code>akios protect show-prompt</code> — Inspect the PII detection prompt template</li>
+<li><strong>Conditional execution</strong> — <code>condition</code> field on workflow steps for branching logic</li>
+<li><strong>Error recovery</strong> — <code>on_error</code> field (<code>skip</code> / <code>fail</code> / <code>retry</code>) for resilient workflows</li>
+<li><strong>LangGraph integration</strong> — 215-line working example of LangGraph tool calls through AKIOS enforcement</li>
+<li><strong>TLA+ formal verification</strong> — 130-line model-checked safety invariants for the enforcement pipeline</li>
+<li><strong>Pluggable PII backend</strong> — <code>PIIDetectorProtocol</code> interface for custom PII detectors</li>
+<li><strong>Insurance PII patterns</strong> — policy numbers, group numbers, claim numbers, prior-authorization detection</li>
+<li><strong><code>context_keywords</code> gate</strong> — suppress false-positive PII matches without surrounding context</li>
+<li><strong>Weighted compliance scoring</strong> — security 50%, audit 30%, cost 20%</li>
+<li><strong>Config JSON Schema</strong> — auto-generated from Pydantic settings for IDE auto-completion</li>
 </ul>
-<p><strong>New cage options:</strong></p>
+<p><strong>v1.0.10 — Hardening:</strong></p>
 <ul>
-<li><code>akios cage up --no-pii</code> / <code>--no-audit</code> / <code>--no-budget</code> — Ablation flags for benchmarking individual components</li>
-<li><code>akios cage down --passes N</code> — Multi-pass secure erasure (DOD 5220.22-M with <code>--passes 3</code>)</li>
-<li><code>akios cage down --fast</code> — Truncate-only teardown for dev/CI</li>
+<li><strong>Non-root Docker</strong> — containers no longer run as root by default</li>
+<li><strong>Safe condition evaluator</strong> — AST-based evaluator replaces <code>eval()</code> + token blocklist (eliminates code injection)</li>
+<li><strong>Engine split</strong> — monolith broken into <code>StepExecutor</code>, <code>TemplateRenderer</code>, <code>OutputExtractor</code>, <code>ConditionEvaluator</code></li>
+<li><strong>Structured logging</strong> — ~380 <code>print()</code> calls replaced with Python <code>logging</code> module</li>
 </ul>
-<p><strong>Security improvements:</strong></p>
+<p><strong>v1.0.11 — Cleanup &amp; Hardening:</strong></p>
 <ul>
-<li>53 PII detection patterns (up from 50+), including healthcare markers (NPI, DEA, MRN)</li>
-<li>PII fail-safe: if the scanner errors, input/output is blocked (fail-closed)</li>
-<li>HTTPS enforcement: all external API calls restricted to HTTPS at the transport layer</li>
-<li>Weighted compliance scoring in <code>akios status --security</code></li>
+<li><strong>PyPDF2 → pypdf</strong> — replaced deprecated <code>PyPDF2</code> with actively maintained <code>pypdf</code></li>
+<li><strong>Python 3.9+</strong> — dropped Python 3.8 support (EOL)</li>
+<li><strong>Wrapper fallback fix</strong> — <code>detect_version()</code> now reads dynamically from <code>VERSION</code> file</li>
+<li><strong>Pre-release gate hardening</strong> — version sync validation across all sources</li>
 </ul>
+<h3>Migration Notes</h3>
+<p><strong>Python 3.8 users:</strong> Upgrade to Python 3.9+ before updating AKIOS:</p>
+<pre><code class="language-bash"># Check your Python version
+python3 --version
+
+# If &lt; 3.9, upgrade first
+</code></pre>
+<p><strong>PyPDF2 users:</strong> If you use PyPDF2 in custom scripts alongside AKIOS:</p>
+<pre><code class="language-python"># Old (deprecated)
+import PyPDF2
+
+# New
+import pypdf
+</code></pre>
 <p><strong>Verification after upgrade:</strong></p>
-<pre><code class="language-bash">akios --version                    # Should show 1.0.7
+<pre><code class="language-bash">akios --version                    # Should show 1.0.11
 akios status --security            # Verify all protections active
-akios workflow validate templates/hello-workflow.yml  # Test new command
+akios workflow validate templates/hello-workflow.yml  # Test validation
 akios doctor                       # Run diagnostics
 </code></pre>
 <p>No configuration changes, workflow updates, or data migration needed.</p>
@@ -164,7 +186,7 @@ pip install --upgrade akios
 
 # Verify version
 akios --version
-# Should show: akios 1.0.7 or later
+# Should show: akios 1.0.11 or later
 
 # Test installation
 akios status
@@ -197,10 +219,10 @@ AKIOS_FORCE_PULL=1 ./akios --version
 <h3>Option 3: Direct Docker (For CI/CD)</h3>
 <p><strong>Container-based</strong> for automation.</p>
 <pre><code class="language-bash"># Pull latest image
-docker pull akiosai/akios:v1.0.7
+docker pull akiosai/akios:v1.0.11
 
 # Test run
-docker run --rm akiosai/akios:v1.0.7 --version
+docker run --rm akiosai/akios:v1.0.11 --version
 </code></pre>
 <p><strong>When to use:</strong></p>
 <ul>
@@ -220,7 +242,7 @@ akios status
 akios status --security
 </code></pre>
 <p><strong>Expected output:</strong></p>
-<pre><code>AKIOS v1.0.7
+<pre><code>AKIOS v1.0.11
 Security Level: Kernel-hard (Linux) or Policy-based (Docker)
 Audit: Active
 PII Protection: Active
@@ -282,7 +304,7 @@ akios run workflow.yml
 <pre><code class="language-yaml"># .github/workflows/akios.yml
 steps:
   - name: Install AKIOS
-    run: pip install akios&gt;=1.0.7
+    run: pip install akios&gt;=1.0.11
     
   - name: Run workflow
     run: akios run workflows/production/*.yml
@@ -394,7 +416,7 @@ mv wrapper.sh akios
 <h2>Post-Migration Checklist</h2>
 <p><strong>✓ Verify everything works:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> <code>akios --version</code> shows 1.0.7+</li>
+<li><input disabled="" type="checkbox"> <code>akios --version</code> shows 1.0.11+</li>
 <li><input disabled="" type="checkbox"> <code>akios status --security</code> shows security active</li>
 <li><input disabled="" type="checkbox"> Workflows run successfully in mock mode</li>
 <li><input disabled="" type="checkbox"> Workflows run successfully with real APIs</li>
