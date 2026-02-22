@@ -11,7 +11,9 @@ EnforceCore provides drop-in adapters for popular agent frameworks. Each adapter
 - **No hard dependencies** — framework packages are only imported at call time
 - **Import always succeeds** — importing the adapter module never fails
 - **Consistent API** — `@enforced_tool(policy=...)` pattern across all frameworks
-- **Full enforcement** — policy, PII redaction, resource guards, cost tracking, audit
+- **Full enforcement** — policy, PII redaction, secret scanning, content rules, rate limiting, resource guards, cost tracking, and audit
+- **Hook-compatible** — lifecycle hooks (`@on_violation`, `@on_post_call`, etc.) work with all adapters
+- **Observable** — OpenTelemetry metrics and tracing apply to all enforced tools
 
 ---
 

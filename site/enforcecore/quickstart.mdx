@@ -46,6 +46,25 @@ rules:
       - credit_card
       - ip_address
 
+  content_rules:
+    enabled: true
+    categories:
+      - shell_injection
+      - path_traversal
+      - sql_injection
+      - code_execution
+
+  rate_limits:
+    per_tool: 10         # max calls per tool per minute
+    global: 50           # max total calls per minute
+
+  network:
+    allowed_domains:
+      - "api.example.com"
+      - "*.trusted.io"
+    denied_domains:
+      - "*.evil.com"
+
   resource_limits:
     max_call_duration_seconds: 30
     max_memory_mb: 256
@@ -100,18 +119,22 @@ async def my_tool(args: dict) -> str:
 
 ---
 
-## 4. Context Manager
+## 4. Lifecycle Hooks
 
-When the decorator doesn't fit (wrapping third-party code, dynamic tool names):
+Build custom observability by hooking into the enforcement pipeline:
 
 ```python
-from enforcecore import enforce
+from enforcecore import on_violation, on_post_call
 
-async def run_agent_tool(tool_name: str, args: dict) -> dict:
-    async with enforce(policy="policy.yaml", tool_name=tool_name) as ctx:
-        result = await execute_tool(tool_name, args)
-        ctx.record_result(result)
-    return result
+@on_violation
+def alert_security(ctx):
+    """Called whenever a tool call is blocked."""
+    print(f"⚠️ {ctx.tool_name} blocked: {ctx.violation_type}")
+
+@on_post_call
+def log_metrics(ctx):
+    """Called after every successful tool call."""
+    print(f"✅ {ctx.tool_name} completed in {ctx.overhead_ms:.1f}ms")
 ```
 
 ---
@@ -170,7 +193,7 @@ runner = ScenarioRunner(policy)
 suite = runner.run_all()
 
 print(f"Containment rate: {suite.containment_rate:.0%}")
-# Expected: 100% — all 13 adversarial scenarios blocked
+# Expected: 100% — all 20 adversarial scenarios blocked
 ```
 
 ---
@@ -195,6 +218,7 @@ ENFORCECORE_DEV_MODE=false
 ## Next Steps
 
 - [Architecture →](architecture.html) — Understand the enforcement pipeline
-- [API Reference →](api-reference.html) — Complete API surface (68 exports)
+- [API Reference →](api-reference.html) — Complete API surface (110 exports)
 - [Integrations →](integrations.html) — LangGraph, CrewAI, AutoGen adapters
-- [Evaluation Suite →](evaluation.html) — Test your policies against 13 adversarial scenarios
+- [Evaluation Suite →](evaluation.html) — Test your policies against 20 adversarial scenarios
+- [Roadmap →](roadmap.html) — See what's shipped and what's next

@@ -95,19 +95,193 @@ Production readiness and security hardening.
 
 ---
 
+## Alpha Releases (v1.0.7a1 – v1.0.22a1)
+
+Starting with v1.0.7a1, EnforceCore moved to an alpha release cadence — shipping features faster with the `a1` suffix. All alpha releases are available on PyPI:
+
+```bash
+pip install enforcecore==1.0.22a1
+```
+
+### v1.0.7a1 — Secret Scanner
+
+Credential and secret detection as a first-class feature.
+
+- 11 built-in secret categories: AWS access keys, AWS secret keys, GitHub tokens, Google Cloud API keys, Azure connection strings, database URIs, SSH private keys, generic API keys, JWT tokens, Slack tokens, Stripe keys
+- `SecretScanner` class with batch and single-call APIs
+- Wired into the PII redaction pipeline automatically
+- `DetectedSecret` results with category, position, and confidence
+- 623 tests
+
+### v1.0.8a1 — Content Rules Engine
+
+Pattern-based detection for dangerous content in tool arguments and outputs.
+
+- 4 built-in rule categories: shell injection, path traversal, SQL injection, code execution
+- `RuleEngine` with pattern matching and composable rules
+- `ContentRule` dataclass for custom domain-specific rules
+- `get_builtin_rules()` for easy loading
+- `ContentViolationError` exception
+- 688 tests
+
+### v1.0.9a1 — Rate Limiter
+
+Per-tool and global rate limiting with sliding window counters.
+
+- `RateLimiter` with global RPM and per-tool limits
+- `RateLimit` configuration dataclass
+- Thread-safe sliding window implementation
+- `RateLimitError` exception
+- Wired into the enforcement pipeline
+- 742 tests
+
+### v1.0.10a1 — Network Enforcement
+
+Domain-level allow/deny controls for outbound network calls.
+
+- `DomainChecker` with allow list and deny list
+- Wildcard support (`*.malicious.io`)
+- `DomainDeniedError` exception
+- Configurable via policy YAML `network:` section
+- 803 tests
+
+### v1.0.11a1 — Pluggable Audit Backends
+
+Swap audit storage backends without changing enforcement logic.
+
+- `AuditBackend` abstract base class
+- 4 built-in backends: `JsonlBackend`, `NullBackend`, `CallbackBackend`, `MultiBackend`
+- `MultiBackend` for writing to multiple destinations simultaneously
+- Backwards-compatible — JSONL remains the default
+- 867 tests
+
+### v1.0.12a1 — Audit Log Rotation
+
+Size-based audit log rotation with compression.
+
+- `AuditRotator` with configurable `max_bytes` and `max_files`
+- Automatic gzip compression of rotated files
+- Background rotation (non-blocking)
+- 921 tests
+
+### v1.0.13a1 — Hook System
+
+Lifecycle hooks for extending the enforcement pipeline.
+
+- 4 hook points: `@on_pre_call`, `@on_post_call`, `@on_violation`, `@on_redaction`
+- `HookRegistry` for managing registered callbacks
+- Async-compatible hooks (sync and async functions)
+- Priority ordering for hook execution
+- 985 tests
+
+### v1.0.14a1 — Observability (OpenTelemetry)
+
+First-class OpenTelemetry integration for production monitoring.
+
+- `EnforceCoreMetrics` — counters and histograms for enforcement events
+- `EnforceCoreInstrumentor` — span creation for tracing
+- Works with any OpenTelemetry-compatible backend (Jaeger, Prometheus, Datadog)
+- Optional dependency — no import overhead if not used
+- 1,041 tests
+
+### v1.0.15a1 — Webhooks
+
+HTTP webhook event dispatch for alerting and integrations.
+
+- `WebhookDispatcher` with configurable endpoints
+- `WebhookEvent` dataclass with event type, payload, and metadata
+- Retry logic with exponential backoff
+- Async dispatch (non-blocking)
+- 1,098 tests
+
+### v1.0.16a1 — API Freeze + Breaking Changes
+
+**⚠️ Breaking:** `guard_sync()` and `guard_async()` context managers removed. Use `Enforcer.from_file()` factory or `@enforce()` decorator instead.
+
+- Public API frozen at 110 exports — stability guarantee going forward
+- `Enforcer.from_file()` factory method for ergonomic initialization
+- `PolicyEvaluationError` added to exception hierarchy
+- Migration guide in changelog
+- 1,152 tests
+
+### v1.0.17a1 — Guard Leak Detection
+
+Thread safety improvements and resource leak tracking.
+
+- `guard.leaked_thread_count` property for orphaned thread detection
+- Shared thread pool in Resource Guard (eliminates per-call thread creation)
+- Thread-safe policy cache with mtime-based invalidation (security fix H-3)
+- 1,198 tests
+
+### v1.0.18a1 — CLI Expansion
+
+New CLI commands for policy inspection and dry-run evaluation.
+
+- `enforcecore dry-run` — simulate enforcement without executing tools
+- `enforcecore inspect` — display policy rules and effective configuration
+- CLI now has 6 commands: `info`, `validate`, `verify`, `eval`, `dry-run`, `inspect`
+- 1,251 tests
+
+### v1.0.19a1 — Expanded Evaluation Suite
+
+New adversarial scenarios and threat categories.
+
+- 20 adversarial scenarios (up from 13)
+- 10 threat categories (up from 7): added RANSOMWARE, SUPPLY_CHAIN, COLLUSION
+- Multi-stage scenario support with `StageResult`
+- New scenarios: ransomware campaign, supply-chain credential harvest, multi-agent collusion relay, privilege escalation chain, slow-burn exfiltration
+- 1,312 tests
+
+### v1.0.20a1 — Expanded Benchmarks
+
+Comprehensive performance benchmarking.
+
+- 15 benchmarks (up from 7)
+- P50/P99/P99.9 percentile stats
+- New benchmarks: secret detection, content rules, rate limiter, domain checker, audit rotation, hook dispatch, audit verify (100 entries)
+- 1,378 tests
+
+### v1.0.21a1 — Security Hardening
+
+Critical security fixes and hardening.
+
+- **H-1:** PII leak in fail-open path — redaction now runs BEFORE fail-open decision
+- **H-2:** Thread leak in long-running enforcers — shared thread pool fix
+- **H-3:** Policy cache mtime race — thread-safe mtime checking
+- Improved error messages for all exception types
+- 1,441 tests
+
+### v1.0.22a1 — Test & Documentation Blitz
+
+Final alpha polish — documentation, tests, and stability.
+
+- **1,503 tests**, 96% coverage
+- **110 public exports** (API frozen since v1.0.16a1)
+- Documentation refresh across all modules
+- Cross-reference validation between docs and code
+- Ready for beta promotion
+
+---
+
 ## Current Status
 
-All v1.0.x releases have shipped. The public API is considered stable after v1.0.6.
+All releases through v1.0.22a1 have shipped. The public API is frozen at 110 exports since v1.0.16a1.
 
 | Metric | Value |
 |---|---|
-| Tests | 544 |
+| Tests | 1,503 |
 | Coverage | 96% |
-| Public exports | 68 |
+| Public exports | 110 (frozen) |
 | PII categories | 5 |
-| Adversarial scenarios | 13 |
-| Threat categories | 7 |
+| Secret scanner categories | 11 |
+| Content rule categories | 4 |
+| Adversarial scenarios | 20 |
+| Threat categories | 10 |
+| Performance benchmarks | 15 |
 | Framework adapters | 3 |
+| Audit backends | 4 |
+| CLI commands | 6 |
+| Hook points | 4 |
 | Dependencies | 4 (Pydantic v2, PyYAML, structlog, cryptography) |
 
 ---
@@ -116,20 +290,20 @@ All v1.0.x releases have shipped. The public API is considered stable after v1.0
 
 These are potential future work — not committed:
 
-### v1.1 — Network Enforcement
-Domain filtering, request inspection, and network-level policy rules.
+### v1.0 Stable (Beta → GA)
+Promote from alpha to stable release. Final API review, migration guide, and production deployment guide.
 
-### v1.2 — Policy Hub
-Community repository of reusable, audited policies.
+### v1.1 — Policy Hub
+Community repository of reusable, audited policies with versioning and peer review.
 
-### v1.3 — Formal Verification
+### v1.2 — Formal Verification
 Integration with model checkers for mathematical policy guarantees.
 
-### v1.4 — Multi-Language Support
+### v1.3 — Multi-Language Support
 TypeScript and Go bindings for non-Python ecosystems.
 
 ### v2.0 — Distributed Enforcement
-Enforcement for multi-agent systems across processes and machines.
+Enforcement for multi-agent systems across processes and machines, with shared state and coordinated rate limiting.
 
 ---
 
