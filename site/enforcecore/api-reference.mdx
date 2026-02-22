@@ -1,11 +1,13 @@
 ---
 title: EnforceCore — API Reference
-keywords: enforcecore api reference enforce decorator enforcer policy redactor auditor guard hardening exceptions types
+keywords: enforcecore api reference enforce decorator enforcer policy redactor auditor guard hardening hooks secrets content rules rate limiter domain checker exceptions types
 ---
 
 # API Reference
 
-EnforceCore exposes 68 public symbols from the top-level `enforcecore` package. This page documents the complete public API surface.
+EnforceCore exposes 110 public symbols from the top-level `enforcecore` package. This page documents the complete public API surface.
+
+> **API Stability:** The public API was frozen at v1.0.16a1. All 110 symbols in `__all__` are covered by compatibility tests.
 
 ---
 
@@ -47,16 +49,6 @@ async def _internal_search(query: str) -> str: ...
 - After call: evaluate post-call rules, redact outputs, record audit entry
 - On violation: raise `EnforcementViolation` (call never executes)
 
-### `enforce()` Context Manager
-
-```python
-async def run_agent_tool(tool_name: str, args: dict) -> dict:
-    async with enforce(policy="policy.yaml", tool_name=tool_name) as ctx:
-        result = await execute_tool(tool_name, args)
-        ctx.record_result(result)
-    return result
-```
-
 ### `Enforcer` Class
 
 ```python
@@ -70,10 +62,15 @@ result = enforcer.enforce_sync(search_fn, "query", tool_name="search_web")
 # Async
 result = await enforcer.enforce_async(search_fn, "query", tool_name="search_web")
 
+# From file shortcut
+enforcer = Enforcer.from_file("policy.yaml")
+
 # Properties
 print(enforcer.policy_name)  # "my-policy"
 print(enforcer.policy)       # Policy instance
 ```
+
+> **Note:** `guard_sync()` and `guard_async()` were removed in v1.0.16a1. Use `enforce_sync()` / `enforce_async()` instead — they run the full enforcement pipeline (policy + PII redaction + audit + resource guard).
 
 ---
 
@@ -227,6 +224,40 @@ a2.record(tool_name="tool_b", policy_name="p")
 assert verify_trail("trail.jsonl").is_valid  # True — chain intact
 ```
 
+### Pluggable Audit Backends
+
+Swap the default JSONL backend for custom logging:
+
+```python
+from enforcecore import (
+    AuditBackend, JsonlBackend, NullBackend,
+    CallbackBackend, MultiBackend,
+)
+
+# Send audit events to your observability stack
+callback = CallbackBackend(on_event=lambda entry: send_to_datadog(entry))
+
+# Write locally AND send remotely
+multi = MultiBackend([JsonlBackend("audit.jsonl"), callback])
+
+# Disable auditing in tests
+null = NullBackend()
+```
+
+### Audit Rotation
+
+Manage audit file growth with automatic rotation:
+
+```python
+from enforcecore import AuditRotator
+
+rotator = AuditRotator(
+    max_size_bytes=50 * 1024 * 1024,  # 50 MB per file
+    retention_days=90,                 # Keep 90 days
+    compress=True,                     # gzip old files
+)
+```
+
 ---
 
 ## Guard API
@@ -246,11 +277,175 @@ ks = KillSwitch()
 ks.trip("memory exceeded 256MB")
 ks.check("tool", "policy")     # Raises ResourceLimitError
 
-# Resource guard
+# Resource guard (shared thread pool, leak detection)
 guard = ResourceGuard(cost_tracker=tracker, kill_switch=ks)
 result = await guard.execute_async(
     my_func, (arg,), {},
     max_duration_seconds=30.0,
+)
+
+# Check for leaked threads
+print(guard.leaked_thread_count)  # 0 = healthy
+```
+
+---
+
+## Secret Scanner API
+
+Detect leaked credentials in tool inputs and outputs:
+
+```python
+from enforcecore import SecretScanner, DetectedSecret, PatternRegistry
+
+scanner = SecretScanner()
+
+# Scan text for secrets
+secrets = scanner.scan("aws_key = AKIAIOSFODNN7EXAMPLE")
+for s in secrets:
+    print(f"  {s.category}: {s.text[:10]}...")
+
+# Built-in categories: aws_key, github_token, generic_api_key,
+# bearer_jwt, private_key, password_url, gcp_service_account,
+# azure_connection_string, database_uri, ssh_private_key, slack_token
+```
+
+### Custom Patterns
+
+Register domain-specific secret patterns:
+
+```python
+from enforcecore import CustomPattern, PatternRegistry
+
+registry = PatternRegistry()
+registry.register(CustomPattern(
+    name="internal_api_key",
+    pattern=r"myco-[a-f0-9]{32}",
+    description="Internal API key format",
+))
+```
+
+---
+
+## Content Rules API
+
+Block dangerous content patterns in tool arguments and outputs:
+
+```python
+from enforcecore import RuleEngine, ContentRule, get_builtin_rules
+
+# Use built-in rules
+engine = RuleEngine(rules=get_builtin_rules())
+
+# Check content
+violations = engine.check("os.system('rm -rf /')")
+for v in violations:
+    print(f"  {v.rule_name}: {v.description}")
+
+# 4 built-in categories:
+# - shell_injection: os.system, subprocess, exec
+# - path_traversal: ../, /etc/passwd, ~root
+# - sql_injection: SELECT, DROP, UNION
+# - code_execution: eval(), exec(), __import__
+```
+
+---
+
+## Rate Limiter API
+
+Prevent runaway agents from making too many calls:
+
+```python
+from enforcecore import RateLimiter, RateLimit
+
+limiter = RateLimiter(
+    per_tool=RateLimit(max_calls=10, window_seconds=60),
+    global_limit=RateLimit(max_calls=50, window_seconds=60),
+)
+
+# Check before calling (raises RateLimitError if exceeded)
+limiter.check("search_web")
+```
+
+---
+
+## Domain Checker API
+
+Enforce network access policies:
+
+```python
+from enforcecore import DomainChecker
+
+checker = DomainChecker(
+    allowed=["api.example.com", "*.trusted.io"],
+    denied=["*.evil.com", "*.malware.net"],
+)
+
+checker.check("api.example.com")    # OK
+checker.check("hack.evil.com")      # Raises DomainDeniedError
+```
+
+---
+
+## Hook System API
+
+Build custom observability and enforcement extensions:
+
+```python
+from enforcecore import (
+    on_pre_call, on_post_call, on_violation, on_redaction,
+    HookRegistry, HookContext, ViolationHookContext, RedactionHookContext,
+)
+
+@on_pre_call
+def log_start(ctx: HookContext):
+    print(f"→ Calling {ctx.tool_name}")
+
+@on_post_call
+def log_end(ctx: HookContext):
+    print(f"← {ctx.tool_name} completed in {ctx.overhead_ms:.1f}ms")
+
+@on_violation
+def alert(ctx: ViolationHookContext):
+    send_alert(f"⚠️ {ctx.tool_name} blocked: {ctx.violation_type}")
+
+@on_redaction
+def track_pii(ctx: RedactionHookContext):
+    metrics.increment("pii_redacted", ctx.redaction_count)
+
+# Programmatic hook management
+registry = HookRegistry()
+registry.register("post_call", my_hook_fn)
+```
+
+---
+
+## Observability API
+
+OpenTelemetry integration for production monitoring:
+
+```python
+from enforcecore import EnforceCoreMetrics, EnforceCoreInstrumentor
+
+# Counters (Prometheus-compatible)
+metrics = EnforceCoreMetrics()
+# Tracks: calls_total, violations_total, redactions_total, cost_usd
+
+# Spans (distributed tracing)
+instrumentor = EnforceCoreInstrumentor()
+instrumentor.instrument()  # Auto-instruments all enforce() calls
+```
+
+### Event Webhooks
+
+Push enforcement events to external services:
+
+```python
+from enforcecore import WebhookDispatcher, WebhookEvent
+
+dispatcher = WebhookDispatcher(
+    url="https://hooks.example.com/enforcecore",
+    events=[WebhookEvent.VIOLATION, WebhookEvent.COST_LIMIT],
+    retry_count=3,
 )
 ```
 
@@ -258,7 +453,7 @@ result = await guard.execute_async(
 
 ## Hardening API
 
-Input validation, scope tracking, and unicode protection (v1.0.6+).
+Input validation, scope tracking, and unicode protection.
 
 ### Input Validation
 
@@ -312,11 +507,14 @@ clean = prepare_for_detection(text)
 EnforceCoreError              # Base exception
 ├── PolicyError
 │   ├── PolicyLoadError       # File not found / unparseable
-│   └── PolicyValidationError # Schema violation
+│   ├── PolicyValidationError # Schema violation
+│   └── PolicyEvaluationError # Error during rule evaluation
 ├── EnforcementViolation
 │   ├── ToolDeniedError       # Tool not allowed
 │   ├── DomainDeniedError     # Network domain blocked
 │   ├── CostLimitError        # Budget exceeded
+│   ├── RateLimitError        # Rate limit exceeded
+│   ├── ContentViolationError # Content rule violated
 │   └── ResourceLimitError    # Resource limit breached
 ├── RedactionError            # PII error (fails closed)
 ├── AuditError                # Audit error (fails closed)
@@ -332,6 +530,9 @@ EnforceCoreError              # Base exception
 ## CLI
 
 ```bash
+# Show version and platform info
+enforcecore info
+
 # Validate a policy file
 enforcecore validate policies/strict.yaml
 
@@ -341,8 +542,11 @@ enforcecore verify audit.jsonl
 # Run evaluation suite
 enforcecore eval --scenarios all --output results/
 
-# Show version and platform info
-enforcecore info
+# Dry-run a tool call against a policy (no execution)
+enforcecore dry-run --policy policy.yaml --tool search_web
+
+# Inspect a policy's rules and settings
+enforcecore inspect policies/strict.yaml
 ```
 
 ---

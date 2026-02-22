@@ -69,6 +69,51 @@ Tool call exceeded `resource_limits.max_call_duration_seconds`.
 ENFORCECORE_DEFAULT_POLICY=policies/default.yaml
 ```
 
+### `RateLimitError: Rate limit exceeded`
+
+Too many calls in the configured time window — either global RPM or per-tool limit.
+
+**Fix:** Increase the rate limit in your policy:
+```yaml
+rules:
+  rate_limits:
+    global_rpm: 120        # Increase from default
+    per_tool:
+      search_web: 60       # Per-tool override
+```
+
+### `ContentViolationError: Content rule violated`
+
+Tool arguments or output matched a dangerous content pattern (shell injection, path traversal, SQL injection, or code execution).
+
+**Fix:** Review the flagged content. If it's a false positive, you can disable specific rule categories:
+```yaml
+rules:
+  content_rules:
+    enabled: true
+    categories: [shell_injection, sql_injection]  # Only these two
+```
+
+### `DomainDeniedError: Domain not allowed`
+
+The tool attempted to access a domain not in the allow list or explicitly in the deny list.
+
+**Fix:** Add the domain to your policy's network allow list:
+```yaml
+rules:
+  network:
+    allowed_domains: ["api.example.com", "cdn.example.com"]
+```
+
+### `PolicyEvaluationError: Error during rule evaluation`
+
+A rule in the policy failed to evaluate — often due to malformed conditions or missing fields.
+
+**Fix:** Validate your policy with the CLI:
+```bash
+enforcecore validate --policy policy.yaml
+```
+
 ### `RuntimeWarning: fail_open is enabled without ENFORCECORE_DEV_MODE=1`
 
 `fail_open=True` is set but you're not in dev mode.
@@ -121,6 +166,30 @@ suite = runner.run_all()
 print(f"Containment: {suite.containment_rate:.0%}")
 ```
 
+### Use the CLI
+
+EnforceCore includes 6 CLI commands for debugging and inspection:
+
+```bash
+# Show installed version and configuration
+enforcecore info
+
+# Validate a policy file
+enforcecore validate --policy policy.yaml
+
+# Verify an audit trail
+enforcecore verify --trail audit.jsonl
+
+# Run evaluation scenarios
+enforcecore eval --scenarios all
+
+# Dry-run a policy without executing tools
+enforcecore dry-run --policy policy.yaml --scenarios all
+
+# Inspect effective policy rules
+enforcecore inspect --policy policy.yaml
+```
+
 ---
 
 ## FAQ
@@ -161,14 +230,49 @@ Presidio requires spaCy + Pydantic v1, incompatible with Python 3.14. Regex is z
 
 ### What's the enforcement overhead?
 
-| Component | Overhead |
-|---|---|
-| Policy evaluation | < 1ms |
-| PII redaction | 0.1–0.5ms |
-| Audit entry | < 1ms |
-| **Typical total** | **8–20ms** |
+Benchmarked on Python 3.13 with 1,000 iterations:
+
+| Component | P50 (ms) | P99 (ms) |
+|---|---|---|
+| Policy evaluation | 0.012 | 0.228 |
+| PII redaction (short) | 0.028 | 0.275 |
+| Secret detection | 0.012 | 0.017 |
+| Content rules | 0.008 | 0.045 |
+| Rate limiter | < 0.001 | 0.002 |
+| Audit entry | 0.068 | 0.232 |
+| **Full E2E** | **0.056** | **0.892** |
 
 Negligible compared to tool call latency (100ms–10s).
+
+### What secrets does EnforceCore detect?
+
+The built-in secret scanner covers 11 categories: AWS access keys, AWS secret keys, GitHub tokens, Google Cloud API keys, Azure connection strings, database URIs, SSH private keys, generic API keys, JWT tokens, Slack tokens, and Stripe keys. You can add custom patterns via `PatternRegistry`.
+
+### What are content rules?
+
+Content rules detect dangerous patterns in tool arguments and outputs — shell injection (`rm -rf`, `; cat /etc/passwd`), path traversal (`../../../`), SQL injection (`' OR 1=1`), and code execution (`eval()`, `exec()`). They fire before the tool runs, preventing the attack.
+
+### How do lifecycle hooks work?
+
+Hooks let you extend the enforcement pipeline without modifying core code:
+
+```python
+from enforcecore import on_violation, on_post_call
+
+@on_violation
+def alert_on_block(event):
+    slack.send(f"Blocked: {event.tool_name} - {event.reason}")
+
+@on_post_call
+def log_latency(event):
+    metrics.record(event.tool_name, event.duration_ms)
+```
+
+Four hook points: `@on_pre_call`, `@on_post_call`, `@on_violation`, `@on_redaction`.
+
+### What happened to guard_sync() and guard_async()?
+
+Removed in v1.0.16a1. Use `Enforcer.from_file()` factory or `@enforce()` decorator instead. See the [API Reference](/enforcecore/api-reference) for migration details.
 
 ### How does the Merkle chain work?
 
@@ -198,8 +302,16 @@ Yes. The auditor reads the last entry's hash from an existing trail file and con
 | `ENFORCECORE_DEFAULT_POLICY` | `None` | Default policy path |
 | `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Audit directory |
 | `ENFORCECORE_AUDIT_ENABLED` | `true` | Enable auditing |
+| `ENFORCECORE_AUDIT_BACKEND` | `jsonl` | Audit backend (`jsonl`, `null`, `callback`, `multi`) |
+| `ENFORCECORE_AUDIT_MAX_BYTES` | `10485760` | Max audit file size before rotation (10 MB) |
+| `ENFORCECORE_AUDIT_MAX_FILES` | `5` | Max rotated audit files to keep |
 | `ENFORCECORE_REDACTION_ENABLED` | `true` | Enable PII redaction |
+| `ENFORCECORE_SECRET_SCANNING` | `true` | Enable secret detection |
+| `ENFORCECORE_CONTENT_RULES` | `true` | Enable content rule checking |
 | `ENFORCECORE_LOG_LEVEL` | `INFO` | Log level |
 | `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Global cost budget |
+| `ENFORCECORE_RATE_LIMIT_RPM` | `0` | Global rate limit (0 = disabled) |
 | `ENFORCECORE_FAIL_OPEN` | `false` | Allow bypass on errors |
 | `ENFORCECORE_DEV_MODE` | `false` | Dev mode flag |
+| `ENFORCECORE_OTEL_ENABLED` | `false` | Enable OpenTelemetry metrics/tracing |
+| `ENFORCECORE_WEBHOOK_URL` | `None` | Webhook endpoint for events |
