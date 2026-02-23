@@ -342,17 +342,6 @@ img {
   padding-bottom: 0;
 }
 
-.lang-switch {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-left: var(--space-3);
-}
-
-.lang-switch select {
-  border: 1px solid var(--accent);
-}
-
 /* --- Components: Hero --- */
 .hero {
   padding: var(--space-6) var(--space-5);
@@ -617,16 +606,6 @@ pre code {
 
 .quickstart-link {
   font-weight: 600;
-}
-
-.arch-diagram {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  padding: var(--space-4);
-  border-radius: var(--radius);
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
 }
 
 .arch-svg {
@@ -1183,6 +1162,7 @@ Table of Contents
 /* --- Utility --- */
 .text-center { text-align: center; }
 .mb-0 { margin-bottom: 0; }
+.bg-alt { background-color: var(--bg-alt); }
 
 /* --- Docs Layout --- */
 .docs-wrapper {
@@ -1375,9 +1355,8 @@ Table of Contents
   .footer-links-fixed .footer-row {
     justify-content: flex-start;
   }
-}
 
-@media (max-width: 768px) {
+  /* Grids: mobile overrides */
   .agents-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1579,153 +1558,6 @@ Mobile: Single column blog layout
 }
 */
 
-/* --- Landing Page: Social Proof Section --- */
-.section-social-proof {
-  background: rgba(var(--accent), 0.05);
-  border: 1px solid var(--border-subtle);
-}
-
-.social-proof-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-5);
-  text-align: center;
-}
-
-.proof-item {
-  padding: var(--space-3);
-}
-
-.proof-item .metric {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: var(--action);
-  display: block;
-  line-height: 1.2;
-}
-
-.proof-item .label {
-  color: var(--muted);
-  font-size: 0.9375rem;
-  margin-top: var(--space-1);
-}
-
-@media (max-width: 768px) {
-  .social-proof-grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-3);
-  }
-}
-
-/* --- Landing Page: Integrations Section --- */
-.integrations-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: var(--space-4);
-  align-items: center;
-  justify-items: center;
-}
-
-.integration-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 80px;
-  padding: var(--space-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius);
-  background: var(--bg-alt);
-  transition: all 0.2s ease;
-}
-
-.integration-item img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-@media (max-width: 1024px) {
-  .integrations-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .integrations-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-2);
-  }
-  
-  .integration-item {
-    height: 60px;
-  }
-}
-
-/* --- Landing Page: Comparison Section --- */
-.comparison-table {
-  width: 100%;
-  border-collapse: collapse;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  margin: var(--space-4) 0;
-}
-
-.comparison-table thead {
-  background: var(--bg-alt);
-  border-bottom: 2px solid var(--border);
-}
-
-.comparison-table th {
-  padding: var(--space-3);
-  text-align: left;
-  font-weight: 600;
-  color: var(--text);
-  font-size: 0.9375rem;
-}
-
-.comparison-table td {
-  padding: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
-  font-size: 0.875rem;
-  color: var(--text);
-}
-
-.comparison-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.comparison-table tbody tr:hover {
-  background: rgba(var(--accent), 0.02);
-}
-
-.comparison-table .feature {
-  font-weight: 500;
-  color: var(--text);
-  width: 30%;
-}
-
-.comparison-table .check {
-  color: var(--action);
-  font-weight: bold;
-}
-
-.comparison-table .cross {
-  color: var(--muted);
-  font-weight: bold;
-}
-
-@media (max-width: 768px) {
-  .comparison-table {
-    font-size: 0.8125rem;
-  }
-  
-  .comparison-table th,
-  .comparison-table td {
-    padding: var(--space-2);
-  }
-}
-
 /* --- Landing Page: FAQ Section --- */
 .faq-grid {
   display: grid;
@@ -1884,11 +1716,6 @@ Mobile: Single column blog layout
 }
 
 [data-theme="dark"] .blog-toc-sticky {
-  background: var(--bg-alt);
-  border-color: var(--border);
-}
-
-[data-theme="dark"] .integration-item {
   background: var(--bg-alt);
   border-color: var(--border);
 }
