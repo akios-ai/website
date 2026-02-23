@@ -31,7 +31,7 @@ report = generate_report(suite, benchmarks)
 
 ## Catégories de Menaces
 
-**13 scénarios adversariaux** sur **7 catégories** :
+**20 scénarios adversariaux** sur **10 catégories** :
 
 | Catégorie | Description | Scénarios |
 |---|---|---|
@@ -39,9 +39,12 @@ report = generate_report(suite, benchmarks)
 | **Exfiltration de données** | Fuite via sorties surdimensionnées ou PII | 2 |
 | **Épuisement de ressources** | Dépassement de limites temps/coûts | 2 |
 | **Évasion de politique** | Usurpation de noms d'outils, variation de casse | 2 |
-| **Fuite PII** | Données personnelles dans les arguments | 1 |
-| **Escalade de privilèges** | Tester tous les outils refusés | 1 |
+| **Fuite PII** | Données personnelles dans les arguments | 2 |
+| **Escalade de privilèges** | Tester tous les outils refusés | 2 |
 | **Injection de prompt** | Payloads d'injection dans arguments ou noms | 2 |
+| **Injection de contenu** | Shell, SQL, traversée de chemin, exécution de code | 2 |
+| **Évasion réseau** | Domaines interdits, wildcards | 1 |
+| **Dépassement de débit** | Rate limiting par outil et global | 2 |
 
 ---
 
@@ -94,8 +97,16 @@ print(suite.containment_rate)  # confinés / (confinés + échappés)
 | `policy_pre_call` | Enforcement pré-appel |
 | `policy_post_call` | Évaluation post-appel |
 | `pii_redaction` | Scan et rédaction PII |
+| `secret_scanning` | Détection de secrets |
+| `content_rules` | Vérification des règles de contenu |
+| `rate_limiter` | Vérification de limites de débit |
+| `domain_checker` | Vérification de domaine |
 | `audit_record` | Entrée d'audit Merkle |
+| `audit_verify` | Vérification de piste d'audit |
+| `witness_record` | Enregistrement witness |
 | `guard_overhead` | Surcharge du guard |
+| `hook_dispatch` | Dispatch des hooks de cycle de vie |
+| `unicode_normalization` | Pipeline normalisation unicode |
 | `enforcer_e2e` | Pipeline complet (sans PII) |
 | `enforcer_e2e_with_pii` | Pipeline complet + PII |
 
