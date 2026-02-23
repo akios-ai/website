@@ -1,27 +1,21 @@
 ---
 title: EnforceCore — Enforcement Runtime pour Agents IA
-keywords: enforcecore runtime enforcement agents IA politique PII rédaction Merkle audit guard open source
+keywords: enforcecore runtime enforcement agents IA politique PII rédaction Merkle audit guard secret scanner content rules rate limiter open source vérification runtime propriétés formelles
 ---
+
+<div style="text-align: center; margin-bottom: 2rem;">
+  <img src="../../assets/img/logo-enforcecore.svg" alt="Logo EnforceCore" style="max-width: 180px; height: auto;" />
+</div>
 
 # EnforceCore
 
 **Framework d'enforcement runtime léger et open source pour tout agent IA basé sur Python.**
 
-EnforceCore est un framework d'enforcement modulaire qui intercepte chaque appel externe de votre agent — appels d'outils, requêtes API, accès fichiers — et applique des vérifications de politique obligatoires, la rédaction de données personnelles, des limites de ressources et un journal d'audit inviolable.
+> **Version actuelle : v1.0.0b5 (bêta)** — Enforcement de qualité production, API gelée, activement renforcé. [Disponible sur PyPI](https://pypi.org/project/enforcecore/).
 
-Il opère à la **frontière d'exécution** — la seule couche qui ne peut être ni contournée, ni piratée, ni manipulée par injection de prompt.
+EnforceCore est un framework d'enforcement modulaire qui intercepte chaque appel externe de votre agent — appels d'outils, requêtes API, accès fichiers — et applique des vérifications de politique obligatoires, la rédaction de données personnelles, la détection de secrets, les règles de contenu, le rate limiting, les limites de ressources et un journal d'audit inviolable.
 
-```python
-from enforcecore import enforce
-
-@enforce(policy="policy.yaml")
-async def search_web(query: str) -> str:
-    return await api.search(query)
-
-# Si "search_web" n'est pas dans allowed_tools → bloqué. Point final.
-# Données personnelles dans la requête → automatiquement rédaction avant l'appel.
-# Chaque appel → entrée d'audit cryptographique.
-```
+Il opère à la **frontière d'exécution** — la seule couche qui ne peut être ni contournée, ni piratée, ni manipulée par injection de prompt. Le décorateur `@enforce()` agit comme un moniteur runtime dans la tradition de la vérification runtime : un observateur qui intercepte les événements système, les évalue selon une spécification, et émet un verdict avant que l'action ne soit autorisée.
 
 ---
 
@@ -33,17 +27,27 @@ La plupart des solutions de « sécurité » sont des garde-fous au niveau du pr
 
 **EnforceCore applique les règles à la frontière du code.** Les politiques sont obligatoires, pas consultatives. Si un appel viole la politique, il est bloqué — avant même son exécution.
 
+| | Garde-fous Prompt | EnforceCore |
+|---|---|---|
+| **Couche** | À l'intérieur du LLM | Frontière d'appel runtime |
+| **Contournable ?** | Oui (jailbreaks, injection de prompt) | Non (enforcement au niveau du code) |
+| **Auditable ?** | Non | Oui (pistes chaînées Merkle) |
+| **Testé formellement ?** | Non | Oui (22 propriétés Hypothesis) |
+| **Aligné EU AI Act ?** | Non | Oui (voir [avertissement](#mentions-legales)) |
+
 ### Enforce, pas suggérer
-Les politiques sont obligatoires. Un appel d'outil refusé ne s'exécute jamais.
+Les politiques sont obligatoires. Un appel d'outil refusé ne s'exécute jamais. Il n'y a pas de prompt de « contournement ».
 
 ### Agnostique du framework
 Fonctionne avec LangGraph, CrewAI, AutoGen ou du Python pur. Aucun verrouillage.
 
 ### Vérifiable
-Chaque appel produit une entrée d'audit chaînée par Merkle en SHA-256. La piste complète est inviolable et vérifiable cryptographiquement.
+Chaque appel produit une entrée d'audit chaînée par Merkle en SHA-256. La piste complète est inviolable et vérifiable cryptographiquement. 22 propriétés formelles sont vérifiées via [Hypothesis](https://hypothesis.readthedocs.io/) à chaque exécution CI.
 
 ### Léger
-8–20ms de surcharge typique. Négligeable par rapport à la latence des appels d'outils (100ms–10s).
+~0,056 ms de surcharge E2E (P50). Négligeable par rapport à la latence des appels d'outils (100 ms–10 s).
+
+> **EnforceCore vs. sécurité OS :** EnforceCore opère à la *couche sémantique applicative* — il comprend les appels d'outils, les données personnelles et les budgets de coût. Il ne remplace pas SELinux, AppArmor, seccomp ou le sandboxing conteneur. Ces outils sont complémentaires — utilisez les deux pour une défense en profondeur.
 
 ---
 
@@ -51,12 +55,19 @@ Chaque appel produit une entrée d'audit chaînée par Merkle en SHA-256. La pis
 
 | Composant | Fonction |
 |---|---|
-| **Policy Engine** | Politiques déclaratives YAML + Pydantic v2. Outils autorisés/refusés, conditions, gestion des violations. |
-| **Rédacteur PII** | Détection regex de 5 catégories de données personnelles. Rédaction automatique des entrées et sorties. ~0.1–0.5ms par appel. |
-| **Auditeur Merkle** | Piste d'audit chaînée en SHA-256. Chaque appel journalisé. Détection de falsification intégrée. Format JSONL. |
-| **Resource Guard** | Limites de temps, mémoire, suivi des coûts. Multi-plateforme (Linux, macOS, Windows). |
-| **Adaptateurs** | Adaptateurs prêts à l'emploi pour LangGraph, CrewAI, AutoGen. ~20–50 lignes chacun. |
-| **Suite d'évaluation** | 13 scénarios adversariaux sur 7 catégories de menaces. Benchmarks avec statistiques P95/P99. |
+| **Policy Engine** | Politiques déclaratives YAML + Pydantic v2. Outils autorisés/refusés, conditions, gestion des violations. Composition avec `extends:` et `Policy.merge()`. |
+| **Rédacteur PII** | Détection regex de 5 catégories. Rédaction auto entrées/sorties. Protection unicode (NFC, homoglyphes, URL/HTML). ~0,1–0,5 ms. |
+| **Scanner de Secrets** | 11 catégories intégrées (AWS, GitHub, GCP, Azure, DB URIs, SSH, etc.). Patterns personnalisés via `PatternRegistry`. Filtrage entropie Shannon. |
+| **Moteur Règles de Contenu** | 4 catégories : injection shell, traversée de chemin, injection SQL, exécution de code. Extensible via `RuleEngine`. |
+| **Rate Limiter** | Limitation par outil et globale avec fenêtre glissante. |
+| **Enforcement Réseau** | `DomainChecker` avec listes allow/deny à wildcards. |
+| **Auditeur Merkle** | Piste SHA-256 chaînée. 4 backends (JSONL, Null, Callback, Multi). Fichiers append-only OS. 3 backends witness (Callback, File, Log). Rotation + gzip. |
+| **Resource Guard** | Temps, mémoire, coûts. Multi-plateforme. Pool de threads partagé, détection de fuites. |
+| **Système de Hooks** | 4 hooks de cycle de vie avec décorateurs et `HookRegistry`. |
+| **CLI** | 6 commandes : `info`, `validate`, `verify`, `eval`, `dry-run`, `inspect`. |
+| **Observabilité** | OpenTelemetry + webhooks pour événements violation/coût/audit. |
+| **Adaptateurs** | LangGraph, CrewAI, AutoGen. ~20–50 lignes chacun. |
+| **Suite d'Évaluation** | 20 scénarios adversariaux, 10 catégories de menaces, 15 benchmarks. |
 
 ---
 
@@ -66,36 +77,13 @@ Chaque appel produit une entrée d'audit chaînée par Merkle en SHA-256. La pis
 pip install enforcecore
 ```
 
-Python 3.11+ requis. Pas de dépendances lourdes — Pydantic v2, PyYAML, structlog, cryptography.
+Python 3.11+ requis. Dépendances : Pydantic v2, PyYAML, structlog, cryptography.
+
+> **Note :** EnforceCore est en **bêta** (v1.0.0b5). L'API de 30 symboles Tier 1 est gelée — aucun changement jusqu'à v2.0.0.
 
 ---
 
 ## Démarrage Rapide
-
-### 1. Définir une politique
-
-```yaml
-# policy.yaml
-name: "ma-politique-agent"
-version: "1.0"
-
-rules:
-  allowed_tools:
-    - "search_web"
-    - "calculator"
-  denied_tools:
-    - "execute_shell"
-  pii_redaction:
-    enabled: true
-    categories: [email, phone, ssn]
-  resource_limits:
-    max_call_duration_seconds: 30
-    max_cost_usd: 5.00
-
-on_violation: "block"
-```
-
-### 2. Protéger vos outils
 
 ```python
 from enforcecore import enforce
@@ -103,18 +91,13 @@ from enforcecore import enforce
 @enforce(policy="policy.yaml")
 async def search_web(query: str) -> str:
     return await api.search(query)
+
+# Si "search_web" n'est pas dans allowed_tools → bloqué. Point final.
+# Données personnelles → rédaction automatique avant l'appel.
+# Chaque appel → entrée d'audit cryptographique.
 ```
 
-### 3. Vérifier votre piste d'audit
-
-```python
-from enforcecore import verify_trail
-
-result = verify_trail("audit.jsonl")
-assert result.is_valid
-```
-
-Trois lignes de code d'enforcement. Contrôle complet des politiques, rédaction PII, limites de ressources et piste d'audit cryptographique — tout automatiquement.
+Consultez le [guide de démarrage rapide](quickstart.html) pour le tutoriel complet — politique, hooks, vérification d'audit et renforcement anti-falsification en moins de 5 minutes.
 
 ---
 
@@ -127,11 +110,57 @@ Trois lignes de code d'enforcement. Contrôle complet des politiques, rédaction
 
 ---
 
+## Vérifié par Conception
+
+EnforceCore appuie ses garanties par des preuves mesurables :
+
+- **1 510 tests**, 95% de couverture, 22 invariants formels ([Hypothesis](https://hypothesis.readthedocs.io/))
+- **Modèle de menaces formel** — 4 types d'adversaires, 4 propriétés de sécurité, pistes d'audit avec append-only OS + backends witness
+- **20 scénarios adversariaux** sur 10 catégories de menaces, 15 benchmarks de performance
+- **0,056 ms** de surcharge E2E (P50) — négligeable
+
+Voir la [page Architecture](architecture.html) pour les invariants formels, le modèle de menaces et la défense en profondeur. Voir la [Suite d'Évaluation](evaluation.html) pour les benchmarks reproductibles.
+
+---
+
+## Pour les Chercheurs
+
+EnforceCore applique des principes établis d'informatique — vérification runtime, moniteurs de référence, contrôle de flux d'information — au problème de la sécurité des agents IA.
+
+**Travaux antérieurs :**
+- Vérification Runtime — Leucker & Schallhart (2009), Havelund & Goldberg (2005)
+- Moniteurs de Référence — Anderson (1972)
+- Contrôle de Flux d'Information — Sabelfeld & Myers (2003)
+- Intégrité d'Audit — Merkle (1987), Crosby & Wallach (2009)
+- Anti-Falsification — Wallach (2026, retours de conception sur les mitigations append-only + witness)
+
+### Citation
+
+```bibtex
+@software{enforcecore2026,
+  title  = {EnforceCore: Runtime Enforcement Layer for Agentic AI Systems},
+  author = {{AKIOUD AI}},
+  year   = {2026},
+  url    = {https://github.com/akios-ai/EnforceCore},
+  license = {Apache-2.0}
+}
+```
+
+---
+
 ## Open Source
 
-EnforceCore est sous licence Apache 2.0. Aucune intention commerciale cachée dans le cœur.
+EnforceCore est sous licence Apache 2.0.
 
-- [Dépôt GitHub](https://github.com/akios-ai/enforcecore)
-- [Architecture →](architecture.html)
-- [Référence API →](api-reference.html)
-- [Démarrage rapide →](quickstart.html)
+- [Dépôt GitHub](https://github.com/akios-ai/EnforceCore)
+- [Architecture](architecture.html)
+- [Référence API](api-reference.html)
+- [Démarrage Rapide](quickstart.html)
+- [Suite d'Évaluation](evaluation.html)
+- [Feuille de Route](roadmap.html)
+
+---
+
+## Mentions Légales
+
+EnforceCore est fourni « tel quel », sans garantie d'aucune sorte. C'est un outil d'enforcement technique — pas une certification de conformité. Voir [DISCLAIMER](https://github.com/akios-ai/EnforceCore/blob/main/DISCLAIMER.md) et [LICENSE](https://github.com/akios-ai/EnforceCore/blob/main/LICENSE).

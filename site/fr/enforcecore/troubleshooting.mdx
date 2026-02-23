@@ -1,161 +1,184 @@
 ---
-title: EnforceCore — Dépannage & FAQ
-keywords: enforcecore dépannage FAQ erreurs débogage problèmes courants aide
+title: EnforceCore — Dépannage
+keywords: enforcecore dépannage erreurs FAQ débogage résolution de problèmes diagnostic
 ---
 
-# Dépannage & FAQ
+# Dépannage
+
+Guide de dépannage pour EnforceCore — erreurs courantes, étapes de débogage et FAQ.
 
 ---
 
 ## Erreurs Courantes
 
-### `InvalidToolNameError`
+### EnforcementViolation / ToolDeniedError
 
-Le nom d'outil contient des caractères non autorisés. Caractères valides : `[a-zA-Z0-9_.\-:<>]`.
-
-**Solution :** Passer un `tool_name` explicite et valide.
-
-### `InputTooLargeError`
-
-Les arguments combinés dépassent 10 Mo (défaut).
-
-**Solution :** Réduire la taille ou augmenter la limite :
-```python
-check_input_size(args, kwargs, max_bytes=50 * 1024 * 1024)
+```
+enforcecore.exceptions.ToolDeniedError: Tool 'execute_shell' is denied by policy 'strict'
 ```
 
-### `EnforcementDepthError`
+**Cause :** L'outil est dans `denied_tools` ou n'est pas dans `allowed_tools`.
 
-Un outil protégé a appelé un autre outil protégé, dépassant la profondeur max de 10.
+**Résolution :**
+1. Vérifiez votre fichier de politique (section `rules.allowed_tools` / `rules.denied_tools`)
+2. Exécutez `enforcecore dry-run --policy policy.yaml --tool execute_shell` pour tester
+3. Vérifiez la priorité deny-sur-allow — un outil dans les deux listes est toujours bloqué
 
-**Solution :** Vérifier les chaînes récursives d'enforcement.
+### PolicyLoadError
 
-### `ToolDeniedError`
-
-La politique n'autorise pas l'outil appelé.
-
-**Solution :** Ajouter le nom de l'outil à `allowed_tools` :
-```yaml
-rules:
-  allowed_tools:
-    - "votre_outil"
+```
+enforcecore.exceptions.PolicyLoadError: Policy file not found: policies/agent.yaml
 ```
 
-### `CostLimitError`
+**Résolution :** Vérifiez le chemin du fichier. EnforceCore résout les chemins relatifs depuis le répertoire de travail courant. Utilisez des chemins absolus ou `ENFORCECORE_DEFAULT_POLICY` pour éviter les ambiguïtés.
 
-Le coût cumulé dépasse le budget dans `resource_limits.max_cost_usd`.
+### CostLimitError
 
-### `ResourceLimitError`
-
-L'appel a dépassé `resource_limits.max_call_duration_seconds`.
-
-### `PolicyLoadError`
-
-`@enforce` utilisé sans politique et aucune politique par défaut configurée.
-
-**Solution :**
-```bash
-ENFORCECORE_DEFAULT_POLICY=policies/default.yaml
 ```
+enforcecore.exceptions.CostLimitError: Budget exceeded: $5.12 / $5.00
+```
+
+**Résolution :** Augmentez `ENFORCECORE_COST_BUDGET_USD` ou le champ `resource_limits.max_cost_usd` dans votre politique.
+
+### ContentViolationError
+
+```
+enforcecore.exceptions.ContentViolationError: Content rule violated: shell_injection
+```
+
+**Cause :** Les arguments de l'outil contiennent un pattern détecté comme dangereux (injection shell, traversée de chemin, injection SQL ou exécution de code).
+
+**Résolution :** Vérifiez les entrées de votre outil. Si c'est un faux positif, examinez les patterns avec `enforcecore inspect policy.yaml`.
+
+### RateLimitError
+
+```
+enforcecore.exceptions.RateLimitError: Rate limit exceeded for tool 'search_web': 11/10 in 60s window
+```
+
+**Résolution :** Ajustez `rate_limits.global_rpm` ou les limites par outil dans votre politique.
+
+### AuditError — Échec de Vérification
+
+```
+enforcecore.exceptions.AuditError: Chain verification failed at entry 42
+```
+
+**Cause :** La piste d'audit a été altérée (entrée modifiée, supprimée ou réordonnée).
+
+**Résolution :**
+1. Exécutez `enforcecore verify audit.jsonl` pour identifier les entrées corrompues
+2. Si vous utilisez `witness`, exécutez `verify_with_witness()` pour identifier les divergences
+3. Les fichiers d'audit avec `immutable=True` sont protégés au niveau OS
+
+### ImmutableError
+
+```
+enforcecore.exceptions.ImmutableError: Failed to set append-only flag: permission denied
+```
+
+**Cause :** `immutable=True` est activé mais le processus n'a pas les permissions requises.
+
+**Résolution :**
+- **Linux :** Ajoutez `CAP_LINUX_IMMUTABLE` au processus ou au conteneur Docker (`--cap-add LINUX_IMMUTABLE`)
+- **macOS :** La commande `chflags uappend` fonctionne au niveau utilisateur — vérifiez les permissions du fichier
+- **Windows :** Non supporté — `immutable=True` émet un avertissement et continue
 
 ---
 
-## Conseils de Débogage
+## Étapes de Débogage
 
-### Activer les logs de débogage
+### 1. Valider votre politique
 
 ```bash
-ENFORCECORE_LOG_LEVEL=DEBUG
+enforcecore validate policies/strict.yaml
 ```
 
-### Vérifier la portée d'enforcement
+Vérifie la syntaxe YAML, la conformité au schéma Pydantic et la cohérence des règles.
 
-```python
-from enforcecore import get_enforcement_depth, get_enforcement_chain
-print(f"Profondeur : {get_enforcement_depth()}")
-print(f"Chaîne : {get_enforcement_chain()}")
+### 2. Dry-run d'un outil
+
+```bash
+enforcecore dry-run --policy policy.yaml --tool search_web
 ```
 
-### Vérifier l'intégrité de la piste d'audit
+Simule l'enforcement sans exécuter l'appel. Affiche la décision et les raisons.
 
-```python
-from enforcecore import verify_trail
-result = verify_trail("audit.jsonl")
+### 3. Inspecter les règles chargées
+
+```bash
+enforcecore inspect policies/strict.yaml
 ```
 
-### Tester votre politique
+Affiche les outils autorisés/refusés, les catégories PII actives, les règles de contenu et les limites.
+
+### 4. Vérifier la piste d'audit
+
+```bash
+enforcecore verify audit.jsonl
+```
+
+Vérifie l'intégrité de la chaîne Merkle SHA-256.
+
+### 5. Activer les logs de débogage
+
+```bash
+ENFORCECORE_LOG_LEVEL=DEBUG python your_agent.py
+```
+
+Active les logs structurés détaillés pour chaque étape du pipeline d'enforcement.
+
+### 6. Vérifier les threads orphelins
 
 ```python
-from enforcecore.eval import ScenarioRunner
-from enforcecore.core.policy import Policy
-
-policy = Policy.from_file("policy.yaml")
-runner = ScenarioRunner(policy)
-suite = runner.run_all()
-print(f"Confinement : {suite.containment_rate:.0%}")
+guard = enforcer.guard
+print(guard.leaked_thread_count)  # 0 = sain, > 0 = fuites détectées
 ```
 
 ---
 
 ## FAQ
 
-### Qu'est-ce qu'EnforceCore ?
+### EnforceCore remplace-t-il le sandboxing conteneur ?
 
-Une couche d'enforcement runtime pour les agents IA. Intercepte les appels d'outils/API à la frontière du code et applique des règles de politique.
+Non. EnforceCore opère à la **couche sémantique applicative** (L3) — il comprend les appels d'outils, les données personnelles et les budgets de coût. Le sandboxing conteneur (Docker, gVisor), la sécurité OS (seccomp, AppArmor, SELinux) et le sandboxing réseau opèrent à L1–L2. Utilisez les deux ensemble pour une défense en profondeur. Voir le [tableau de défense en profondeur](architecture.html#defense-en-profondeur).
 
-### En quoi c'est différent des garde-fous de prompt ?
+### Comment fonctionne la priorité deny-sur-allow ?
 
-Les garde-fous de prompt *demandent* au modèle de bien se comporter — ils peuvent être contournés. EnforceCore opère à la **frontière d'exécution** — l'enforcement au niveau du code est incontournable.
+Si un outil apparaît dans `denied_tools` ET `allowed_tools`, il est **toujours bloqué**. C'est l'invariant formel P4. Voir les [Invariants Formels](architecture.html#invariants-formels).
 
-### Est-ce compatible avec mon framework ?
+### L'audit est-il vraiment inviolable ?
 
-Oui. Fonctionne avec tout système d'agent Python : `@enforce()`, LangGraph, CrewAI, AutoGen.
+La chaîne Merkle SHA-256 détecte toute modification. Pour une protection supplémentaire :
+- `immutable=True` active la protection append-only au niveau OS
+- Les backends witness publient les hashes vers un emplacement séparé pour la détection de reconstruction de chaîne
+- Voir la section [Auditeur Merkle](architecture.html#4-auditeur-merkle) pour les détails.
 
-### Que signifie « fail-closed » ?
+### Quel est le surcoût de performance ?
 
-Si quelque chose échoue pendant l'enforcement, l'appel est **bloqué** — jamais autorisé. C'est le comportement par défaut.
+**~0,056 ms (P50)** par appel, négligeable par rapport à la latence des outils (100 ms–10 s). Voir la [Suite d'Évaluation](evaluation.html) pour les benchmarks par composant.
 
-### Quelles catégories PII sont supportées ?
+### EnforceCore fonctionne-t-il avec mon framework ?
 
-| Catégorie | Exemple | Placeholder |
-|---|---|---|
-| `email` | `john@example.com` | `<EMAIL>` |
-| `phone` | `(555) 123-4567` | `<PHONE>` |
-| `ssn` | `123-45-6789` | `<SSN>` |
-| `credit_card` | `4111-1111-1111-1111` | `<CREDIT_CARD>` |
-| `ip_address` | `192.168.1.100` | `<IP_ADDRESS>` |
+Oui — il fonctionne avec tout code Python. Des adaptateurs natifs existent pour LangGraph, CrewAI et AutoGen. Voir les [Intégrations](integrations.html).
 
-### Quelle est la surcharge d'enforcement ?
+### Comment configurer la rédaction PII ?
 
-| Composant | Surcharge |
+Voir la section [Rédacteur PII](api-reference.html#api-redacteur) pour les catégories, stratégies et la protection unicode.
+
+### Comment configurer les variables d'environnement ?
+
+Les 18 variables sont documentées dans la [Référence API](api-reference.html#variables-denvironnement).
+
+---
+
+## Références Rapides
+
+| Besoin | Voir |
 |---|---|
-| Évaluation de politique | < 1ms |
-| Rédaction PII | 0.1–0.5ms |
-| Entrée d'audit | < 1ms |
-| **Total typique** | **8–20ms** |
-
----
-
-## Notes de Plateforme
-
-| Fonctionnalité | Linux | macOS | Windows |
-|---|---|---|---|
-| Limites de temps | ✓ | ✓ | ✓ |
-| Limites mémoire | ✓ | ~ (consultatif) | ✗ |
-| Suivi des coûts | ✓ | ✓ | ✓ |
-| KillSwitch | ✓ | ✓ | ✓ |
-
----
-
-## Variables d'Environnement
-
-| Variable | Défaut | Description |
-|---|---|---|
-| `ENFORCECORE_DEFAULT_POLICY` | `None` | Chemin de politique |
-| `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Répertoire d'audit |
-| `ENFORCECORE_AUDIT_ENABLED` | `true` | Activer l'audit |
-| `ENFORCECORE_REDACTION_ENABLED` | `true` | Activer la rédaction |
-| `ENFORCECORE_LOG_LEVEL` | `INFO` | Niveau de log |
-| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Budget global |
-| `ENFORCECORE_FAIL_OPEN` | `false` | Contournement |
-| `ENFORCECORE_DEV_MODE` | `false` | Mode développement |
+| Comprendre le pipeline d'enforcement | [Architecture](architecture.html) |
+| Toutes les API et env vars | [Référence API](api-reference.html) |
+| Benchmarks et tests adversariaux | [Suite d'Évaluation](evaluation.html) |
+| Tutoriel pas à pas | [Démarrage Rapide](quickstart.html) |
+| Historique des versions | [Feuille de Route](roadmap.html) |
+| Adaptateurs de framework | [Intégrations](integrations.html) |

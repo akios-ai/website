@@ -1,132 +1,113 @@
 ---
 title: EnforceCore — Feuille de Route
-keywords: enforcecore feuille de route versions v1.0 changelog plans futurs
+keywords: enforcecore feuille de route roadmap versions changelog beta alpha releases
 ---
 
 # Feuille de Route
 
-EnforceCore est livré de manière incrémentale. Chaque version ajoute un composant bien testé et documenté.
+Historique des versions, état actuel et directions futures d'EnforceCore.
 
 ---
 
-## Versions Publiées
+## Historique des Versions
 
-### v1.0.0 — Core Enforcer + Policy Engine
+### v1.0.0b5 (bêta) — Version Actuelle
 
-La fondation. Cadre d'enforcement minimal viable.
+- **Witness piloté par Settings** — `ENFORCECORE_AUDIT_WITNESS_FILE` pour activation sans code
+- **Immutable piloté par Settings** — `ENFORCECORE_AUDIT_IMMUTABLE=true` pour activation sans code
+- **Validation de settings au démarrage** — validation Pydantic v2 complète au démarrage
+- **Journalisation des changements de settings** — tous les changements de configuration enregistrés dans les logs structurés
+- **Couverture : 95%**, 1 510 tests, 22 invariants formels
 
-- Décorateur `@enforce(policy=...)` (sync + async)
-- Context manager `enforce()`
-- Policy Engine avec modèles Pydantic v2 + chargement YAML
-- 94 tests, 97% de couverture
+### v1.0.0b4 (bêta)
 
-### v1.0.1 — Rédacteur PII
+- **Backends Witness** — `CallbackWitness`, `FileWitness`, `LogWitness` pour la détection de falsification au-delà de la vérification Merkle
+- **`verify_with_witness()`** — vérification croisée piste d'audit ↔ witness
+- **Fichiers d'audit Immutable** — `Auditor(immutable=True)` définit `chattr +a` / `chflags uappend`
+- **Rotations d'audit** — `ENFORCECORE_AUDIT_MAX_BYTES`, `ENFORCECORE_AUDIT_MAX_FILES` + compression gzip
+- **Détection de fuites** — `guard.leaked_thread_count` pour le suivi des threads orphelins
+- **Couverture : 95%**, 22 invariants formels
 
-Détection et rédaction PII en temps réel.
+### v1.0.0b3 (bêta)
 
-- Détection regex — aucune dépendance lourde
-- 5 catégories PII, 4 stratégies de rédaction
-- ~0.1–0.5ms par appel
-- 161 tests, 97% de couverture
+- **Gel API Tier 1** — 30 symboles gelés, imports Tier 2 avec avertissements de dépréciation
+- **110 symboles Tier 2** documentés
+- **Audit inter-sessions** — continuité de chaîne Merkle entre les redémarrages
+- **KillSwitch** — arrêt d'urgence de l'enforcer
 
-### v1.0.2 — Auditeur Merkle
+### v1.0.0b2 (bêta)
 
-Pistes d'audit inviolables et vérifiables.
+- **Suite d'évaluation** — 20 scénarios adversariaux, 10 catégories de menaces, 15 benchmarks
+- **CLI** — 6 commandes (`info`, `validate`, `verify`, `eval`, `dry-run`, `inspect`)
+- **Observabilité** — métriques OpenTelemetry et dispatch d'événements webhook
 
-- Chaîne Merkle SHA-256
-- Continuité inter-sessions
-- Détection de falsification
-- 213 tests, 96% de couverture
+### v1.0.0b1 (bêta)
 
-### v1.0.3 — Resource Guard
+- **Système de hooks** — `@on_pre_call`, `@on_post_call`, `@on_violation`, `@on_redaction`
+- **Rate Limiter** — limitation par outil et globale avec fenêtre glissante
+- **Enforcement réseau** — `DomainChecker` avec listes allow/deny à wildcards
+- **Backends d'audit pluggables** — JSONL, Null, Callback, Multi
+- **22 invariants formels vérifiés par Hypothesis**
 
-Limites de ressources multi-plateformes.
+### v1.0.0a6 (alpha)
 
-- Limites de temps (toutes plateformes)
-- Limites mémoire (Linux strict, macOS consultatif)
-- Suivi cumulatif des coûts
-- KillSwitch
-- 284 tests, 96% de couverture
+- **Moteur de règles de contenu** — détection d'injection shell, traversée de chemin, injection SQL, exécution de code
+- **Scanner de secrets** — 11 catégories intégrées, patterns personnalisés via `PatternRegistry`
+- **Composition de politiques** — `extends:` + `Policy.merge()`
+- **Tier 1/Tier 2** — architecture de symboles publics formalisée
 
-### v1.0.4 — Intégrations Framework
+### v1.0.0a5 (alpha)
 
-Adaptateurs pour les frameworks d'agents populaires.
+- **Protection unicode** — normalisation NFC, détection d'homoglyphes (~40 confusables), décodage URL/HTML
+- **4 stratégies de rédaction** — placeholder, masque, hash, suppression
 
-- LangGraph / LangChain, CrewAI, AutoGen
-- Aucune dépendance requise sur les frameworks
-- 334 tests, 96% de couverture
+### v1.0.0a4 (alpha)
 
-### v1.0.5 — Suite d'Évaluation
+- **Configuration Settings** — `pydantic-settings` pour toutes les variables d'environnement
+- **Hardening** — `validate_tool_name`, `check_input_size`, `deep_redact`
 
-Framework de test adversarial.
+### v1.0.0a3 (alpha)
 
-- 13 scénarios adversariaux, 7 catégories de menaces
-- Benchmarks avec P95/P99
-- Génération de rapports Markdown
+- **Resource Guard** — limites de temps, mémoire (RLIMIT_AS), coûts
+- **CostTracker** — suivi de budget avec dépassement configurable
 
-### v1.0.6 — Hardening + Polish
+### v1.0.0a2 (alpha)
 
-Préparation à la production et renforcement de la sécurité.
+- **Auditeur Merkle** — chaîne SHA-256, 14 champs, vérification de piste
+- **5 catégories PII** — email, téléphone, SSN, carte de crédit, adresse IP
 
-- Validation des noms d'outils et de la taille des entrées
-- Suivi de portée d'enforcement (contextvars)
-- Rédaction PII récursive profonde
-- Protection unicode (NFC, homoglyphes, URL/HTML)
-- **544 tests, 96% de couverture**
-- **API publique stable (68 exports)**
+### v1.0.0a1 (alpha)
+
+- **Décorateur `@enforce()`** — enforcement sync et async
+- **Policy Engine** — politiques YAML, validation Pydantic v2
+
+### v1.0.0 (release initiale)
+
+- Noyau enforcement avec politique de base et rédaction simple
 
 ---
 
 ## État Actuel
 
-| Métrique | Valeur |
-|---|---|
-| Tests | 544 |
-| Couverture | 96% |
-| Exports publics | 68 |
-| Catégories PII | 5 |
-| Scénarios adversariaux | 13 |
-| Catégories de menaces | 7 |
-| Adaptateurs framework | 3 |
-| Dépendances | 4 |
+**v1.0.0b5** — 1 510 tests, 95% de couverture, 30 symboles Tier 1 gelés, 22 invariants formels. API bêta stable, activement renforcée.
 
 ---
 
 ## Directions Futures
 
-### v1.1 — Enforcement Réseau
-Filtrage de domaines et inspection de requêtes.
-
-### v1.2 — Policy Hub
-Dépôt communautaire de politiques réutilisables et auditées.
-
-### v1.3 — Vérification Formelle
-Intégration de model checkers pour des garanties mathématiques.
-
-### v1.4 — Support Multi-Langages
-Liaisons TypeScript et Go.
-
-### v2.0 — Enforcement Distribué
-Enforcement pour systèmes multi-agents distribués.
-
----
-
-## Stack Technique
-
-| Dépendance | Rôle |
-|---|---|
-| **Pydantic v2** | Validation de politiques, settings |
-| **pydantic-settings** | Gestion de configuration |
-| **PyYAML** | Chargement de fichiers de politique |
-| **structlog** | Logging structuré |
-| **cryptography** | Hachage Merkle SHA-256 |
-| **Hatch** | Système de build |
+- **v1.0.0rc1** — Release candidate, audit de sécurité externe
+- **v1.0.0** — Release stable
+- **Compteur de tokens** — suivi des tokens LLM par appel
+- **Chaîne de garde** — séquencement multi-agents avec isolation par agent
+- **Support WASM** — enforcement dans le navigateur
+- **eBPF** — enforcement au niveau noyau pour les appels d'outils critiques
+- **Certifications** — SOC 2 Type II, ISO 27001
 
 ---
 
 ## Contribuer
 
-EnforceCore est sous licence Apache 2.0. Les contributions sont bienvenues.
+EnforceCore est open source sous licence Apache 2.0.
 
-- [Dépôt GitHub](https://github.com/akios-ai/enforcecore)
-- [Issue Tracker](https://github.com/akios-ai/enforcecore/issues)
+- [Issues GitHub](https://github.com/akios-ai/EnforceCore/issues)
+- [Guide de contribution](https://github.com/akios-ai/EnforceCore/blob/main/CONTRIBUTING.md)

@@ -1,11 +1,25 @@
 ---
 title: EnforceCore — Référence API
-keywords: enforcecore api référence enforce décorateur enforcer politique rédacteur auditeur guard
+keywords: enforcecore api référence enforce décorateur enforcer politique rédacteur auditeur guard secrets content rules hooks observabilité witness immutable
 ---
 
 # Référence API
 
-EnforceCore expose 68 symboles publics depuis le package `enforcecore`. Cette page documente la surface API complète.
+EnforceCore expose **30 symboles publics Tier 1** depuis le package `enforcecore` — le contrat stable et gelé. 80 symboles Tier 2 supplémentaires restent importables pour la compatibilité ascendante mais ne sont pas couverts par la garantie de stabilité.
+
+> **Stabilité API :** Les 30 symboles Tier 1 sont gelés depuis v1.0.0b1. Aucun ajout ni retrait jusqu'à v2.0.0. Les imports Tier 2 émettent des avertissements de dépréciation.
+
+### Symboles Tier 1 (Stables — 30)
+
+| Catégorie | Symboles |
+|---|---|
+| **Enforcement** | `enforce`, `Enforcer`, `Decision`, `EnforcementResult` |
+| **Politique** | `Policy`, `load_policy` |
+| **Rédaction** | `Redactor`, `RedactionResult`, `RedactionStrategy`, `SecretScanner` |
+| **Audit** | `Auditor`, `AuditEntry`, `VerificationResult`, `verify_trail`, `load_trail` |
+| **Ressources** | `ResourceGuard`, `CostTracker`, `KillSwitch`, `RateLimiter` |
+| **Exceptions** | `EnforceCoreError`, `EnforcementViolation`, `ToolDeniedError`, `ContentViolationError`, `PolicyError`, `PolicyLoadError`, `CostLimitError`, `ResourceLimitError` |
+| **Configuration** | `Settings`, `settings`, `__version__` |
 
 ---
 
@@ -20,11 +34,6 @@ from enforcecore import enforce
 async def search_web(query: str) -> str:
     return await api.search(query)
 
-# Fonctions sync
-@enforce(policy="policies/agent.yaml")
-def read_file(path: str) -> str:
-    return open(path).read()
-
 # Politique inline
 @enforce(
     allowed_tools=["search_web", "calculator"],
@@ -34,24 +43,17 @@ def read_file(path: str) -> str:
 async def my_tool(args: dict) -> str: ...
 ```
 
-### Context Manager `enforce()`
-
-```python
-async def run_agent_tool(tool_name: str, args: dict) -> dict:
-    async with enforce(policy="policy.yaml", tool_name=tool_name) as ctx:
-        result = await execute_tool(tool_name, args)
-        ctx.record_result(result)
-    return result
-```
-
 ### Classe `Enforcer`
 
 ```python
 from enforcecore import Enforcer, Policy
 
-enforcer = Enforcer(Policy.from_file("policy.yaml"))
+enforcer = Enforcer.from_file("policy.yaml")
+result = enforcer.enforce_sync(search_fn, "query", tool_name="search_web")
 result = await enforcer.enforce_async(search_fn, "query", tool_name="search_web")
 ```
+
+> **Note :** `guard_sync()` et `guard_async()` ont été supprimés en v1.0.16a1. Utilisez `enforce_sync()` / `enforce_async()` à la place.
 
 ---
 
@@ -60,10 +62,8 @@ result = await enforcer.enforce_async(search_fn, "query", tool_name="search_web"
 ```python
 from enforcecore import Policy, load_policy
 
-# Depuis YAML
 policy = load_policy("policies/strict.yaml")
 
-# Programmatique
 policy = Policy(
     name="ma-politique",
     rules={
@@ -77,8 +77,6 @@ policy = Policy(
 ---
 
 ## API Rédacteur
-
-Détection PII par regex — aucune dépendance NLP lourde. ~0.1–0.5ms par appel.
 
 ### Catégories PII
 
@@ -99,22 +97,17 @@ Détection PII par regex — aucune dépendance NLP lourde. ~0.1–0.5ms par app
 | `hash` | `[SHA256:6b0b4806b1e57501]` |
 | `remove` | *(chaîne vide)* |
 
-### Utilisation
-
 ```python
 from enforcecore.redactor import Redactor
 
 redactor = Redactor(categories=["email", "phone"])
 result = redactor.redact("Appeler 555-123-4567 ou john@example.com")
 print(result.text)   # "Appeler <PHONE> ou <EMAIL>"
-print(result.count)  # 2
 ```
 
 ---
 
 ## API Auditeur
-
-Pistes d'audit chaînées par Merkle, inviolables.
 
 ```python
 from enforcecore import Auditor, verify_trail, load_trail
@@ -123,10 +116,72 @@ auditor = Auditor(output_path="audit.jsonl")
 e1 = auditor.record(tool_name="search_web", policy_name="default", decision="allowed")
 
 result = verify_trail("audit.jsonl")
-print(result.is_valid)      # True
-print(result.chain_intact)  # True
+print(result.is_valid)
+```
 
-trail = load_trail("audit.jsonl", max_entries=100)
+### Backends d'Audit Pluggables
+
+```python
+from enforcecore import JsonlBackend, NullBackend, CallbackBackend, MultiBackend
+
+callback = CallbackBackend(on_event=lambda entry: send_to_datadog(entry))
+multi = MultiBackend([JsonlBackend("audit.jsonl"), callback])
+```
+
+---
+
+## API Witness
+
+Backends witness à hash uniquement pour la détection de falsification au-delà de la vérification Merkle.
+
+```python
+from enforcecore.auditor.witness import CallbackWitness, FileWitness, LogWitness
+
+witness = FileWitness(path="/var/log/enforcecore/witness.jsonl")
+
+auditor = Auditor(
+    output_path="audit.jsonl",
+    witness=witness,
+)
+```
+
+### Vérification Witness
+
+```python
+from enforcecore.auditor.witness import verify_with_witness
+
+result = verify_with_witness(
+    trail_path="audit.jsonl",
+    witness_path="/secure/witness.jsonl",
+)
+print(result.is_valid)
+print(result.mismatches)
+```
+
+### Witness piloté par Settings (v1.0.0b5)
+
+```bash
+ENFORCECORE_AUDIT_WITNESS_FILE=/var/log/enforcecore/witness.jsonl
+```
+
+---
+
+## API Immutable
+
+Protection append-only au niveau OS pour les fichiers d'audit.
+
+```python
+auditor = Auditor(output_path="audit.jsonl", immutable=True)
+```
+
+| Plateforme | Mécanisme | Root requis | Notes conteneur |
+|---|---|---|---|
+| **Linux** | `chattr +a` | Non (avec `CAP_LINUX_IMMUTABLE`) | Docker : `--cap-add LINUX_IMMUTABLE` |
+| **macOS** | `chflags uappend` | Non (niveau utilisateur) | N/A |
+| **Windows** | Non supporté | — | Fallback sécurisé |
+
+```bash
+ENFORCECORE_AUDIT_IMMUTABLE=true
 ```
 
 ---
@@ -139,6 +194,93 @@ from enforcecore.guard import ResourceGuard, CostTracker, KillSwitch
 tracker = CostTracker(budget_usd=10.0)
 tracker.record(0.05)
 tracker.check_budget()
+
+guard = ResourceGuard(cost_tracker=tracker)
+print(guard.leaked_thread_count)  # 0 = sain
+```
+
+---
+
+## API Scanner de Secrets
+
+```python
+from enforcecore import SecretScanner, PatternRegistry
+
+scanner = SecretScanner()
+secrets = scanner.scan("aws_key = AKIAIOSFODNN7EXAMPLE")
+
+# 11 catégories intégrées : aws_key, github_token, generic_api_key,
+# bearer_jwt, private_key, password_url, gcp_service_account,
+# azure_connection_string, database_uri, ssh_private_key, slack_token
+```
+
+---
+
+## API Règles de Contenu
+
+```python
+from enforcecore import RuleEngine, get_builtin_rules
+
+engine = RuleEngine(rules=get_builtin_rules())
+violations = engine.check("os.system('rm -rf /')")
+# 4 catégories : shell_injection, path_traversal, sql_injection, code_execution
+```
+
+---
+
+## API Rate Limiter
+
+```python
+from enforcecore import RateLimiter, RateLimit
+
+limiter = RateLimiter(
+    per_tool=RateLimit(max_calls=10, window_seconds=60),
+    global_limit=RateLimit(max_calls=50, window_seconds=60),
+)
+limiter.check("search_web")  # Lève RateLimitError si dépassé
+```
+
+---
+
+## API Vérificateur de Domaines
+
+```python
+from enforcecore import DomainChecker
+
+checker = DomainChecker(
+    allowed=["api.example.com", "*.trusted.io"],
+    denied=["*.evil.com"],
+)
+checker.check("api.example.com")  # OK
+checker.check("hack.evil.com")    # Lève DomainDeniedError
+```
+
+---
+
+## API Hooks
+
+```python
+from enforcecore import on_pre_call, on_post_call, on_violation, on_redaction
+
+@on_violation
+def alerter(ctx):
+    send_alert(f"⚠️ {ctx.tool_name} bloqué : {ctx.violation_type}")
+
+@on_redaction
+def suivre_pii(ctx):
+    metrics.increment("pii_redacted", ctx.redaction_count)
+```
+
+---
+
+## API Observabilité
+
+```python
+from enforcecore import EnforceCoreMetrics, EnforceCoreInstrumentor
+
+metrics = EnforceCoreMetrics()
+instrumentor = EnforceCoreInstrumentor()
+instrumentor.instrument()
 ```
 
 ---
@@ -147,41 +289,34 @@ tracker.check_budget()
 
 ```python
 from enforcecore import validate_tool_name, check_input_size, deep_redact
-
-name = validate_tool_name("my_tool")
-check_input_size(args, kwargs)
-redacted = deep_redact(nested_data, redactor.redact_string)
-```
-
-### Protection Unicode
-
-```python
-from enforcecore import prepare_for_detection
-
-clean = prepare_for_detection(text)
-# 1. Normalisation NFC + suppression caractères invisibles
-# 2. Remplacement ~40 caractères confusables
-# 3. Décodage URL/HTML
+from enforcecore import get_enforcement_depth, get_enforcement_chain
+from enforcecore import prepare_for_detection  # Pipeline unicode complet
 ```
 
 ---
 
 ## Hiérarchie des Exceptions
 
-```
+```python
 EnforceCoreError              # Exception de base
 ├── PolicyError
+│   ├── PolicyLoadError       # Fichier introuvable / illisible
+│   ├── PolicyValidationError # Violation de schéma
+│   └── PolicyEvaluationError # Erreur durant évaluation
 ├── EnforcementViolation
-│   ├── ToolDeniedError
-│   ├── CostLimitError
-│   └── ResourceLimitError
-├── RedactionError
-├── AuditError
+│   ├── ToolDeniedError       # Outil non autorisé
+│   ├── DomainDeniedError     # Domaine réseau bloqué
+│   ├── CostLimitError        # Budget dépassé
+│   ├── RateLimitError        # Limite de débit dépassée
+│   ├── ContentViolationError # Règle de contenu violée
+│   └── ResourceLimitError    # Limite de ressource dépassée
+├── RedactionError            # Erreur PII (fail-closed)
+├── AuditError                # Erreur audit (fail-closed)
 ├── HardeningError
-│   ├── InvalidToolNameError
-│   ├── InputTooLargeError
-│   └── EnforcementDepthError
-└── GuardError
+│   ├── InvalidToolNameError  # Nom d'outil invalide
+│   ├── InputTooLargeError    # Payload trop volumineux
+│   └── EnforcementDepthError # Profondeur récursive dépassée
+└── GuardError                # Échec resource guard
 ```
 
 ---
@@ -189,23 +324,37 @@ EnforceCoreError              # Exception de base
 ## CLI
 
 ```bash
-enforcecore validate policies/strict.yaml
-enforcecore verify audit.jsonl
-enforcecore eval --scenarios all --output results/
-enforcecore info
+enforcecore info                          # Version et plateforme
+enforcecore validate policies/strict.yaml # Valider une politique
+enforcecore verify audit.jsonl            # Vérifier une piste d'audit
+enforcecore eval --scenarios all          # Suite d'évaluation
+enforcecore dry-run --policy policy.yaml --tool search_web  # Dry-run
+enforcecore inspect policies/strict.yaml  # Inspecter les règles
 ```
 
 ---
 
 ## Variables d'Environnement
 
+Toutes les configurations via variables d'environnement (via `pydantic-settings`). Référence canonique — les 18 variables :
+
 | Variable | Défaut | Description |
 |---|---|---|
 | `ENFORCECORE_DEFAULT_POLICY` | `None` | Chemin de politique par défaut |
-| `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Répertoire d'audit |
-| `ENFORCECORE_AUDIT_ENABLED` | `true` | Activer l'audit |
-| `ENFORCECORE_REDACTION_ENABLED` | `true` | Activer la rédaction PII |
-| `ENFORCECORE_LOG_LEVEL` | `INFO` | Niveau de log |
-| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Budget global |
-| `ENFORCECORE_FAIL_OPEN` | `false` | Contournement en cas d'erreur |
+| `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Répertoire des pistes d'audit |
+| `ENFORCECORE_AUDIT_ENABLED` | `true` | Activer/désactiver l'audit |
+| `ENFORCECORE_AUDIT_BACKEND` | `jsonl` | Backend d'audit (`jsonl`, `null`, `callback`, `multi`) |
+| `ENFORCECORE_AUDIT_MAX_BYTES` | `10485760` | Taille max de fichier d'audit avant rotation (10 Mo) |
+| `ENFORCECORE_AUDIT_MAX_FILES` | `5` | Nombre max de fichiers d'audit en rotation |
+| `ENFORCECORE_AUDIT_IMMUTABLE` | `false` | Activer les fichiers d'audit append-only au niveau OS |
+| `ENFORCECORE_AUDIT_WITNESS_FILE` | `None` | Chemin du fichier witness JSONL à hash uniquement |
+| `ENFORCECORE_REDACTION_ENABLED` | `true` | Activer/désactiver la rédaction PII |
+| `ENFORCECORE_SECRET_SCANNING` | `true` | Activer la détection de secrets |
+| `ENFORCECORE_CONTENT_RULES` | `true` | Activer la vérification des règles de contenu |
+| `ENFORCECORE_LOG_LEVEL` | `INFO` | Niveau de log structuré |
+| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Budget global de coût |
+| `ENFORCECORE_RATE_LIMIT_RPM` | `0` | Limite de débit globale (0 = désactivé) |
+| `ENFORCECORE_FAIL_OPEN` | `false` | Contournement en cas d'erreur (⚠️ dev uniquement) |
 | `ENFORCECORE_DEV_MODE` | `false` | Mode développement |
+| `ENFORCECORE_OTEL_ENABLED` | `false` | Activer métriques/tracing OpenTelemetry |
+| `ENFORCECORE_WEBHOOK_URL` | `None` | Endpoint webhook pour les événements |
