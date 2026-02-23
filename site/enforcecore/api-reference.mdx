@@ -274,6 +274,134 @@ rotator = AuditRotator(
 
 ---
 
+## Witness API
+
+Hash-only remote witness backends for tamper detection beyond Merkle chain verification. Even if an attacker rebuilds the entire chain from scratch, witness records stored elsewhere will detect the forgery.
+
+### Built-in Witnesses
+
+```python
+from enforcecore.auditor.witness import (
+    CallbackWitness, FileWitness, LogWitness,
+)
+
+# Callback — send hashes to a queue, HTTP endpoint, or database
+witness = CallbackWitness(callback=lambda entry_hash, meta: send_to_siem(entry_hash))
+# ⚠️ Warning: slow callbacks block audit writes. Use a queue-based
+# pattern for HTTP/database backends.
+
+# File — write hashes to a separate JSONL file
+witness = FileWitness(path="/var/log/enforcecore/witness.jsonl")
+
+# Log — emit hashes via Python logging (syslog/journald)
+witness = LogWitness()
+```
+
+### Using Witnesses with the Auditor
+
+```python
+from enforcecore import Auditor
+from enforcecore.auditor.witness import FileWitness
+
+auditor = Auditor(
+    output_path="audit.jsonl",
+    witness=FileWitness("/secure/witness.jsonl"),
+)
+```
+
+### Witness Verification
+
+```python
+from enforcecore.auditor.witness import verify_with_witness
+
+# Cross-check audit trail hashes against witness records
+result = verify_with_witness(
+    trail_path="audit.jsonl",
+    witness_path="/secure/witness.jsonl",
+)
+print(result.is_valid)       # True if all hashes match
+print(result.mismatches)     # List of mismatched entries (chain-rebuild detection)
+```
+
+### Settings-Driven Witness (v1.0.0b5)
+
+Enable witness via environment variable — no code changes needed:
+
+```bash
+ENFORCECORE_AUDIT_WITNESS_FILE=/var/log/enforcecore/witness.jsonl
+```
+
+All `@enforce()` calls will automatically publish hashes to the witness file.
+
+---
+
+## Immutable Audit API
+
+OS-enforced append-only protection for audit files. Prevents truncation or chain rebuild even by the file owner.
+
+### Enabling Immutable Mode
+
+```python
+from enforcecore import Auditor
+
+# OS sets append-only attribute on the audit file
+# Linux: chattr +a  |  macOS: chflags uappend
+auditor = Auditor(
+    output_path="audit.jsonl",
+    immutable=True,
+)
+```
+
+### Platform Support
+
+```python
+from enforcecore.auditor.immutable import platform_support_info
+
+info = platform_support_info()
+print(info)
+# {'supported': True, 'platform': 'linux', 'mechanism': 'chattr +a',
+#  'requires_root': False, 'in_container': False,
+#  'has_capability': True}  # CAP_LINUX_IMMUTABLE
+```
+
+| Platform | Mechanism | Requires Root | Container Notes |
+|---|---|---|---|
+| **Linux** | `chattr +a` | No (with `CAP_LINUX_IMMUTABLE`) | Docker: `--cap-add LINUX_IMMUTABLE` |
+| **macOS** | `chflags uappend` | No (user-level flag) | N/A |
+| **Windows** | Not supported | — | Falls back safely |
+
+### Settings-Driven Immutable (v1.0.0b5)
+
+Enable via environment variable — no code changes needed:
+
+```bash
+ENFORCECORE_AUDIT_IMMUTABLE=true
+```
+
+### Combining Witness + Immutable
+
+For maximum tamper-evidence, use both:
+
+```python
+from enforcecore import Auditor
+from enforcecore.auditor.witness import FileWitness
+
+auditor = Auditor(
+    output_path="audit.jsonl",
+    immutable=True,
+    witness=FileWitness("/secure/witness.jsonl"),
+)
+```
+
+Or via environment variables:
+
+```bash
+ENFORCECORE_AUDIT_IMMUTABLE=true
+ENFORCECORE_AUDIT_WITNESS_FILE=/secure/witness.jsonl
+```
+
+---
+
 ## Guard API
 
 Cross-platform resource limits and hard termination.
@@ -577,3 +705,5 @@ enforcecore inspect policies/strict.yaml
 | `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Global cost budget |
 | `ENFORCECORE_FAIL_OPEN` | `false` | Allow bypass on errors |
 | `ENFORCECORE_DEV_MODE` | `false` | Development mode flag |
+| `ENFORCECORE_AUDIT_IMMUTABLE` | `false` | Enable OS-enforced append-only audit files |
+| `ENFORCECORE_AUDIT_WITNESS_FILE` | `None` | Path for hash-only witness JSONL file |

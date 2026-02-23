@@ -280,7 +280,7 @@ As of v1.0.0b1, EnforceCore has **30 Tier 1 symbols** — the stable, frozen pub
 
 ### Is EnforceCore stable enough for production?
 
-Yes. EnforceCore is in **beta** (v1.0.0b3) with 1,503+ tests, 95% coverage, 22 formal invariants, and a frozen 30-symbol API. "Beta" means the API contract is stable and actively hardened — it has not yet been promoted to GA because we are accumulating production deployment feedback.
+Yes. EnforceCore is in **beta** (v1.0.0b5) with 1,510 tests, 95% coverage, 22 formal invariants, and a frozen 30-symbol API. "Beta" means the API contract is stable and actively hardened — it has not yet been promoted to GA because we are accumulating production deployment feedback.
 
 ### What changed in the security audit (v1.0.24a1)?
 
@@ -297,7 +297,26 @@ Each audit entry contains the SHA-256 hash of the preceding entry. Any modificat
 ### Can I resume the chain across sessions?
 
 Yes. The auditor reads the last entry's hash from an existing trail file and continues the chain seamlessly.
+### What is append-only immutable mode?
 
+Since v1.0.0b4, `Auditor(immutable=True)` sets the OS-level append-only attribute on the audit file (`chattr +a` on Linux, `chflags uappend` on macOS). This prevents truncation, overwriting, or chain rebuild — even by the file owner. In Docker, the container needs `--cap-add LINUX_IMMUTABLE`. Enable via env var: `ENFORCECORE_AUDIT_IMMUTABLE=true`.
+
+### What are witness backends?
+
+Witness backends (v1.0.0b4) publish entry hashes (~200 bytes each) to a separate location — `CallbackWitness` (queues, HTTP, databases), `FileWitness` (separate JSONL), or `LogWitness` (syslog/journald). Use `verify_with_witness()` to cross-check trail hashes against witness records, detecting chain-rebuild attacks that `verify_trail()` alone cannot. Enable via env var: `ENFORCECORE_AUDIT_WITNESS_FILE=/path/to/witness.jsonl`.
+
+### Can I combine witness and immutable?
+
+Yes — and you should for maximum tamper-evidence. Immutable prevents local file manipulation; witness provides an independent second record. Use both:
+
+```bash
+ENFORCECORE_AUDIT_IMMUTABLE=true
+ENFORCECORE_AUDIT_WITNESS_FILE=/secure/witness.jsonl
+```
+
+### Who contributed to the tamper-evidence design?
+
+Prof. Dan S. Wallach (Rice University) provided direct guidance on the append-only + witness mitigations. He is acknowledged in CONTRIBUTORS.md under Design Feedback.
 ---
 
 ## Platform Notes
@@ -331,3 +350,5 @@ Yes. The auditor reads the last entry's hash from an existing trail file and con
 | `ENFORCECORE_DEV_MODE` | `false` | Dev mode flag |
 | `ENFORCECORE_OTEL_ENABLED` | `false` | Enable OpenTelemetry metrics/tracing |
 | `ENFORCECORE_WEBHOOK_URL` | `None` | Webhook endpoint for events |
+| `ENFORCECORE_AUDIT_IMMUTABLE` | `false` | Enable OS-enforced append-only audit files |
+| `ENFORCECORE_AUDIT_WITNESS_FILE` | `None` | Path for hash-only witness JSONL file |
