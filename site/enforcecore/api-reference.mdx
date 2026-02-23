@@ -695,15 +695,25 @@ enforcecore inspect policies/strict.yaml
 
 ## Environment Variables
 
+All settings can be configured via environment variables (via `pydantic-settings`). This is the canonical reference — all 19 variables:
+
 | Variable | Default | Description |
 |---|---|---|
 | `ENFORCECORE_DEFAULT_POLICY` | `None` | Default policy file path |
 | `ENFORCECORE_AUDIT_PATH` | `./audit_logs/` | Audit trail directory |
 | `ENFORCECORE_AUDIT_ENABLED` | `true` | Enable/disable auditing |
-| `ENFORCECORE_REDACTION_ENABLED` | `true` | Enable/disable PII redaction |
-| `ENFORCECORE_LOG_LEVEL` | `INFO` | Structured log level |
-| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Global cost budget |
-| `ENFORCECORE_FAIL_OPEN` | `false` | Allow bypass on errors |
-| `ENFORCECORE_DEV_MODE` | `false` | Development mode flag |
+| `ENFORCECORE_AUDIT_BACKEND` | `jsonl` | Audit backend (`jsonl`, `null`, `callback`, `multi`) |
+| `ENFORCECORE_AUDIT_MAX_BYTES` | `10485760` | Max audit file size before rotation (10 MB) |
+| `ENFORCECORE_AUDIT_MAX_FILES` | `5` | Max rotated audit files to keep |
 | `ENFORCECORE_AUDIT_IMMUTABLE` | `false` | Enable OS-enforced append-only audit files |
 | `ENFORCECORE_AUDIT_WITNESS_FILE` | `None` | Path for hash-only witness JSONL file |
+| `ENFORCECORE_REDACTION_ENABLED` | `true` | Enable/disable PII redaction |
+| `ENFORCECORE_SECRET_SCANNING` | `true` | Enable secret detection |
+| `ENFORCECORE_CONTENT_RULES` | `true` | Enable content rule checking |
+| `ENFORCECORE_LOG_LEVEL` | `INFO` | Structured log level |
+| `ENFORCECORE_COST_BUDGET_USD` | `100.0` | Global cost budget |
+| `ENFORCECORE_RATE_LIMIT_RPM` | `0` | Global rate limit (0 = disabled) |
+| `ENFORCECORE_FAIL_OPEN` | `false` | Allow bypass on errors (⚠️ dev-only) |
+| `ENFORCECORE_DEV_MODE` | `false` | Development mode flag |
+| `ENFORCECORE_OTEL_ENABLED` | `false` | Enable OpenTelemetry metrics/tracing |
+| `ENFORCECORE_WEBHOOK_URL` | `None` | Webhook endpoint for enforcement events |

@@ -269,31 +269,7 @@ enforcecore/
 
 ## Error Handling
 
-EnforceCore uses a clear exception hierarchy:
-
-```
-EnforceCoreError (base)
-├── PolicyError
-│   ├── PolicyLoadError        ← Invalid/missing policy file
-│   ├── PolicyValidationError  ← Policy schema violation
-│   └── PolicyEvaluationError  ← Error during rule evaluation
-├── EnforcementViolation
-│   ├── ToolDeniedError        ← Tool not in allowed list
-│   ├── DomainDeniedError      ← Network domain blocked
-│   ├── CostLimitError         ← Cost budget exceeded
-│   ├── RateLimitError         ← Rate limit exceeded
-│   ├── ContentViolationError  ← Content rule violated
-│   └── ResourceLimitError     ← Resource limit breached
-├── RedactionError             ← PII redaction failure
-├── AuditError                 ← Audit logging failure
-├── HardeningError
-│   ├── InvalidToolNameError   ← Bad tool name
-│   ├── InputTooLargeError     ← Payload too large
-│   └── EnforcementDepthError  ← Recursive depth exceeded
-└── GuardError                 ← Resource guard failure
-```
-
-**Key principle:** Enforcement failures **always fail closed** (block the call). If the Policy Engine crashes, the call is blocked. If the Redactor fails, the call is blocked. Safety by default.
+The full exception hierarchy is documented in the [API Reference](api-reference.html#exception-hierarchy). Key principle: enforcement failures **always fail closed** (block the call). If the Policy Engine crashes, the call is blocked. If the Redactor fails, the call is blocked. Safety by default.
 
 ---
 
@@ -316,28 +292,22 @@ If anything goes wrong during enforcement, the call is blocked — never allowed
 
 ## Performance
 
-Benchmarked on Python 3.13, 1,000 iterations with 100-iteration warmup:
+For full per-component benchmarks (15 benchmarks with P50/P99/P99.9), see the [Evaluation Suite](evaluation.html). Summary:
 
-| Component | P50 (ms) | P99 (ms) |
+| Pipeline | P50 (ms) | P99 (ms) |
 |---|---|---|
-| Policy evaluation | 0.012 | 0.228 |
-| PII redaction (short input) | 0.028 | 0.275 |
-| PII redaction (~2KB input) | 0.129 | 0.220 |
-| Audit entry creation | 0.068 | 0.232 |
-| Audit chain verify (100 entries) | 1.114 | 1.457 |
-| Resource guard setup | < 0.001 | < 0.001 |
-| Rate limiter check | < 0.001 | 0.002 |
-| Secret detection | 0.012 | 0.017 |
-| **Full E2E pipeline** | **0.056** | **0.892** |
-| **E2E + PII** | **0.093** | **0.807** |
+| **Full E2E (no PII)** | **0.056** | **0.892** |
+| **E2E + PII redaction** | **0.093** | **0.807** |
 
-Negligible compared to tool call latency (100ms–10s for API calls). Run `enforcecore eval` or `python -m benchmarks.run` to reproduce on your hardware.
+Negligible compared to tool call latency (100ms–10s for API calls). Benchmarked on Python 3.13, 1,000 iterations with 100-iteration warmup. Run `enforcecore eval` to reproduce on your hardware.
 
 ---
 
 ## Formal Invariants
 
 EnforceCore specifies 22 formal invariants organized across four subsystems. These are verified on every CI run via [Hypothesis](https://hypothesis.readthedocs.io/) property-based testing — universally-quantified properties checked against thousands of randomly generated inputs.
+
+> **Note:** These invariants are verified *empirically* via property-based testing, not mechanically proved via theorem provers. Property-based testing provides high confidence but does not constitute a mathematical proof.
 
 | Category | Count | Invariants |
 |---|---|---|
@@ -346,7 +316,37 @@ EnforceCore specifies 22 formal invariants organized across four subsystems. The
 | **Redactor** (R1–R5) | 5 | Idempotency, completeness, safety, detect-redact consistency, strategy independence |
 | **Enforcer** (E1–E4) | 4 | Fail-closed, allowed pass-through, enforcement idempotency, internal error propagation |
 
-These invariants are verified *empirically* (high confidence from thousands of random inputs), not *mechanically proved* via theorem provers. See the [formal invariants document](https://github.com/akios-ai/EnforceCore/blob/main/docs/formal/invariants.md) for the full specification with formal notation.
+**Selected invariants (formal notation):**
+
+- **P2 (Deny Enforcement):** $\forall$ policy $\pi$, $\forall$ tool $t \in \pi$.denied\_tools: evaluate($\pi$, $t$).decision = BLOCKED
+- **P4 (Deny Priority):** $\forall$ tool $t \in \pi$.denied\_tools $\cap$ $\pi$.allowed\_tools: evaluate($\pi$, $t$).decision = BLOCKED — deny always wins over allow
+- **M4 (Tamper Detection):** $\forall$ valid chain, $\forall$ modification (field change, deletion, reorder): verify\_trail().is\_valid = False
+- **E1 (Fail-Closed):** $\forall$ denied tool $t$: enforce\_sync($f$, tool\_name=$t$) raises EnforcementViolation
+- **R1 (Idempotency):** $\forall$ text $s$: redact(redact($s$)) = redact($s$)
+
+See the [formal invariants document](https://github.com/akios-ai/EnforceCore/blob/main/docs/formal/invariants.md) for the complete specification.
+
+---
+
+## Threat Model
+
+EnforceCore documents a formal threat model that considers four adversary types:
+
+| Adversary | Capability | Defense |
+|---|---|---|
+| **A1 — Compromised LLM** | Controls LLM output (jailbreak, prompt injection) | Tool allowlist/denylist, content rules, domain enforcement, rate limiting, PII redaction |
+| **A2 — Malicious Tool** | Controls tool response (MITM, compromised API) | Output redaction, content rules, output size limits, audit trail |
+| **A3 — Insider** | Write access to code or env vars | Fail-open warnings, OS-enforced append-only audit files (`immutable=True`), hash-only remote witness backends, settings logging |
+| **A4 — Supply Chain** | Compromised dependency | Minimal dependency surface (4 deps), safe YAML loading, import guards |
+
+**Formal security properties:**
+
+- **S1 — Fail-closed completeness:** Every denied tool call raises `EnforcementViolation` before execution
+- **S2 — Audit completeness:** Every enforced call (allowed or blocked) produces an `AuditEntry`
+- **S3 — Chain integrity:** Any modification to the audit trail is detectable by `verify_trail()`
+- **S4 — Redaction totality:** All configured PII categories are redacted from both inputs and outputs
+
+Each property has code references and test evidence. See the [full threat model](https://github.com/akios-ai/EnforceCore/blob/main/docs/threat-model.md) in the repository.
 
 ---
 

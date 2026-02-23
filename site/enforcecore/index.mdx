@@ -17,18 +17,6 @@ EnforceCore is a modular enforcement framework that intercepts every external ca
 
 It operates at the **runtime call boundary** — the only layer that cannot be jailbroken, bypassed, or prompt-injected away. The `@enforce()` decorator acts as a runtime monitor in the tradition of runtime verification: an observer that intercepts system events, evaluates them against a specification, and emits a verdict before the action is allowed to proceed.
 
-```python
-from enforcecore import enforce
-
-@enforce(policy="policy.yaml")
-async def search_web(query: str) -> str:
-    return await api.search(query)
-
-# If "search_web" is not in allowed_tools -> blocked. Period.
-# PII in query -> auto-redacted before the call.
-# Every call -> cryptographic audit entry.
-```
-
 ---
 
 ## Why EnforceCore
@@ -95,41 +83,7 @@ Python 3.11+ required. No heavy dependencies — Pydantic v2, PyYAML, structlog,
 
 ---
 
-## Quick Start
-
-### 1. Define a policy
-
-```yaml
-# policy.yaml
-name: "my-agent-policy"
-version: "1.0"
-
-rules:
-  allowed_tools:
-    - "search_web"
-    - "calculator"
-  denied_tools:
-    - "execute_shell"
-  pii_redaction:
-    enabled: true
-    categories: [email, phone, ssn]
-  content_rules:
-    enabled: true
-    categories: [shell_injection, path_traversal, sql_injection, code_execution]
-  rate_limits:
-    per_tool: 10
-    global: 50
-  network:
-    allowed_domains: ["api.example.com", "*.trusted.io"]
-    denied_domains: ["*.evil.com"]
-  resource_limits:
-    max_call_duration_seconds: 30
-    max_cost_usd: 5.00
-
-on_violation: "block"
-```
-
-### 2. Protect your tools
+## Get Started
 
 ```python
 from enforcecore import enforce
@@ -138,22 +92,12 @@ from enforcecore import enforce
 async def search_web(query: str) -> str:
     return await api.search(query)
 
-@enforce(policy="policy.yaml")
-def calculator(expression: str) -> str:
-    return str(eval(expression))
+# If "search_web" is not in allowed_tools -> blocked. Period.
+# PII in query -> auto-redacted before the call.
+# Every call -> cryptographic audit entry.
 ```
 
-### 3. Verify your audit trail
-
-```python
-from enforcecore import verify_trail
-
-result = verify_trail("audit.jsonl")
-assert result.is_valid
-assert result.chain_intact
-```
-
-That's it. Three lines of enforcement code. Full policy control, PII redaction, resource limits, and a cryptographic audit trail — all automatic.
+See the [Quick Start guide](quickstart.html) for a full walkthrough — policy setup, lifecycle hooks, audit verification, and tamper-evidence hardening in under 5 minutes.
 
 ---
 
@@ -166,70 +110,16 @@ That's it. Three lines of enforcement code. Full policy control, PII redaction, 
 
 ---
 
-## Formal Properties
+## Verified by Design
 
-EnforceCore specifies 22 formal invariants — verified via [Hypothesis](https://hypothesis.readthedocs.io/) property-based testing on every CI run. These are not unit tests; they are universally-quantified properties checked against thousands of randomly generated inputs.
+EnforceCore backs its guarantees with measurable evidence:
 
-> **Note:** These invariants are verified *empirically* via property-based testing, not mechanically proved via theorem provers. Property-based testing provides high confidence but does not constitute a mathematical proof.
+- **1,510 tests**, 95% coverage, 22 formal invariants ([Hypothesis](https://hypothesis.readthedocs.io/) property-based testing)
+- **Formal threat model** — 4 adversary types, 4 security properties, tamper-proof audit trails with OS-enforced append-only + witness backends
+- **20 adversarial scenarios** across 10 threat categories, 15 performance benchmarks
+- **0.056 ms** full E2E overhead (P50) — negligible compared to tool call latency
 
-| Category | Properties | What they guarantee |
-|---|---|---|
-| **Policy Engine** (P1–P8) | 8 | Determinism, deny enforcement, allowlist enforcement, deny priority, open-by-default, closed-on-empty, merge union, decision completeness |
-| **Merkle Chain** (M1–M5) | 5 | Hash determinism, hash sensitivity, chain validity, tamper detection, append stability |
-| **Redactor** (R1–R5) | 5 | Idempotency, completeness, safety, detect-redact consistency, strategy independence |
-| **Enforcer** (E1–E4) | 4 | Fail-closed, allowed pass-through, enforcement idempotency, internal error propagation |
-| **Total** | **22** | All pass on every CI run |
-
-**Selected invariants (formal notation):**
-
-- **P2 (Deny Enforcement):** $\forall$ policy $\pi$, $\forall$ tool $t \in \pi$.denied\_tools: evaluate($\pi$, $t$).decision = BLOCKED
-- **P4 (Deny Priority):** $\forall$ tool $t \in \pi$.denied\_tools $\cap$ $\pi$.allowed\_tools: evaluate($\pi$, $t$).decision = BLOCKED — deny always wins over allow
-- **M4 (Tamper Detection):** $\forall$ valid chain, $\forall$ modification (field change, deletion, reorder): verify\_trail().is\_valid = False
-- **E1 (Fail-Closed):** $\forall$ denied tool $t$: enforce\_sync($f$, tool\_name=$t$) raises EnforcementViolation
-- **R1 (Idempotency):** $\forall$ text $s$: redact(redact($s$)) = redact($s$)
-
-See the [Architecture page](architecture.html) for more detail, or the [formal invariants document](https://github.com/akios-ai/EnforceCore/blob/main/docs/formal/invariants.md) in the repository.
-
----
-
-## Threat Model
-
-EnforceCore documents a formal threat model that considers four adversary types:
-
-| Adversary | Capability | Defense |
-|---|---|---|
-| **A1 — Compromised LLM** | Controls LLM output (jailbreak, prompt injection) | Tool allowlist/denylist, content rules, domain enforcement, rate limiting, PII redaction |
-| **A2 — Malicious Tool** | Controls tool response (MITM, compromised API) | Output redaction, content rules, output size limits, audit trail |
-| **A3 — Insider** | Write access to code or env vars | Fail-open warnings, OS-enforced append-only audit files (`immutable=True`), hash-only remote witness backends, settings logging |
-| **A4 — Supply Chain** | Compromised dependency | Minimal dependency surface (4 deps), safe YAML loading, import guards |
-
-The threat model specifies four formal security properties — fail-closed completeness (S1), audit completeness (S2), chain integrity (S3), and redaction totality (S4) — each with code references and test evidence.
-
-See the [full threat model](https://github.com/akios-ai/EnforceCore/blob/main/docs/threat-model.md) in the repository.
-
----
-
-## By the Numbers
-
-| Metric | Value |
-|---|---|
-| Tests | 1,510 |
-| Coverage | 95% |
-| Public API (Tier 1) | 30 symbols (frozen) |
-| Backwards-compatible imports | 110 symbols |
-| Formal invariants | 22 (Hypothesis) |
-| PII categories | 5 |
-| Secret detection categories | 11 |
-| Content rule categories | 4 |
-| Adversarial scenarios | 20 |
-| Threat categories | 10 |
-| Benchmarks | 15 |
-| Framework adapters | 3 |
-| Audit backends | 4 (JSONL, Null, Callback, Multi) |
-| Witness backends | 3 (Callback, File, Log) |
-| CLI commands | 6 |
-| Hook points | 4 |
-| Dependencies | 4 (Pydantic v2, PyYAML, structlog, cryptography) |
+See the [Architecture page](architecture.html) for formal invariants, threat model, and defense-in-depth. See the [Evaluation Suite](evaluation.html) for reproducible adversarial benchmarks.
 
 ---
 
@@ -237,13 +127,7 @@ See the [full threat model](https://github.com/akios-ai/EnforceCore/blob/main/do
 
 EnforceCore applies established computer science principles — runtime verification, reference monitors, information-flow control — to the novel problem of AI agent safety. We welcome academic collaboration and feedback.
 
-**Relevant documents:**
-- [Formal Invariants](https://github.com/akios-ai/EnforceCore/blob/main/docs/formal/invariants.md) — 22 property-based invariants with formal notation
-- [Threat Model](https://github.com/akios-ai/EnforceCore/blob/main/docs/threat-model.md) — adversary model, trust boundaries, security properties
-- [Defense-in-Depth](https://github.com/akios-ai/EnforceCore/blob/main/docs/defense-in-depth.md) — five-layer security architecture
-- [Related Work](https://github.com/akios-ai/EnforceCore/blob/main/docs/related-work.md) — survey of runtime verification for AI agents
-- [Evaluation Suite](evaluation.html) — reproducible adversarial benchmarks (20 scenarios, 10 threat categories)
-- [Architecture](architecture.html) — enforcement pipeline design
+The [Architecture page](architecture.html) documents the formal invariants (22 Hypothesis properties with $\forall$ notation), threat model (4 adversary types, 4 security properties), and defense-in-depth architecture. The [Evaluation Suite](evaluation.html) provides reproducible adversarial benchmarks.
 
 **Prior work that informed the design:**
 - Runtime Verification — Leucker & Schallhart (2009), Havelund & Goldberg (2005)
