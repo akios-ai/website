@@ -274,6 +274,22 @@ Four hook points: `@on_pre_call`, `@on_post_call`, `@on_violation`, `@on_redacti
 
 Removed in v1.0.16a1. Use `Enforcer.from_file()` factory or `@enforce()` decorator instead. See the [API Reference](/enforcecore/api-reference) for migration details.
 
+### What is the Tier 1 / Tier 2 API split?
+
+As of v1.0.0b1, EnforceCore has **30 Tier 1 symbols** — the stable, frozen public contract. The remaining 80 Tier 2 symbols are still importable but are not covered by the stability guarantee. Tier 2 imports emit deprecation warnings. If you only use Tier 1 symbols, your code is guaranteed forward-compatible through the v1.x series. See the [API Reference](/enforcecore/api-reference) for the full Tier 1 list.
+
+### Is EnforceCore stable enough for production?
+
+Yes. EnforceCore is in **beta** (v1.0.0b3) with 1,503+ tests, 95% coverage, 22 formal invariants, and a frozen 30-symbol API. "Beta" means the API contract is stable and actively hardened — it has not yet been promoted to GA because we are accumulating production deployment feedback.
+
+### What changed in the security audit (v1.0.24a1)?
+
+Five targeted fixes: (A-4) AuditEntry JSON-safety validation, (M-4) Shannon entropy filter for secret detection false-positive reduction, (A-5) minimum input size floor, (M-5) Unicode normalization rewrite with correct offset mapping, (M-2) Enforcer internal refactoring. See the [Roadmap](/enforcecore/roadmap) for details.
+
+### What is Policy.from_dict() auto-hoisting (v1.0.0b2)?
+
+A bug fix. Previously, flat dictionary keys passed to `Policy.from_dict()` were silently dropped. Now, if a top-level key matches a known rule field (like `allowed_tools`), it is auto-hoisted into the `rules:` namespace. This prevents silent policy misconfiguration.
+
 ### How does the Merkle chain work?
 
 Each audit entry contains the SHA-256 hash of the preceding entry. Any modification, deletion, insertion, or reordering is detectable by `verify_trail()`.

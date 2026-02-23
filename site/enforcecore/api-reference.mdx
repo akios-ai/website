@@ -5,9 +5,23 @@ keywords: enforcecore api reference enforce decorator enforcer policy redactor a
 
 # API Reference
 
-EnforceCore exposes 110 public symbols from the top-level `enforcecore` package. This page documents the complete public API surface.
+EnforceCore exposes **30 Tier 1 public symbols** from the top-level `enforcecore` package — the stable, frozen contract. An additional 80 Tier 2 symbols remain importable for backwards compatibility but are not covered by the stability guarantee.
 
-> **API Stability:** The public API was frozen at v1.0.16a1. All 110 symbols in `__all__` are covered by compatibility tests.
+> **API Stability:** The 30 Tier 1 symbols are frozen as of v1.0.0b1. No additions or removals until v2.0.0. Tier 2 imports emit deprecation warnings and may be reorganized in v2.0.
+
+### Tier 1 Symbols (Stable — 30)
+
+| Category | Symbols |
+|---|---|
+| **Enforcement** | `enforce`, `Enforcer`, `Decision`, `EnforcementResult` |
+| **Policy** | `Policy`, `load_policy` |
+| **Redaction** | `Redactor`, `RedactionResult`, `RedactionStrategy`, `SecretScanner` |
+| **Audit** | `Auditor`, `AuditEntry`, `VerificationResult`, `verify_trail`, `load_trail` |
+| **Resource Management** | `ResourceGuard`, `CostTracker`, `KillSwitch`, `RateLimiter` |
+| **Exceptions** | `EnforceCoreError`, `EnforcementViolation`, `ToolDeniedError`, `ContentViolationError`, `PolicyError`, `PolicyLoadError`, `CostLimitError`, `ResourceLimitError` |
+| **Configuration** | `Settings`, `settings`, `__version__` |
+
+> **Tip:** If you only import Tier 1 symbols, your code is guaranteed forward-compatible through the entire v1.x series.
 
 ---
 

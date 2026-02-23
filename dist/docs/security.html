@@ -154,8 +154,11 @@ akios doctor
 <li><strong>Cost Controls</strong> — Budget kill-switches halt execution if limits exceeded</li>
 </ul>
 <p><strong>Deactivate the cage:</strong></p>
-<pre><code class="language-bash"># Full cage down — destroy ALL session data (default)
+<pre><code class="language-bash"># Cage down — destroy session data (audit/ and data/output/)
 akios cage down
+
+# Full erasure including input data
+akios cage down --wipe-all
 
 # Multi-pass secure erasure (DOD 5220.22-M)
 akios cage down --passes 3
@@ -167,7 +170,7 @@ akios cage down --fast
 akios cage down --keep-data
 </code></pre>
 <blockquote>
-<p><strong>Warning:</strong> <code>cage down</code> permanently destroys <code>audit/</code>, <code>data/output/</code>, and <code>data/input/</code>. This is the cage&#39;s core security promise: zero data residue when the cage goes down. Use <code>--keep-data</code> only during active development.</p>
+<p><strong>Note (v1.0.14+):</strong> <code>cage down</code> now preserves <code>data/input/</code> by default — only <code>audit/</code> and <code>data/output/</code> are destroyed. Use <code>--wipe-all</code> for full erasure including input data. Use <code>--keep-data</code> to preserve everything during development.</p>
 </blockquote>
 <p><strong>Ablation flags:</strong> Benchmark the overhead of individual cage components by selectively disabling them:</p>
 <pre><code class="language-bash">akios cage up --no-pii      # Disable PII redaction only
@@ -370,11 +373,11 @@ akios audit stats
 <p>The cage enforces a strict data lifecycle:</p>
 <pre><code>cage up → protections activate → workflows execute → data generated
                                                            ↓
-cage down → audit/ destroyed → data/output/ destroyed → data/input/ destroyed
+cage down → audit/ destroyed → data/output/ destroyed → data/input/ PRESERVED
                                                            ↓
-                                                    ZERO DATA RESIDUE
+cage down --wipe-all → data/input/ also destroyed → ZERO DATA RESIDUE
 </code></pre>
-<p>Every session starts clean and ends clean. No sensitive artifacts survive a cage session.</p>
+<p>Since v1.0.14, input data is preserved by default on cage teardown. Use <code>--wipe-all</code> for full erasure when zero data residue is required.</p>
 <h2>Network Security &amp; HTTPS Whitelist</h2>
 <p>By default, <strong>all external network access is blocked</strong> (secure-first design). LLM API endpoints (OpenAI, Anthropic, Grok, Mistral, Gemini) always pass through regardless of this setting — the <code>network_access_allowed</code> controls only the HTTP agent.</p>
 <p><strong>Configure an HTTPS whitelist for the HTTP agent:</strong></p>
@@ -438,10 +441,10 @@ allowed_domains:
 <h2>Non-Root Docker Containers</h2>
 <p>As of v1.0.10, the official AKIOS Docker image runs as a non-root <code>akios</code> user by default. Containers no longer run as root, reducing the blast radius of any container escape vulnerability.</p>
 <pre><code class="language-bash"># Official image — already non-root
-docker run --rm akiosai/akios:v1.0.11 status
+docker run --rm akiosai/akios:v1.0.15 status
 
 # Verify
-docker run --rm akiosai/akios:v1.0.11 id
+docker run --rm akiosai/akios:v1.0.15 id
 # uid=1000(akios) gid=1000(akios)
 </code></pre>
 <h2>Safe Condition Evaluator</h2>

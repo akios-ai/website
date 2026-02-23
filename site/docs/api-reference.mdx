@@ -61,7 +61,18 @@ result = engine.run(
     "status": "success",         # or "failed"
     "execution_time": 12.5,       # seconds
     "output_directory": "data/output/run_2024-01-15_10-30-45/",
-    "error": None                 # or error message if failed
+    "error": None,                # or error message if failed
+    # v1.0.12+ enriched fields:
+    "tokens": {
+        "input": 1250,            # total input tokens
+        "output": 830,            # total output tokens
+        "total": 2080
+    },
+    "cost_usd": 0.0042,          # total cost
+    "pii_redactions": {
+        "count": 3,               # total redactions applied
+        "categories": ["email", "phone"],  # detected categories
+    }
 }
 ```
 

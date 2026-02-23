@@ -105,7 +105,7 @@
                 <h1>Python API Reference</h1>
 <p>Use AKIOS programmatically from your Python code. This is useful for integrating AKIOS workflows into larger applications.</p>
 <h2>Installation</h2>
-<pre><code class="language-bash">pip install akios&gt;=1.0.11
+<pre><code class="language-bash">pip install akios&gt;=1.0.15
 </code></pre>
 <h2>Quick Example</h2>
 <pre><code class="language-python">from akios.core.runtime.engine import RuntimeEngine
@@ -147,7 +147,18 @@ engine = RuntimeEngine(config_path=&quot;./custom-config.yaml&quot;)
     &quot;status&quot;: &quot;success&quot;,         # or &quot;failed&quot;
     &quot;execution_time&quot;: 12.5,       # seconds
     &quot;output_directory&quot;: &quot;data/output/run_2024-01-15_10-30-45/&quot;,
-    &quot;error&quot;: None                 # or error message if failed
+    &quot;error&quot;: None,                # or error message if failed
+    # v1.0.12+ enriched fields:
+    &quot;tokens&quot;: {
+        &quot;input&quot;: 1250,            # total input tokens
+        &quot;output&quot;: 830,            # total output tokens
+        &quot;total&quot;: 2080
+    },
+    &quot;cost_usd&quot;: 0.0042,          # total cost
+    &quot;pii_redactions&quot;: {
+        &quot;count&quot;: 3,               # total redactions applied
+        &quot;categories&quot;: [&quot;email&quot;, &quot;phone&quot;],  # detected categories
+    }
 }
 </code></pre>
 <h2>Agent APIs</h2>

@@ -261,19 +261,81 @@ Final alpha polish — documentation, tests, and stability.
 - Cross-reference validation between docs and code
 - Ready for beta promotion
 
+### v1.0.23a1 — Release Infrastructure
+
+Build and CI pipeline hardening for the beta transition.
+
+- Release automation fixes
+- CI pipeline reliability improvements
+- Pre-beta infrastructure readiness
+
+### v1.0.24a1 — Security Audit
+
+Targeted security audit addressing five findings from formal review.
+
+- **A-4:** AuditEntry JSON-safety — all entries validated for JSON serialization before writing
+- **M-4:** Shannon entropy filter for secret detection — reduces false positives on high-entropy strings
+- **A-5:** Minimum input size floor — prevents degenerate zero-length input edge cases
+- **M-5:** Unicode normalization rewrite with offset mapping — correct redaction positions after NFC/homoglyph transforms
+- **M-2:** Enforcer internal refactoring — cleaner separation of pipeline stages
+
+---
+
+## Beta Releases (v1.0.25a1 → v1.0.0b3)
+
+### v1.0.25a1 — API Surface Pruning
+
+**Major change:** Public API surface pruned from 110 symbols to **30 Tier 1** symbols.
+
+- **Tier 1 (30 symbols):** The stable, frozen public contract — `enforce`, `Enforcer`, `Policy`, `load_policy`, `Redactor`, `RedactionResult`, `RedactionStrategy`, `SecretScanner`, `Auditor`, `AuditEntry`, `VerificationResult`, `verify_trail`, `load_trail`, `ResourceGuard`, `CostTracker`, `KillSwitch`, `RateLimiter`, `Decision`, `EnforcementResult`, `EnforceCoreError`, `EnforcementViolation`, `ToolDeniedError`, `ContentViolationError`, `PolicyError`, `PolicyLoadError`, `CostLimitError`, `ResourceLimitError`, `Settings`, `settings`, `__version__`
+- **Tier 2 (80 symbols):** Advanced/internal — still importable, but not part of the stability guarantee
+- All 110 original symbols remain importable for backwards compatibility
+
+### v1.0.0b1 — Beta Status
+
+EnforceCore officially enters **beta**. Production-ready, actively hardened.
+
+- Beta status declaration
+- Deprecation warnings emitted for Tier 2 imports
+- Migration guide for Tier 1 adoption
+- 30-symbol API frozen — no additions or removals until v2.0.0
+
+### v1.0.0b2 — Security Fix: Policy.from_dict()
+
+Critical fix for silent rule drop in `Policy.from_dict()`.
+
+- **Bug:** Flat dictionary keys passed to `Policy.from_dict()` were silently dropped instead of being auto-hoisted into the `rules` namespace
+- **Fix:** Flat dict keys are now auto-hoisted into `rules:` when the top-level key matches a known rule field
+- Prevents silent policy misconfiguration
+
+### v1.0.0b3 — Documentation Accuracy
+
+Documentation audit — correcting inaccurate claims and outdated references.
+
+- Corrected false claim about Presidio dependency (EnforceCore has never used Presidio)
+- Removed deprecated context manager references (`guard_sync()`, `guard_async()`)
+- Updated performance benchmarks from estimated ranges to measured values (~0.056 ms E2E P50)
+- Cross-referenced all documentation against actual code behavior
+
 ---
 
 ## Current Status
 
-All releases through v1.0.22a1 have shipped. The public API is frozen at 110 exports since v1.0.16a1.
+EnforceCore is in **beta** at v1.0.0b3. The 30-symbol Tier 1 API is frozen. All 110 original symbols remain importable for backwards compatibility.
+
+```bash
+pip install enforcecore==1.0.0b3
+```
 
 | Metric | Value |
 |---|---|
-| Tests | 1,503 |
-| Coverage | 96% |
-| Public exports | 110 (frozen) |
+| Tests | 1,503+ |
+| Coverage | 95% |
+| Public API (Tier 1) | 30 symbols (frozen) |
+| Backwards-compatible imports | 110 symbols |
+| Formal invariants | 22 (Hypothesis) |
 | PII categories | 5 |
-| Secret scanner categories | 11 |
+| Secret detection categories | 11 |
 | Content rule categories | 4 |
 | Adversarial scenarios | 20 |
 | Threat categories | 10 |
@@ -290,8 +352,8 @@ All releases through v1.0.22a1 have shipped. The public API is frozen at 110 exp
 
 These are potential future work — not committed:
 
-### v1.0 Stable (Beta → GA)
-Promote from alpha to stable release. Final API review, migration guide, and production deployment guide.
+### v1.0.0 Stable (Beta → GA)
+Promote from beta to stable release. Final production deployment guide and GA announcement.
 
 ### v1.1 — Policy Hub
 Community repository of reusable, audited policies with versioning and peer review.
@@ -303,7 +365,7 @@ Integration with model checkers for mathematical policy guarantees.
 TypeScript and Go bindings for non-Python ecosystems.
 
 ### v2.0 — Distributed Enforcement
-Enforcement for multi-agent systems across processes and machines, with shared state and coordinated rate limiting.
+Enforcement for multi-agent systems across processes and machines, with shared state and coordinated rate limiting. Tier 2 symbols may be removed in this version.
 
 ---
 

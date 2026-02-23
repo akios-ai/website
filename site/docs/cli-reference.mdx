@@ -46,6 +46,7 @@ Available on all commands:
 akios --help               # Show command help
 akios --version            # Show version info
 akios --debug <command>    # Enable debug output
+akios --json-output <cmd>  # Machine-readable JSON output (v1.0.12+)
 ```
 
 ## Project Commands
@@ -360,6 +361,9 @@ akios cage down --fast
 # Dev mode — relax protections, keep data for debugging
 akios cage down --keep-data
 
+# Full erasure including input data (v1.0.14+)
+akios cage down --wipe-all
+
 # Show current cage posture and protection status
 akios cage status
 
@@ -371,7 +375,7 @@ akios security status
 
 **`cage up`** activates: PII Redaction (enabled), HTTPS Network (locked — LLM APIs and `allowed_domains` pass through), Sandbox (enforced), Audit Logging (enabled).
 
-**`cage down`** (default) **destroys all session data** — `audit/`, `data/output/`, `data/input/` are permanently deleted. This is the cage's core promise: zero data residue when the cage goes down. Use `--passes N` for multi-pass overwrite (DOD 5220.22-M requires 3). Use `--fast` for truncate-only teardown in dev/CI environments.
+**`cage down`** (default) **destroys session data** — `audit/` and `data/output/` are permanently deleted. Since v1.0.14, `data/input/` is preserved by default. Use `--wipe-all` to include input data in the erasure. Use `--passes N` for multi-pass overwrite (DOD 5220.22-M requires 3). Use `--fast` for truncate-only teardown in dev/CI environments.
 
 **`cage down --keep-data`** relaxes protections without wiping data (development convenience only).
 
@@ -395,7 +399,11 @@ akios protect scan data/input/document.txt --json
 
 **`preview`** scans workflow inputs for PII and shows safe prompt construction.
 
-**`scan`** scans a file for PII and displays detected sensitive data categories.
+**`scan`** scans a file for PII and displays detected sensitive data categories. Use `--text` to scan inline text without creating a file:
+
+```bash
+akios protect scan --text "Contact john@example.com or call 555-1234"
+```
 
 **`show-prompt`** displays the internal PII detection prompt template used by the redaction engine. Useful for auditing how PII matching is configured.
 
@@ -516,6 +524,7 @@ AKIOS validates LLM provider and model compatibility at startup to prevent API f
 | **Grok** | `grok-3` |
 | **Mistral** | `mistral-small`, `mistral-medium`, `mistral-large` |
 | **Gemini** | `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash` |
+| **Bedrock** | `anthropic.claude-*`, `meta.llama*`, `amazon.titan-*` (via IAM, v1.0.13+) |
 
 Validation is case-insensitive. Invalid combinations fail early with clear error messages:
 

@@ -1,6 +1,86 @@
 # Migration Guide
 
-Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.0.11 update and the original pre-V1.0 migration.
+Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.0.12–V1.0.15 updates, the V1.0.11 update, and the original pre-V1.0 migration.
+
+## Upgrading to V1.0.15 (from V1.0.11)
+
+V1.0.15 is a drop-in upgrade with no breaking CLI or workflow changes. Four releases shipped between v1.0.11 and v1.0.15:
+
+```bash
+# Pip
+pip install --upgrade akios
+
+# Docker — pull latest image
+docker pull akiosai/akios:v{{version}}
+
+# Verify
+akios --version
+```
+
+### What's New in V1.0.12–V1.0.15
+
+**v1.0.12 — JSON Output + Token Tracking:**
+- **`--json-output` CLI flag** — machine-readable JSON output for CI/CD pipelines (all commands)
+- **Token input/output tracking** — per-call token counts returned in engine results
+- **PII redaction metadata** — redaction counts, categories, and positions in audit entries
+- **Enriched engine return** — structured result object with cost, tokens, PII stats
+
+**v1.0.13 — AWS Bedrock Provider:**
+- **AWS Bedrock support** — Claude, Llama, and Titan models via IAM authentication (no API keys needed)
+- **Environment variables:** `AKIOS_BEDROCK_MODEL_ID`, `AKIOS_BEDROCK_REGION`
+- **Optional dependency:** `pip install akios[bedrock]` (installs `boto3`)
+- Works with existing policies, budgets, and audit — no workflow changes needed
+
+**v1.0.14 — 13 End-User Fixes:**
+- Template degradation fix — complex templates no longer silently lose steps
+- Docker non-interactive fix — `--non-interactive` flag prevents TTY hangs in CI
+- seccomp venv guidance — clear error message when seccomp blocks virtualenv creation
+- **`cage down` preserves input data** — `data/input/` is no longer deleted on teardown (use `--wipe-all` for full erasure)
+- Bedrock environment variables forwarded in Docker wrapper
+- `protect scan --text` flag — scan inline text without creating a file
+- Wrapper fallback to `"latest"` when version detection fails
+
+**v1.0.15 — SDK Integration Hardening (8 fixes):**
+- Pydantic settings `extra="ignore"` — unknown env vars no longer crash startup
+- JSON error output — all error paths return valid JSON when `--json-output` is set
+- Error categories — errors include `category` field (config, auth, budget, workflow, agent, security)
+- Bedrock pricing — accurate token cost calculation for Bedrock models
+- Dockerfile `.akios` directory — config directory created in container image
+- JSON contract tests — CI validates all JSON output schemas
+- Bedrock throttle retry — automatic retry with backoff on AWS throttling (429)
+
+### Migration Notes
+
+**cage down behavior change (v1.0.14):** `akios cage down` no longer deletes `data/input/`. If you relied on full erasure including input data, use `akios cage down --wipe-all`.
+
+**Bedrock users (v1.0.13+):** Install the Bedrock extras:
+```bash
+pip install akios[bedrock]
+```
+Then configure via environment:
+```bash
+AKIOS_LLM_PROVIDER=bedrock
+AKIOS_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
+AKIOS_BEDROCK_REGION=us-east-1
+```
+IAM credentials are picked up automatically from the environment (AWS CLI, instance profile, etc.).
+
+**JSON output (v1.0.12+):** Add `--json-output` to any command for machine-readable output:
+```bash
+akios status --json-output
+akios run workflow.yml --json-output
+```
+
+**Verification after upgrade:**
+```bash
+akios --version                    # Should show {{version}}
+akios status --security            # Verify all protections active
+akios doctor                       # Run diagnostics
+```
+
+No configuration changes, workflow updates, or data migration needed.
+
+---
 
 ## Upgrading to V1.0.11 (from V1.0.x)
 
