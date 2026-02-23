@@ -116,7 +116,7 @@
         </div>
         <div class="feature">
           <h3>Rédaction PII</h3>
-          <p>Détection et rédaction PII en temps réel intégrées. Protégez les données sensibles avant qu'elles ne sortent.</p>
+          <p>Détection et rédaction PII en temps réel intégrées. <strong>53 patterns</strong> captent emails, SSN, cartes de crédit, clés API et plus — <strong>avant que les données n'atteignent un fournisseur</strong>.</p>
         </div>
         <div class="feature">
           <h3>Logs auditables</h3>
@@ -138,7 +138,7 @@
   <section class="section">
     <div class="page">
       <h2 class="section-heading">Démarrage rapide (3 minutes)</h2>
-      <p>Installez le runtime sur un système Unix natif et lancez votre premier agent sandboxé.</p>
+      <p>Installez <strong>AKIOS</strong> et lancez votre premier workflow IA sandboxé. Vous verrez <strong>l'isolation kernel, la rédaction PII et l'audit</strong> — fonctionnels dès l'installation.</p>
       
       <pre><code># Install
 pip install akios
@@ -193,7 +193,7 @@ akios run templates/hello-workflow.yml</code></pre>
   <section class="section">
     <div class="page">
       <h2 class="section-heading">Agents cœur</h2>
-      <p>Quatre agents couvrent les flux courants, toujours sous contrôle :</p>
+      <p>Quatre agents <strong>intégrés</strong> couvrent les flux courants, tous exécutés <strong>dans la cage de sécurité</strong> :</p>
       <div class="agents-grid">
         <div class="agent-card">
           <h3>Filesystem</h3>
@@ -311,7 +311,7 @@ akios run templates/hello-workflow.yml</code></pre>
       <div class="faq-grid">
         <div class="faq-item">
           <h4>Et pour les performances ?</h4>
-          <p>AKIOS exécute les conteneurs d'agents avec peu de surcharge. Latence typique : <5ms application des politiques, <50ms premier token. Benchmarks dans les docs.</p>
+          <p><strong>25ms</strong> de démarrage sur t3.medium, <strong>44+</strong> workflows/sec de débit, <strong>~21Mo</strong> de mémoire. <5ms d'application des politiques, <strong><50ms de rédaction PII</strong>. Benchmarks complets dans les docs.</p>
         </div>
         <div class="faq-item">
           <h4>Quel est le coût ?</h4>
@@ -319,7 +319,7 @@ akios run templates/hello-workflow.yml</code></pre>
         </div>
         <div class="faq-item">
           <h4>Compatible avec ma stack ?</h4>
-          <p>AKIOS fonctionne avec OpenAI, Anthropic, AWS Bedrock, Grok, Mistral et Gemini. Sur Linux, macOS ou Docker. pip install ou conteneur.</p>
+          <p>AKIOS fonctionne avec OpenAI, Anthropic, AWS Bedrock, Grok, Mistral et Gemini. Sur Linux <strong>(kernel-hard)</strong>, macOS ou Docker. pip install ou conteneur — <strong>à vous de choisir</strong>.</p>
         </div>
         <div class="faq-item">
           <h4>Comment la sécurité est-elle appliquée ?</h4>
