@@ -149,6 +149,18 @@ ls templates/
 akios run templates/hello-workflow.yml
 ```
 
+### "Template steps silently lost" (fixed v1.0.14)
+
+Complex multi-step templates could silently lose steps during rendering. This is fixed in v1.0.14 — upgrade to the latest version.
+
+### "AWS Bedrock throttling (429)" (fixed v1.0.15)
+
+Bedrock API calls returning 429 (Too Many Requests) now automatically retry with exponential backoff. If you still hit throttling, reduce the rate limit or request a quota increase in AWS console.
+
+### "Unknown env vars crash startup" (fixed v1.0.15)
+
+Extra environment variables in `.env` no longer crash Pydantic settings validation. Upgrade to v1.0.15+.
+
 ### "Workflow validation failed"
 
 Each step needs:
@@ -195,6 +207,26 @@ export AKIOS_BUDGET_LIMIT_PER_RUN=5.0
 ```
 
 ## Docker-Specific Issues
+
+### "Docker hangs in CI/CD" (fixed v1.0.14)
+
+Docker commands hang waiting for TTY input in non-interactive environments.
+
+**Fix:** Use the `--non-interactive` flag:
+```bash
+akios run workflow.yml --non-interactive
+```
+
+Or set the environment variable:
+```bash
+AKIOS_NON_INTERACTIVE=1 akios run workflow.yml
+```
+
+### "seccomp blocks virtualenv creation" (fixed v1.0.14)
+
+On some Linux systems, seccomp filters prevent Python virtualenv creation inside the sandbox.
+
+**Fix:** AKIOS now shows a clear error message with guidance. Create your virtualenv *before* entering the cage, or use `--no-sandbox` for development.
 
 ### "Docker image outdated"
 

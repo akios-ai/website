@@ -258,7 +258,7 @@ enforcecore/
 │   └── autogen.py        ← AutoGen adapter
 ├── eval/                 ← Evaluation suite (20 scenarios, 15 benchmarks)
 ├── cli/                  ← CLI commands (info, validate, verify, eval, dry-run, inspect)
-└── __init__.py           ← Public API (110 exports)
+└── __init__.py           ← Public API (30 Tier 1 + 80 Tier 2 symbols)
 ```
 
 ---
@@ -328,3 +328,36 @@ Benchmarked on Python 3.13, 1,000 iterations with 100-iteration warmup:
 | **E2E + PII** | **0.093** | **0.807** |
 
 Negligible compared to tool call latency (100ms–10s for API calls). Run `enforcecore eval` or `python -m benchmarks.run` to reproduce on your hardware.
+
+---
+
+## Formal Invariants
+
+EnforceCore specifies 22 formal invariants organized across four subsystems. These are verified on every CI run via [Hypothesis](https://hypothesis.readthedocs.io/) property-based testing — universally-quantified properties checked against thousands of randomly generated inputs.
+
+| Category | Count | Invariants |
+|---|---|---|
+| **Policy Engine** (P1–P8) | 8 | Determinism, deny enforcement, allowlist enforcement, deny-over-allow priority, open-by-default, closed-on-empty, merge union, decision completeness |
+| **Merkle Chain** (M1–M5) | 5 | Hash determinism, hash sensitivity, chain validity, tamper detection, append stability |
+| **Redactor** (R1–R5) | 5 | Idempotency, completeness, safety, detect-redact consistency, strategy independence |
+| **Enforcer** (E1–E4) | 4 | Fail-closed, allowed pass-through, enforcement idempotency, internal error propagation |
+
+These invariants are verified *empirically* (high confidence from thousands of random inputs), not *mechanically proved* via theorem provers. See the [formal invariants document](https://github.com/akios-ai/EnforceCore/blob/main/docs/formal/invariants.md) for the full specification with formal notation.
+
+---
+
+## Defense-in-Depth
+
+EnforceCore is one layer in a five-layer defense architecture:
+
+| Layer | Scope | Examples |
+|---|---|---|
+| **L1 — Network** | Network perimeter | Firewalls, VPNs, TLS |
+| **L2 — OS / Container** | Process isolation | seccomp, AppArmor, SELinux, Docker/gVisor |
+| **L3 — Application (EnforceCore)** | Agent semantic boundary | Tool allowlist, PII redaction, content rules, audit |
+| **L4 — Model** | LLM behavior | System prompts, RLHF alignment, output filtering |
+| **L5 — Human** | Oversight | Human-in-the-loop, approval workflows, audit review |
+
+EnforceCore operates at **L3** — the application semantic layer. It understands tool calls, PII categories, and cost budgets. It does not replace L1/L2 (OS-level sandboxing) or L4/L5 (model alignment). Use all five layers together for robust agent containment.
+
+See the [defense-in-depth document](https://github.com/akios-ai/EnforceCore/blob/main/docs/defense-in-depth.md) in the repository.

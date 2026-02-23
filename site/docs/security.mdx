@@ -47,8 +47,11 @@ When the cage is **ACTIVE**, these protections are enforced:
 
 **Deactivate the cage:**
 ```bash
-# Full cage down — destroy ALL session data (default)
+# Cage down — destroy session data (audit/ and data/output/)
 akios cage down
+
+# Full erasure including input data
+akios cage down --wipe-all
 
 # Multi-pass secure erasure (DOD 5220.22-M)
 akios cage down --passes 3
@@ -60,7 +63,7 @@ akios cage down --fast
 akios cage down --keep-data
 ```
 
-> **Warning:** `cage down` permanently destroys `audit/`, `data/output/`, and `data/input/`. This is the cage's core security promise: zero data residue when the cage goes down. Use `--keep-data` only during active development.
+> **Note (v1.0.14+):** `cage down` now preserves `data/input/` by default — only `audit/` and `data/output/` are destroyed. Use `--wipe-all` for full erasure including input data. Use `--keep-data` to preserve everything during development.
 
 **Ablation flags:** Benchmark the overhead of individual cage components by selectively disabling them:
 
@@ -269,12 +272,12 @@ The cage enforces a strict data lifecycle:
 ```
 cage up → protections activate → workflows execute → data generated
                                                            ↓
-cage down → audit/ destroyed → data/output/ destroyed → data/input/ destroyed
+cage down → audit/ destroyed → data/output/ destroyed → data/input/ PRESERVED
                                                            ↓
-                                                    ZERO DATA RESIDUE
+cage down --wipe-all → data/input/ also destroyed → ZERO DATA RESIDUE
 ```
 
-Every session starts clean and ends clean. No sensitive artifacts survive a cage session.
+Since v1.0.14, input data is preserved by default on cage teardown. Use `--wipe-all` for full erasure when zero data residue is required.
 
 ## Network Security & HTTPS Whitelist
 

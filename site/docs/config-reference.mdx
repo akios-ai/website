@@ -48,13 +48,18 @@ Store sensitive configuration in the `.env` file:
 ### AI Provider Settings
 ```bash
 # Choose your provider
-AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini
+AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini, bedrock
 
 # Choose your model
 AKIOS_LLM_MODEL=grok-3   # Provider-specific model name
 
 # Add your API key
 GROK_API_KEY=your-key-here
+
+# AWS Bedrock settings (v1.0.13+)
+AKIOS_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
+AKIOS_BEDROCK_REGION=us-east-1
+# IAM credentials picked up automatically from AWS CLI / instance profile
 ```
 
 ### Mode Settings
@@ -323,6 +328,7 @@ akios setup --force
 - Grok: `grok-3`
 - Mistral: `mistral-small`, `mistral-medium`, `mistral-large`
 - Gemini: `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`
+- Bedrock: `anthropic.claude-*`, `meta.llama*`, `amazon.titan-*` (IAM auth, v1.0.13+)
 
 **API key issues:**
 ```bash

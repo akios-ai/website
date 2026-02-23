@@ -6,6 +6,8 @@
 
 **Runtime enforcement for AI agents. Open source. Framework-agnostic. Apache 2.0.**
 
+> **Current release: v1.0.0b3 (beta)** — Frozen 30-symbol API, 1,503+ tests, 22 formal invariants. See the [full EnforceCore documentation](/enforcecore/) for complete details.
+
 EnforceCore is the open-source enforcement framework that powers [AKIOS](index.html). It provides mandatory policy enforcement at every external call boundary — tool calls, API calls, file access, network access — so that violations become structurally impossible, not just discouraged.
 
 ## The Problem
@@ -232,19 +234,22 @@ EnforceCore provides thin adapters (~20–50 lines each) for major agent framewo
 
 ## Performance
 
-EnforceCore is designed for production workloads with honest performance targets:
+EnforceCore is designed for production workloads. Benchmarked on Python 3.13 with 1,000 iterations:
 
-| Component | Overhead |
-|-----------|----------|
-| Policy evaluation | < 1ms |
-| PII redaction (short text) | 5–15ms |
-| PII redaction (long text) | 15–50ms |
-| Audit entry | < 1ms |
-| Resource guard setup | < 2ms |
-| **Total (typical call)** | **8–20ms** |
+| Component | P50 (ms) | P99 (ms) |
+|-----------|----------|----------|
+| Policy evaluation | 0.012 | 0.228 |
+| PII redaction (short text) | 0.028 | 0.275 |
+| PII redaction (~2KB text) | 0.129 | 0.220 |
+| Audit entry | 0.068 | 0.232 |
+| Secret detection | 0.012 | 0.017 |
+| **Full E2E pipeline** | **0.056** | **0.892** |
+
+Negligible compared to tool call latency (100ms–10s for API calls).
 
 ## Links
 
+- **Full Documentation:** [akios.ai/enforcecore](/enforcecore/) — Architecture, API reference, formal properties, threat model
 - **GitHub:** [github.com/akios-ai/enforcecore](https://github.com/akios-ai/enforcecore)
 - **PyPI:** [pypi.org/project/enforcecore](https://pypi.org/project/enforcecore/)
 - **License:** Apache 2.0

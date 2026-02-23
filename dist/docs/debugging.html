@@ -134,7 +134,7 @@ pip show akios
 
 # Reinstall if needed
 pip uninstall akios
-pip install akios&gt;=1.0.11
+pip install akios&gt;=1.0.15
 
 # Check PATH
 which akios
@@ -216,6 +216,12 @@ ls templates/
 # Use correct path
 akios run templates/hello-workflow.yml
 </code></pre>
+<h3>&quot;Template steps silently lost&quot; (fixed v1.0.14)</h3>
+<p>Complex multi-step templates could silently lose steps during rendering. This is fixed in v1.0.14 — upgrade to the latest version.</p>
+<h3>&quot;AWS Bedrock throttling (429)&quot; (fixed v1.0.15)</h3>
+<p>Bedrock API calls returning 429 (Too Many Requests) now automatically retry with exponential backoff. If you still hit throttling, reduce the rate limit or request a quota increase in AWS console.</p>
+<h3>&quot;Unknown env vars crash startup&quot; (fixed v1.0.15)</h3>
+<p>Extra environment variables in <code>.env</code> no longer crash Pydantic settings validation. Upgrade to v1.0.15+.</p>
 <h3>&quot;Workflow validation failed&quot;</h3>
 <p>Each step needs:</p>
 <ul>
@@ -253,9 +259,20 @@ export AKIOS_BUDGET_LIMIT_PER_RUN=5.0
 # budget_limit_per_run: 5.0
 </code></pre>
 <h2>Docker-Specific Issues</h2>
+<h3>&quot;Docker hangs in CI/CD&quot; (fixed v1.0.14)</h3>
+<p>Docker commands hang waiting for TTY input in non-interactive environments.</p>
+<p><strong>Fix:</strong> Use the <code>--non-interactive</code> flag:</p>
+<pre><code class="language-bash">akios run workflow.yml --non-interactive
+</code></pre>
+<p>Or set the environment variable:</p>
+<pre><code class="language-bash">AKIOS_NON_INTERACTIVE=1 akios run workflow.yml
+</code></pre>
+<h3>&quot;seccomp blocks virtualenv creation&quot; (fixed v1.0.14)</h3>
+<p>On some Linux systems, seccomp filters prevent Python virtualenv creation inside the sandbox.</p>
+<p><strong>Fix:</strong> AKIOS now shows a clear error message with guidance. Create your virtualenv <em>before</em> entering the cage, or use <code>--no-sandbox</code> for development.</p>
 <h3>&quot;Docker image outdated&quot;</h3>
 <pre><code class="language-bash"># Pull latest image
-docker pull akiosai/akios:v1.0.11
+docker pull akiosai/akios:v1.0.15
 
 # Or force pull with wrapper
 AKIOS_FORCE_PULL=1 ./akios status
@@ -277,10 +294,10 @@ akios --debug run workflow.yml
 <h3>&quot;Audit logs not persisting in Docker&quot;</h3>
 <p>Docker containers use memory-buffered writes. To ensure persistence:</p>
 <pre><code class="language-bash"># Mount a host directory for audit logs
-docker run --rm -v $(pwd)/audit:/app/audit akiosai/akios:v1.0.11 run workflow.yml
+docker run --rm -v $(pwd)/audit:/app/audit akiosai/akios:v1.0.15 run workflow.yml
 
 # Or use tmpfs for better performance
-docker run --rm --tmpfs /app/audit akiosai/akios:v1.0.11 run workflow.yml
+docker run --rm --tmpfs /app/audit akiosai/akios:v1.0.15 run workflow.yml
 </code></pre>
 <h2>Security Issues</h2>
 <h3>&quot;Security validation failed&quot;</h3>

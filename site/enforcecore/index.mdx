@@ -1,6 +1,6 @@
 ---
 title: EnforceCore — Runtime Enforcement for AI Agents
-keywords: enforcecore runtime enforcement AI agents policy PII redactor Merkle auditor resource guard secret scanner content rules rate limiter open source
+keywords: enforcecore runtime enforcement AI agents policy PII redactor Merkle auditor resource guard secret scanner content rules rate limiter open source runtime verification formal properties
 ---
 
 <div style="text-align: center; margin-bottom: 2rem;">
@@ -11,11 +11,11 @@ keywords: enforcecore runtime enforcement AI agents policy PII redactor Merkle a
 
 **Lightweight, open-source runtime enforcement for any Python-based AI agent.**
 
-> **Current release: v1.0.22a1 (alpha)** — Production-grade enforcement, actively hardened. [Available on PyPI](https://pypi.org/project/enforcecore/).
+> **Current release: v1.0.0b3 (beta)** — Production-grade enforcement, frozen API, actively hardened. [Available on PyPI](https://pypi.org/project/enforcecore/).
 
 EnforceCore is a modular enforcement framework that intercepts every external call your agent makes — tool calls, API requests, file access — and applies mandatory policy checks, PII redaction, secret scanning, content rule enforcement, rate limiting, resource limits, and tamper-proof audit logging.
 
-It operates at the **runtime call boundary** — the only layer that cannot be jailbroken, bypassed, or prompt-injected away.
+It operates at the **runtime call boundary** — the only layer that cannot be jailbroken, bypassed, or prompt-injected away. The `@enforce()` decorator acts as a runtime monitor in the tradition of runtime verification: an observer that intercepts system events, evaluates them against a specification, and emits a verdict before the action is allowed to proceed.
 
 ```python
 from enforcecore import enforce
@@ -24,9 +24,9 @@ from enforcecore import enforce
 async def search_web(query: str) -> str:
     return await api.search(query)
 
-# If "search_web" is not in allowed_tools → blocked. Period.
-# PII in query → auto-redacted before the call.
-# Every call → cryptographic audit entry.
+# If "search_web" is not in allowed_tools -> blocked. Period.
+# PII in query -> auto-redacted before the call.
+# Every call -> cryptographic audit entry.
 ```
 
 ---
@@ -39,6 +39,14 @@ Most "safety" solutions are prompt-level guardrails — suggestions to the LLM t
 
 **EnforceCore enforces at the code boundary.** Policies are mandatory, not advisory. If a call violates policy, it is blocked — before it ever executes.
 
+| | Prompt Guardrails | EnforceCore |
+|---|---|---|
+| **Layer** | Inside the LLM | Runtime call boundary |
+| **Bypassable?** | Yes (jailbreaks, prompt injection) | No (code-level enforcement) |
+| **Auditable?** | No | Yes (Merkle-chained trails) |
+| **Property-tested?** | No | Yes (22 Hypothesis properties) |
+| **EU AI Act aligned?** | No | Yes (see [disclaimer](#legal)) |
+
 ### Enforce, don't suggest
 Policies are mandatory. A denied tool call never executes. There is no "override" prompt.
 
@@ -46,10 +54,12 @@ Policies are mandatory. A denied tool call never executes. There is no "override
 Works with LangGraph, CrewAI, AutoGen, or plain Python. No lock-in.
 
 ### Verifiable
-Every enforced call produces a SHA-256 Merkle-chained audit entry. The full trail is tamper-proof and cryptographically verifiable.
+Every enforced call produces a SHA-256 Merkle-chained audit entry. The full trail is tamper-proof and cryptographically verifiable. 22 formal properties are verified via [Hypothesis](https://hypothesis.readthedocs.io/) property-based testing on every CI run.
 
 ### Lightweight
-8–20ms typical overhead. Negligible compared to tool call latency (100ms–10s).
+~0.056 ms E2E overhead (P50). Negligible compared to tool call latency (100 ms–10 s).
+
+> **EnforceCore vs. OS-level security:** EnforceCore operates at the *application semantic layer* — it understands tool calls, PII, and cost budgets. It does not replace SELinux, AppArmor, seccomp, or container sandboxing. These are complementary — use both for defense-in-depth.
 
 ---
 
@@ -58,12 +68,12 @@ Every enforced call produces a SHA-256 Merkle-chained audit entry. The full trai
 | Component | What it does |
 |---|---|
 | **Policy Engine** | Declarative YAML + Pydantic v2 policies. Allowed/denied tools, conditions, violation handling. Policy composition with `extends:` and `Policy.merge()`. |
-| **PII Redactor** | Regex-based detection of 5 PII categories. Auto-redacts inputs and outputs. Unicode hardening (NFC, homoglyphs, URL/HTML decoding). ~0.1–0.5ms per call. |
-| **Secret Scanner** | 11 built-in secret categories (AWS keys, GitHub tokens, GCP service accounts, Azure connection strings, database URIs, SSH keys, and more). Custom patterns via `PatternRegistry`. |
+| **PII Redactor** | Regex-based detection of 5 PII categories. Auto-redacts inputs and outputs. Unicode hardening (NFC, homoglyphs, URL/HTML decoding). ~0.1–0.5 ms per call. |
+| **Secret Scanner** | 11 built-in secret categories (AWS keys, GitHub tokens, GCP service accounts, Azure connection strings, database URIs, SSH keys, and more). Custom patterns via `PatternRegistry`. Shannon entropy filtering for false-positive reduction. |
 | **Content Rules Engine** | 4 built-in rule categories: shell injection, path traversal, SQL injection, code execution. Extensible via `RuleEngine`. |
 | **Rate Limiter** | Per-tool and global sliding-window rate limiting. Prevents runaway agents from exceeding call budgets. |
 | **Network Enforcement** | `DomainChecker` with wildcard allow/deny lists. Block unauthorized outbound connections at the policy level. |
-| **Merkle Auditor** | SHA-256 chained audit trail. Every call logged. Tamper detection built in. 4 pluggable backends (JSONL, Null, Callback, Multi). Audit rotation with gzip compression. |
+| **Merkle Auditor** | SHA-256 chained audit trail. Every call logged. Tamper detection built in. 4 pluggable backends (JSONL, Null, Callback, Multi). Audit rotation with gzip compression. JSON-safety validation on every entry. |
 | **Resource Guard** | Time limits, memory limits, cost tracking. Cross-platform (Linux, macOS, Windows). Shared thread pool, leak detection. |
 | **Hook System** | 4 lifecycle hooks (pre-call, post-call, violation, redaction) with decorators and `HookRegistry`. Build custom observability pipelines. |
 | **CLI** | 6 commands: `info`, `validate`, `verify`, `eval`, `dry-run`, `inspect`. Validate policies and audit trails from the terminal. |
@@ -81,7 +91,7 @@ pip install enforcecore
 
 Python 3.11+ required. No heavy dependencies — Pydantic v2, PyYAML, structlog, cryptography.
 
-> **Note:** EnforceCore is currently in alpha (v1.0.22a1). The API is stable (110 public exports, frozen since v1.0.16a1), but the version number reflects ongoing hardening before the v1.0.0 stable release.
+> **Note:** EnforceCore is currently in **beta** (v1.0.0b3). The 30-symbol public API is frozen — no additions or removals until v2.0.0. All 110 original symbols remain importable for backwards compatibility, but the stable contract covers the 30 Tier 1 symbols.
 
 ---
 
@@ -107,8 +117,8 @@ rules:
     enabled: true
     categories: [shell_injection, path_traversal, sql_injection, code_execution]
   rate_limits:
-    per_tool: 10       # max 10 calls per tool per minute
-    global: 50         # max 50 total calls per minute
+    per_tool: 10
+    global: 50
   network:
     allowed_domains: ["api.example.com", "*.trusted.io"]
     denied_domains: ["*.evil.com"]
@@ -139,8 +149,8 @@ def calculator(expression: str) -> str:
 from enforcecore import verify_trail
 
 result = verify_trail("audit.jsonl")
-assert result.is_valid     # True — chain intact
-assert result.chain_intact  # No tampering detected
+assert result.is_valid
+assert result.chain_intact
 ```
 
 That's it. Three lines of enforcement code. Full policy control, PII redaction, resource limits, and a cryptographic audit trail — all automatic.
@@ -156,13 +166,58 @@ That's it. Three lines of enforcement code. Full policy control, PII redaction, 
 
 ---
 
+## Formal Properties
+
+EnforceCore specifies 22 formal invariants — verified via [Hypothesis](https://hypothesis.readthedocs.io/) property-based testing on every CI run. These are not unit tests; they are universally-quantified properties checked against thousands of randomly generated inputs.
+
+> **Note:** These invariants are verified *empirically* via property-based testing, not mechanically proved via theorem provers. Property-based testing provides high confidence but does not constitute a mathematical proof.
+
+| Category | Properties | What they guarantee |
+|---|---|---|
+| **Policy Engine** (P1–P8) | 8 | Determinism, deny enforcement, allowlist enforcement, deny priority, open-by-default, closed-on-empty, merge union, decision completeness |
+| **Merkle Chain** (M1–M5) | 5 | Hash determinism, hash sensitivity, chain validity, tamper detection, append stability |
+| **Redactor** (R1–R5) | 5 | Idempotency, completeness, safety, detect-redact consistency, strategy independence |
+| **Enforcer** (E1–E4) | 4 | Fail-closed, allowed pass-through, enforcement idempotency, internal error propagation |
+| **Total** | **22** | All pass on every CI run |
+
+**Selected invariants (formal notation):**
+
+- **P2 (Deny Enforcement):** $\forall$ policy $\pi$, $\forall$ tool $t \in \pi$.denied\_tools: evaluate($\pi$, $t$).decision = BLOCKED
+- **P4 (Deny Priority):** $\forall$ tool $t \in \pi$.denied\_tools $\cap$ $\pi$.allowed\_tools: evaluate($\pi$, $t$).decision = BLOCKED — deny always wins over allow
+- **M4 (Tamper Detection):** $\forall$ valid chain, $\forall$ modification (field change, deletion, reorder): verify\_trail().is\_valid = False
+- **E1 (Fail-Closed):** $\forall$ denied tool $t$: enforce\_sync($f$, tool\_name=$t$) raises EnforcementViolation
+- **R1 (Idempotency):** $\forall$ text $s$: redact(redact($s$)) = redact($s$)
+
+See the [Architecture page](architecture.html) for more detail, or the [formal invariants document](https://github.com/akios-ai/EnforceCore/blob/main/docs/formal/invariants.md) in the repository.
+
+---
+
+## Threat Model
+
+EnforceCore documents a formal threat model that considers four adversary types:
+
+| Adversary | Capability | Defense |
+|---|---|---|
+| **A1 — Compromised LLM** | Controls LLM output (jailbreak, prompt injection) | Tool allowlist/denylist, content rules, domain enforcement, rate limiting, PII redaction |
+| **A2 — Malicious Tool** | Controls tool response (MITM, compromised API) | Output redaction, content rules, output size limits, audit trail |
+| **A3 — Insider** | Write access to code or env vars | Fail-open warnings, append-only Merkle audit, settings logging |
+| **A4 — Supply Chain** | Compromised dependency | Minimal dependency surface (4 deps), safe YAML loading, import guards |
+
+The threat model specifies four formal security properties — fail-closed completeness (S1), audit completeness (S2), chain integrity (S3), and redaction totality (S4) — each with code references and test evidence.
+
+See the [full threat model](https://github.com/akios-ai/EnforceCore/blob/main/docs/threat-model.md) in the repository.
+
+---
+
 ## By the Numbers
 
 | Metric | Value |
 |---|---|
-| Tests | 1,503 |
+| Tests | 1,503+ |
 | Coverage | 95% |
-| Public exports | 110 |
+| Public API (Tier 1) | 30 symbols (frozen) |
+| Backwards-compatible imports | 110 symbols |
+| Formal invariants | 22 (Hypothesis) |
 | PII categories | 5 |
 | Secret detection categories | 11 |
 | Content rule categories | 4 |
@@ -170,8 +225,43 @@ That's it. Three lines of enforcement code. Full policy control, PII redaction, 
 | Threat categories | 10 |
 | Benchmarks | 15 |
 | Framework adapters | 3 |
+| Audit backends | 4 |
 | CLI commands | 6 |
+| Hook points | 4 |
 | Dependencies | 4 (Pydantic v2, PyYAML, structlog, cryptography) |
+
+---
+
+## For Researchers
+
+EnforceCore applies established computer science principles — runtime verification, reference monitors, information-flow control — to the novel problem of AI agent safety. We welcome academic collaboration and feedback.
+
+**Relevant documents:**
+- [Formal Invariants](https://github.com/akios-ai/EnforceCore/blob/main/docs/formal/invariants.md) — 22 property-based invariants with formal notation
+- [Threat Model](https://github.com/akios-ai/EnforceCore/blob/main/docs/threat-model.md) — adversary model, trust boundaries, security properties
+- [Defense-in-Depth](https://github.com/akios-ai/EnforceCore/blob/main/docs/defense-in-depth.md) — five-layer security architecture
+- [Related Work](https://github.com/akios-ai/EnforceCore/blob/main/docs/related-work.md) — survey of runtime verification for AI agents
+- [Evaluation Suite](evaluation.html) — reproducible adversarial benchmarks (20 scenarios, 10 threat categories)
+- [Architecture](architecture.html) — enforcement pipeline design
+
+**Prior work that informed the design:**
+- Runtime Verification — Leucker & Schallhart (2009), Havelund & Goldberg (2005)
+- Reference Monitors — Anderson (1972)
+- Information Flow Control — Sabelfeld & Myers (2003)
+- Audit Integrity — Merkle (1987), Crosby & Wallach (2009)
+- Agent Containment — Armstrong et al. (2012), Babcock et al. (2016)
+
+### Citation
+
+```bibtex
+@software{enforcecore2026,
+  title  = {EnforceCore: Runtime Enforcement Layer for Agentic AI Systems},
+  author = {{AKIOUD AI}},
+  year   = {2026},
+  url    = {https://github.com/akios-ai/EnforceCore},
+  license = {Apache-2.0}
+}
+```
 
 ---
 
@@ -179,9 +269,15 @@ That's it. Three lines of enforcement code. Full policy control, PII redaction, 
 
 EnforceCore is Apache 2.0 licensed. No hidden commercial agenda in the core.
 
-- [GitHub Repository](https://github.com/akios-ai/enforcecore)
-- [Architecture →](architecture.html)
-- [API Reference →](api-reference.html)
-- [Quick Start →](quickstart.html)
-- [Evaluation Suite →](evaluation.html)
-- [Roadmap →](roadmap.html)
+- [GitHub Repository](https://github.com/akios-ai/EnforceCore)
+- [Architecture](architecture.html)
+- [API Reference](api-reference.html)
+- [Quick Start](quickstart.html)
+- [Evaluation Suite](evaluation.html)
+- [Roadmap](roadmap.html)
+
+---
+
+## Legal
+
+EnforceCore is provided "as is", without warranty of any kind, express or implied. It is a technical enforcement tool — not a compliance certification. Using EnforceCore does not guarantee regulatory compliance with any standard or law. See [DISCLAIMER](https://github.com/akios-ai/EnforceCore/blob/main/DISCLAIMER.md) and [LICENSE](https://github.com/akios-ai/EnforceCore/blob/main/LICENSE) for full legal terms.

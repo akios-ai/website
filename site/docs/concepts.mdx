@@ -20,7 +20,7 @@ Docker is convenient and strong; use native Linux for the strictest guarantees (
 ## Core agents (4)
 - **filesystem** — read/write/list/stat/exists within allowed paths.
 - **http** — rate-limited (10 req/min) web/API calls with PII redaction.
-- **llm** — token/cost-tracked calls to OpenAI, Anthropic, Grok, Mistral, Gemini.
+- **llm** — token/cost-tracked calls to OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock (v1.0.13+).
 - **tool_executor** — allowlisted commands (17 safe commands) in a sandboxed subprocess.
 
 ## Environment detection (v1.0.5+)
@@ -64,13 +64,14 @@ akios cage up --no-budget  # Disable budget enforcement only
 
 **Secure erasure** — Configure data destruction passes on cage teardown:
 ```bash
-akios cage down             # Single-pass overwrite (default)
+akios cage down             # Deletes audit/ and data/output/ (input preserved since v1.0.14)
+akios cage down --wipe-all  # Full erasure including data/input/
 akios cage down --passes 3  # DOD 5220.22-M (3-pass)
 akios cage down --fast      # Truncate-only (dev/CI)
 ```
 
 ## EnforceCore
-The enforcement engine inside AKIOS has been extracted into an independent open-source framework: [EnforceCore](enforcecore.html). EnforceCore provides the same policy enforcement, PII redaction, Merkle audit, and resource guards — available to any Python agent framework under Apache 2.0.
+The enforcement engine inside AKIOS has been extracted into an independent open-source framework: [EnforceCore](enforcecore.html). Now in **beta** (v1.0.0b3) with a frozen 30-symbol API, EnforceCore provides the same policy enforcement, PII redaction, Merkle audit, and resource guards — available to any Python agent framework under Apache 2.0.
 
 ## Architecture
 Single-process runtime, no sidecars. State is ephemeral per run; persistence is file-based (data/, audit/). Deployable as pip package or Docker (wrapper or direct). Minimal surface = easy to audit and operate in air‑gapped or high-assurance environments.

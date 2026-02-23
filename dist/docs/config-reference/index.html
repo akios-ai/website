@@ -139,13 +139,18 @@ pii_redaction_enabled: true
 <p>Store sensitive configuration in the <code>.env</code> file:</p>
 <h3>AI Provider Settings</h3>
 <pre><code class="language-bash"># Choose your provider
-AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini
+AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini, bedrock
 
 # Choose your model
 AKIOS_LLM_MODEL=grok-3   # Provider-specific model name
 
 # Add your API key
 GROK_API_KEY=your-key-here
+
+# AWS Bedrock settings (v1.0.13+)
+AKIOS_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
+AKIOS_BEDROCK_REGION=us-east-1
+# IAM credentials picked up automatically from AWS CLI / instance profile
 </code></pre>
 <h3>Mode Settings</h3>
 <pre><code class="language-bash"># Use real AI APIs (0) or mock responses (1)
@@ -393,6 +398,7 @@ akios setup --force
 <li>Grok: <code>grok-3</code></li>
 <li>Mistral: <code>mistral-small</code>, <code>mistral-medium</code>, <code>mistral-large</code></li>
 <li>Gemini: <code>gemini-1.0-pro</code>, <code>gemini-1.5-pro</code>, <code>gemini-1.5-flash</code></li>
+<li>Bedrock: <code>anthropic.claude-*</code>, <code>meta.llama*</code>, <code>amazon.titan-*</code> (IAM auth, v1.0.13+)</li>
 </ul>
 <p><strong>API key issues:</strong></p>
 <pre><code class="language-bash"># Run setup wizard to fix

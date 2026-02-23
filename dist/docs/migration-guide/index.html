@@ -103,14 +103,82 @@
             
             <main class="docs-content">
                 <h1>Migration Guide</h1>
-<p>Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.0.11 update and the original pre-V1.0 migration.</p>
+<p>Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.0.12–V1.0.15 updates, the V1.0.11 update, and the original pre-V1.0 migration.</p>
+<h2>Upgrading to V1.0.15 (from V1.0.11)</h2>
+<p>V1.0.15 is a drop-in upgrade with no breaking CLI or workflow changes. Four releases shipped between v1.0.11 and v1.0.15:</p>
+<pre><code class="language-bash"># Pip
+pip install --upgrade akios
+
+# Docker — pull latest image
+docker pull akiosai/akios:v1.0.15
+
+# Verify
+akios --version
+</code></pre>
+<h3>What&#39;s New in V1.0.12–V1.0.15</h3>
+<p><strong>v1.0.12 — JSON Output + Token Tracking:</strong></p>
+<ul>
+<li><strong><code>--json-output</code> CLI flag</strong> — machine-readable JSON output for CI/CD pipelines (all commands)</li>
+<li><strong>Token input/output tracking</strong> — per-call token counts returned in engine results</li>
+<li><strong>PII redaction metadata</strong> — redaction counts, categories, and positions in audit entries</li>
+<li><strong>Enriched engine return</strong> — structured result object with cost, tokens, PII stats</li>
+</ul>
+<p><strong>v1.0.13 — AWS Bedrock Provider:</strong></p>
+<ul>
+<li><strong>AWS Bedrock support</strong> — Claude, Llama, and Titan models via IAM authentication (no API keys needed)</li>
+<li><strong>Environment variables:</strong> <code>AKIOS_BEDROCK_MODEL_ID</code>, <code>AKIOS_BEDROCK_REGION</code></li>
+<li><strong>Optional dependency:</strong> <code>pip install akios[bedrock]</code> (installs <code>boto3</code>)</li>
+<li>Works with existing policies, budgets, and audit — no workflow changes needed</li>
+</ul>
+<p><strong>v1.0.14 — 13 End-User Fixes:</strong></p>
+<ul>
+<li>Template degradation fix — complex templates no longer silently lose steps</li>
+<li>Docker non-interactive fix — <code>--non-interactive</code> flag prevents TTY hangs in CI</li>
+<li>seccomp venv guidance — clear error message when seccomp blocks virtualenv creation</li>
+<li><strong><code>cage down</code> preserves input data</strong> — <code>data/input/</code> is no longer deleted on teardown (use <code>--wipe-all</code> for full erasure)</li>
+<li>Bedrock environment variables forwarded in Docker wrapper</li>
+<li><code>protect scan --text</code> flag — scan inline text without creating a file</li>
+<li>Wrapper fallback to <code>&quot;latest&quot;</code> when version detection fails</li>
+</ul>
+<p><strong>v1.0.15 — SDK Integration Hardening (8 fixes):</strong></p>
+<ul>
+<li>Pydantic settings <code>extra=&quot;ignore&quot;</code> — unknown env vars no longer crash startup</li>
+<li>JSON error output — all error paths return valid JSON when <code>--json-output</code> is set</li>
+<li>Error categories — errors include <code>category</code> field (config, auth, budget, workflow, agent, security)</li>
+<li>Bedrock pricing — accurate token cost calculation for Bedrock models</li>
+<li>Dockerfile <code>.akios</code> directory — config directory created in container image</li>
+<li>JSON contract tests — CI validates all JSON output schemas</li>
+<li>Bedrock throttle retry — automatic retry with backoff on AWS throttling (429)</li>
+</ul>
+<h3>Migration Notes</h3>
+<p><strong>cage down behavior change (v1.0.14):</strong> <code>akios cage down</code> no longer deletes <code>data/input/</code>. If you relied on full erasure including input data, use <code>akios cage down --wipe-all</code>.</p>
+<p><strong>Bedrock users (v1.0.13+):</strong> Install the Bedrock extras:</p>
+<pre><code class="language-bash">pip install akios[bedrock]
+</code></pre>
+<p>Then configure via environment:</p>
+<pre><code class="language-bash">AKIOS_LLM_PROVIDER=bedrock
+AKIOS_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
+AKIOS_BEDROCK_REGION=us-east-1
+</code></pre>
+<p>IAM credentials are picked up automatically from the environment (AWS CLI, instance profile, etc.).</p>
+<p><strong>JSON output (v1.0.12+):</strong> Add <code>--json-output</code> to any command for machine-readable output:</p>
+<pre><code class="language-bash">akios status --json-output
+akios run workflow.yml --json-output
+</code></pre>
+<p><strong>Verification after upgrade:</strong></p>
+<pre><code class="language-bash">akios --version                    # Should show 1.0.15
+akios status --security            # Verify all protections active
+akios doctor                       # Run diagnostics
+</code></pre>
+<p>No configuration changes, workflow updates, or data migration needed.</p>
+<hr>
 <h2>Upgrading to V1.0.11 (from V1.0.x)</h2>
 <p>V1.0.11 is a drop-in upgrade with no breaking CLI or workflow changes. Update via your installation method:</p>
 <pre><code class="language-bash"># Pip
 pip install --upgrade akios
 
 # Docker — pull latest image
-docker pull akiosai/akios:v1.0.11
+docker pull akiosai/akios:v1.0.15
 
 # Verify
 akios --version
@@ -160,7 +228,7 @@ import PyPDF2
 import pypdf
 </code></pre>
 <p><strong>Verification after upgrade:</strong></p>
-<pre><code class="language-bash">akios --version                    # Should show 1.0.11
+<pre><code class="language-bash">akios --version                    # Should show 1.0.15
 akios status --security            # Verify all protections active
 akios workflow validate templates/hello-workflow.yml  # Test validation
 akios doctor                       # Run diagnostics
@@ -186,7 +254,7 @@ pip install --upgrade akios
 
 # Verify version
 akios --version
-# Should show: akios 1.0.11 or later
+# Should show: akios 1.0.15 or later
 
 # Test installation
 akios status
@@ -219,10 +287,10 @@ AKIOS_FORCE_PULL=1 ./akios --version
 <h3>Option 3: Direct Docker (For CI/CD)</h3>
 <p><strong>Container-based</strong> for automation.</p>
 <pre><code class="language-bash"># Pull latest image
-docker pull akiosai/akios:v1.0.11
+docker pull akiosai/akios:v1.0.15
 
 # Test run
-docker run --rm akiosai/akios:v1.0.11 --version
+docker run --rm akiosai/akios:v1.0.15 --version
 </code></pre>
 <p><strong>When to use:</strong></p>
 <ul>
@@ -242,7 +310,7 @@ akios status
 akios status --security
 </code></pre>
 <p><strong>Expected output:</strong></p>
-<pre><code>AKIOS v1.0.11
+<pre><code>AKIOS v1.0.15
 Security Level: Kernel-hard (Linux) or Policy-based (Docker)
 Audit: Active
 PII Protection: Active
@@ -304,7 +372,7 @@ akios run workflow.yml
 <pre><code class="language-yaml"># .github/workflows/akios.yml
 steps:
   - name: Install AKIOS
-    run: pip install akios&gt;=1.0.11
+    run: pip install akios&gt;=1.0.15
     
   - name: Run workflow
     run: akios run workflows/production/*.yml
@@ -416,7 +484,7 @@ mv wrapper.sh akios
 <h2>Post-Migration Checklist</h2>
 <p><strong>✓ Verify everything works:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> <code>akios --version</code> shows 1.0.11+</li>
+<li><input disabled="" type="checkbox"> <code>akios --version</code> shows 1.0.15+</li>
 <li><input disabled="" type="checkbox"> <code>akios status --security</code> shows security active</li>
 <li><input disabled="" type="checkbox"> Workflows run successfully in mock mode</li>
 <li><input disabled="" type="checkbox"> Workflows run successfully with real APIs</li>
