@@ -6,7 +6,7 @@
 
 **Runtime enforcement for AI agents. Open source. Framework-agnostic. Apache 2.0.**
 
-> **Current release: v1.0.0b3 (beta)** — Frozen 30-symbol API, 1,503+ tests, 22 formal invariants. See the [full EnforceCore documentation](/enforcecore/) for complete details.
+> **Current release: v1.0.0b5 (beta)** — Frozen 30-symbol API, 1,510 tests, 22 formal invariants. See the [full EnforceCore documentation](/enforcecore/) for complete details.
 
 EnforceCore is the open-source enforcement framework that powers [AKIOS](index.html). It provides mandatory policy enforcement at every external call boundary — tool calls, API calls, file access, network access — so that violations become structurally impossible, not just discouraged.
 
@@ -40,15 +40,20 @@ async def call_external_api(url: str, data: dict):
 name: api_access_policy
 version: "1.0"
 rules:
-  - action: http_request
-    allow:
-      domains: ["api.example.com"]
-      methods: ["GET", "POST"]
-    deny:
-      domains: ["*"]
-    redact:
-      inputs: true
-      outputs: true
+  allowed_tools:
+    - "call_external_api"
+  denied_tools:
+    - "execute_shell"
+  pii_redaction:
+    enabled: true
+    categories: [email, phone, ssn, credit_card, ip_address]
+  network:
+    allowed_domains: ["api.example.com"]
+    denied_domains: ["*.evil.com"]
+  resource_limits:
+    max_call_duration_seconds: 30
+    max_cost_usd: 5.00
+on_violation: "block"
 ```
 
 Every call to `call_external_api` now passes through policy evaluation, PII redaction, resource constraints, and cryptographic audit logging — automatically.
@@ -97,7 +102,7 @@ graph LR
     subgraph EC["EnforceCore"]
         DEC["@enforce() Decorator"]
         PE["Policy Engine\nYAML + Pydantic"]
-        PR["PII Redactor\n53 patterns"]
+        PR["PII Redactor\n5 categories + 11 secret categories"]
         MA["Merkle Auditor\nSHA-256 chain"]
         RG["Resource Guard\ntime / memory / cost"]
     end
@@ -131,13 +136,13 @@ graph LR
 Declarative YAML policies validated by Pydantic. Define what agents can and cannot do — evaluated at every call boundary. Supports policy composition: inherit, override, merge.
 
 ### PII Redactor
-Real-time detection and redaction on inputs and outputs. Configurable strategies: mask, hash, remove, or placeholder. Based on Microsoft Presidio with honest performance targets (5–50ms depending on content length).
+Real-time detection and redaction on inputs and outputs. Configurable strategies: mask, hash, remove, or placeholder. Pure regex engine — no spaCy, no Presidio. 5 PII categories, 11 secret detection categories, Unicode hardening. ~0.028–0.129 ms per call (measured).
 
 ### Merkle Auditor
-SHA-256 Merkle tree audit trail for every enforced call. JSONL storage with tamper-proof verification. Every entry is cryptographically chained to the previous one.
+SHA-256 Merkle tree audit trail for every enforced call. JSONL storage with tamper-proof verification. Every entry is cryptographically chained to the previous one. OS-enforced append-only files (`chattr +a` / `chflags uappend`) and hash-only remote witness backends for maximum tamper-evidence.
 
 ### Resource Guard
-Cross-platform resource limits: time, memory, cost. Full hardening on Linux (seccomp/cgroups), POSIX signals on macOS, thread timeout on Windows. Automatic kill-switch when limits are exceeded.
+Cross-platform resource limits: time, memory, cost. Linux strict enforcement (RLIMIT_AS), macOS advisory (RLIMIT_RSS), thread timeout on Windows. Shared thread pool with leak detection. Automatic kill-switch when limits are exceeded.
 
 ## Core Principles
 
@@ -198,18 +203,9 @@ If you're building agents with LangGraph, CrewAI, AutoGen, or your own system an
 
 ```bash
 pip install enforcecore
-
-# With PII redaction support
-pip install enforcecore[pii]
-
-# With Linux hardening (seccomp/cgroups)
-pip install enforcecore[linux]
-
-# Everything
-pip install enforcecore[all]
 ```
 
-**Requirements:** Python 3.11+
+**Requirements:** Python 3.11+. Dependencies: Pydantic v2, PyYAML, structlog, cryptography.
 
 ## Framework Integrations
 

@@ -11,7 +11,7 @@ keywords: enforcecore runtime enforcement AI agents policy PII redactor Merkle a
 
 **Lightweight, open-source runtime enforcement for any Python-based AI agent.**
 
-> **Current release: v1.0.0b3 (beta)** — Production-grade enforcement, frozen API, actively hardened. [Available on PyPI](https://pypi.org/project/enforcecore/).
+> **Current release: v1.0.0b5 (beta)** — Production-grade enforcement, frozen API, actively hardened. [Available on PyPI](https://pypi.org/project/enforcecore/).
 
 EnforceCore is a modular enforcement framework that intercepts every external call your agent makes — tool calls, API requests, file access — and applies mandatory policy checks, PII redaction, secret scanning, content rule enforcement, rate limiting, resource limits, and tamper-proof audit logging.
 
@@ -73,7 +73,7 @@ Every enforced call produces a SHA-256 Merkle-chained audit entry. The full trai
 | **Content Rules Engine** | 4 built-in rule categories: shell injection, path traversal, SQL injection, code execution. Extensible via `RuleEngine`. |
 | **Rate Limiter** | Per-tool and global sliding-window rate limiting. Prevents runaway agents from exceeding call budgets. |
 | **Network Enforcement** | `DomainChecker` with wildcard allow/deny lists. Block unauthorized outbound connections at the policy level. |
-| **Merkle Auditor** | SHA-256 chained audit trail. Every call logged. Tamper detection built in. 4 pluggable backends (JSONL, Null, Callback, Multi). Audit rotation with gzip compression. JSON-safety validation on every entry. |
+| **Merkle Auditor** | SHA-256 chained audit trail. Every call logged. Tamper detection built in. 4 pluggable backends (JSONL, Null, Callback, Multi). OS-enforced append-only files (`chattr +a` / `chflags uappend`). 3 witness backends (Callback, File, Log) for hash-only remote tamper detection. Audit rotation with gzip compression. JSON-safety validation on every entry. |
 | **Resource Guard** | Time limits, memory limits, cost tracking. Cross-platform (Linux, macOS, Windows). Shared thread pool, leak detection. |
 | **Hook System** | 4 lifecycle hooks (pre-call, post-call, violation, redaction) with decorators and `HookRegistry`. Build custom observability pipelines. |
 | **CLI** | 6 commands: `info`, `validate`, `verify`, `eval`, `dry-run`, `inspect`. Validate policies and audit trails from the terminal. |
@@ -91,7 +91,7 @@ pip install enforcecore
 
 Python 3.11+ required. No heavy dependencies — Pydantic v2, PyYAML, structlog, cryptography.
 
-> **Note:** EnforceCore is currently in **beta** (v1.0.0b3). The 30-symbol public API is frozen — no additions or removals until v2.0.0. All 110 original symbols remain importable for backwards compatibility, but the stable contract covers the 30 Tier 1 symbols.
+> **Note:** EnforceCore is currently in **beta** (v1.0.0b5). The 30-symbol public API is frozen — no additions or removals until v2.0.0. All 110 original symbols remain importable for backwards compatibility, but the stable contract covers the 30 Tier 1 symbols.
 
 ---
 
@@ -200,7 +200,7 @@ EnforceCore documents a formal threat model that considers four adversary types:
 |---|---|---|
 | **A1 — Compromised LLM** | Controls LLM output (jailbreak, prompt injection) | Tool allowlist/denylist, content rules, domain enforcement, rate limiting, PII redaction |
 | **A2 — Malicious Tool** | Controls tool response (MITM, compromised API) | Output redaction, content rules, output size limits, audit trail |
-| **A3 — Insider** | Write access to code or env vars | Fail-open warnings, append-only Merkle audit, settings logging |
+| **A3 — Insider** | Write access to code or env vars | Fail-open warnings, OS-enforced append-only audit files (`immutable=True`), hash-only remote witness backends, settings logging |
 | **A4 — Supply Chain** | Compromised dependency | Minimal dependency surface (4 deps), safe YAML loading, import guards |
 
 The threat model specifies four formal security properties — fail-closed completeness (S1), audit completeness (S2), chain integrity (S3), and redaction totality (S4) — each with code references and test evidence.
@@ -213,7 +213,7 @@ See the [full threat model](https://github.com/akios-ai/EnforceCore/blob/main/do
 
 | Metric | Value |
 |---|---|
-| Tests | 1,503+ |
+| Tests | 1,510 |
 | Coverage | 95% |
 | Public API (Tier 1) | 30 symbols (frozen) |
 | Backwards-compatible imports | 110 symbols |
@@ -225,7 +225,8 @@ See the [full threat model](https://github.com/akios-ai/EnforceCore/blob/main/do
 | Threat categories | 10 |
 | Benchmarks | 15 |
 | Framework adapters | 3 |
-| Audit backends | 4 |
+| Audit backends | 4 (JSONL, Null, Callback, Multi) |
+| Witness backends | 3 (Callback, File, Log) |
 | CLI commands | 6 |
 | Hook points | 4 |
 | Dependencies | 4 (Pydantic v2, PyYAML, structlog, cryptography) |
@@ -249,6 +250,7 @@ EnforceCore applies established computer science principles — runtime verifica
 - Reference Monitors — Anderson (1972)
 - Information Flow Control — Sabelfeld & Myers (2003)
 - Audit Integrity — Merkle (1987), Crosby & Wallach (2009)
+- Tamper-Evidence — Wallach (2026, design feedback on append-only + witness mitigations)
 - Agent Containment — Armstrong et al. (2012), Babcock et al. (2016)
 
 ### Citation

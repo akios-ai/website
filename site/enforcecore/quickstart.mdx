@@ -17,7 +17,7 @@ pip install enforcecore
 
 Requires Python 3.11+. Dependencies: Pydantic v2, PyYAML, structlog, cryptography.
 
-> **Note:** EnforceCore is currently in **beta** (v1.0.0b3). The 30-symbol Tier 1 API is frozen — stable for production use.
+> **Note:** EnforceCore is currently in **beta** (v1.0.0b5). The 30-symbol Tier 1 API is frozen — stable for production use.
 
 ---
 
@@ -213,6 +213,45 @@ ENFORCECORE_LOG_LEVEL=INFO
 ENFORCECORE_COST_BUDGET_USD=100.0
 ENFORCECORE_FAIL_OPEN=false   # NEVER set to true in production
 ENFORCECORE_DEV_MODE=false
+ENFORCECORE_AUDIT_IMMUTABLE=false       # OS-enforced append-only audit files
+ENFORCECORE_AUDIT_WITNESS_FILE=         # Hash-only witness JSONL path
+```
+
+---
+
+## 8. Harden Your Audit Trail (v1.0.0b4+)
+
+For maximum tamper-evidence, enable append-only files and a witness backend:
+
+```bash
+# Via environment variables (zero code changes)
+ENFORCECORE_AUDIT_IMMUTABLE=true
+ENFORCECORE_AUDIT_WITNESS_FILE=/secure/witness.jsonl
+```
+
+Or programmatically:
+
+```python
+from enforcecore import Auditor
+from enforcecore.auditor.witness import FileWitness
+
+auditor = Auditor(
+    output_path="audit.jsonl",
+    immutable=True,  # OS-level append-only (chattr +a / chflags uappend)
+    witness=FileWitness("/secure/witness.jsonl"),  # Hash-only remote witness
+)
+```
+
+Verify with witness cross-check:
+
+```python
+from enforcecore.auditor.witness import verify_with_witness
+
+result = verify_with_witness(
+    trail_path="audit.jsonl",
+    witness_path="/secure/witness.jsonl",
+)
+assert result.is_valid  # Detects chain-rebuild attacks
 ```
 
 ---

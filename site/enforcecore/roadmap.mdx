@@ -317,19 +317,44 @@ Documentation audit — correcting inaccurate claims and outdated references.
 - Updated performance benchmarks from estimated ranges to measured values (~0.056 ms E2E P50)
 - Cross-referenced all documentation against actual code behavior
 
+### v1.0.0b4 — Tamper-Evidence: Append-Only + Witness
+
+Two new hardening layers that close the last practical gap in audit trail integrity.
+
+- **OS-enforced append-only audit files** — `Auditor(immutable=True)` sets the OS-level append-only attribute (`chattr +a` on Linux, `chflags uappend` on macOS), preventing truncation or chain rebuild even by the file owner. Includes container detection and capability checking for Docker (`CAP_LINUX_IMMUTABLE`). Fails safely on unsupported platforms.
+- **Hash-only remote witness** — `Auditor(witness=...)` publishes entry hashes (~200 bytes each) to a witness backend, enabling tamper detection even if an attacker rebuilds the Merkle chain. Built-in witnesses: `CallbackWitness` (queues, HTTP, databases), `FileWitness` (separate JSONL file), `LogWitness` (syslog/journald via Python logging).
+- **Witness verification** — `verify_with_witness()` cross-checks audit trail hashes against witness records, detecting chain-rebuild attacks that `verify_trail()` alone cannot.
+- **Platform introspection** — `platform_support_info()` returns append-only support, container detection, and capability status for the current platform.
+- **Threat model §5.3 updated** — Audit trail storage section now documents both mitigations with platform requirements and container guidance.
+- **CONTRIBUTORS.md** — Added Prof. Dan S. Wallach (Rice University) under Design Feedback for direct guidance on tamper-evidence mitigations.
+- **48 new tests** — Full coverage for witness backends, append-only protection, platform detection, and cross-platform mocking.
+
+### v1.0.0b5 — Settings Integration + Edge-Case Tests
+
+Settings-driven tamper-evidence — zero-code hardening via environment variables.
+
+- **Settings-driven witness and immutable** — `ENFORCECORE_AUDIT_IMMUTABLE=true` and `ENFORCECORE_AUDIT_WITNESS_FILE=/path/to/witness.jsonl` enable tamper-evidence hardening for `@enforce()` users without writing code.
+- **Witness publish outside audit lock** — `_publish_to_witness()` now runs after releasing `self._lock`, preventing slow witness backends (e.g. HTTP callbacks) from blocking subsequent audit writes.
+- **Threat model expanded** — §6 Assumption 6 references `immutable=True` mitigation; §7 Known Limitations cross-references witness + immutable; §8 Revision History updated for b4 and b5.
+- **Release checklist expanded** — Witness/immutable checks added to Audit Trail (4→10 checks), Config (→5 checks), Submodule Imports (→22 checks).
+- **`chflags sappend` docstring fix** — Corrected to `chflags uappend` (user-level) in all 3 occurrences.
+- **`CallbackWitness` blocking-I/O warning** — Prominent warning added to docstring explaining that slow callbacks block audit writes, with a queue-based workaround.
+- **18 new edge-case tests** — `_has_linux_immutable_cap()` multi-branch logic, `is_append_only()` mocked, `verify_with_witness()` empty trails, concurrent stress tests, settings env-var overrides.
+- **1,510 tests**, 95% coverage
+
 ---
 
 ## Current Status
 
-EnforceCore is in **beta** at v1.0.0b3. The 30-symbol Tier 1 API is frozen. All 110 original symbols remain importable for backwards compatibility.
+EnforceCore is in **beta** at v1.0.0b5. The 30-symbol Tier 1 API is frozen. All 110 original symbols remain importable for backwards compatibility.
 
 ```bash
-pip install enforcecore==1.0.0b3
+pip install enforcecore==1.0.0b5
 ```
 
 | Metric | Value |
 |---|---|
-| Tests | 1,503+ |
+| Tests | 1,510 |
 | Coverage | 95% |
 | Public API (Tier 1) | 30 symbols (frozen) |
 | Backwards-compatible imports | 110 symbols |
@@ -341,7 +366,8 @@ pip install enforcecore==1.0.0b3
 | Threat categories | 10 |
 | Performance benchmarks | 15 |
 | Framework adapters | 3 |
-| Audit backends | 4 |
+| Audit backends | 4 (JSONL, Null, Callback, Multi) |
+| Witness backends | 3 (Callback, File, Log) |
 | CLI commands | 6 |
 | Hook points | 4 |
 | Dependencies | 4 (Pydantic v2, PyYAML, structlog, cryptography) |

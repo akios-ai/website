@@ -145,8 +145,10 @@ Tamper-proof, cryptographically verifiable audit trails.
 - SHA-256 Merkle chain linking each entry to its predecessor
 - 14-field audit entries (tool, policy, decision, timing, redaction counts, hashes)
 - Cross-session chain continuity
-- Tamper detection: modified, deleted, inserted, or reordered entries
-
+- Tamper detection: modified, deleted, inserted, or reordered entries- **OS-enforced append-only** — `Auditor(immutable=True)` sets `chattr +a` (Linux) or `chflags uappend` (macOS) on the audit file, preventing truncation or chain rebuild even by the file owner
+- **Hash-only remote witness** — `Auditor(witness=...)` publishes entry hashes to a separate backend (`CallbackWitness`, `FileWitness`, `LogWitness`), enabling tamper detection even if an attacker rebuilds the Merkle chain
+- **`verify_with_witness()`** — cross-checks trail hashes against witness records to detect chain-rebuild attacks
+- **Settings-driven** — enable via `ENFORCECORE_AUDIT_IMMUTABLE=true` and `ENFORCECORE_AUDIT_WITNESS_FILE=/path` without code changes
 ```python
 from enforcecore import verify_trail
 
@@ -234,6 +236,8 @@ enforcecore/
 │   ├── logger.py         ← Audit log writer
 │   ├── verifier.py       ← Trail verification
 │   ├── backends.py       ← JSONL, Null, Callback, Multi backends
+│   ├── witness.py        ← CallbackWitness, FileWitness, LogWitness
+│   ├── immutable.py      ← OS-enforced append-only (chattr/chflags)
 │   └── rotation.py       ← Size-based rotation + gzip
 ├── guard/
 │   ├── platform.py       ← Platform detection
