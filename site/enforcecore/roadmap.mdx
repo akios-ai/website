@@ -352,25 +352,9 @@ EnforceCore is in **beta** at v1.0.0b5. The 30-symbol Tier 1 API is frozen. All 
 pip install enforcecore==1.0.0b5
 ```
 
-| Metric | Value |
-|---|---|
-| Tests | 1,510 |
-| Coverage | 95% |
-| Public API (Tier 1) | 30 symbols (frozen) |
-| Backwards-compatible imports | 110 symbols |
-| Formal invariants | 22 (Hypothesis) |
-| PII categories | 5 |
-| Secret detection categories | 11 |
-| Content rule categories | 4 |
-| Adversarial scenarios | 20 |
-| Threat categories | 10 |
-| Performance benchmarks | 15 |
-| Framework adapters | 3 |
-| Audit backends | 4 (JSONL, Null, Callback, Multi) |
-| Witness backends | 3 (Callback, File, Log) |
-| CLI commands | 6 |
-| Hook points | 4 |
-| Dependencies | 4 (Pydantic v2, PyYAML, structlog, cryptography) |
+**Key numbers:** 1,510 tests · 95% coverage · 22 formal invariants · 30 frozen Tier 1 symbols · 20 adversarial scenarios · 15 benchmarks · 4 dependencies.
+
+See [Architecture](/enforcecore/architecture) for technical details, [Evaluation](/enforcecore/evaluation) for benchmarks, or [API Reference](/enforcecore/api-reference) for the full symbol list.
 
 ---
 
@@ -395,28 +379,4 @@ Enforcement for multi-agent systems across processes and machines, with shared s
 
 ---
 
-## Tech Stack
-
-| Dependency | Role | Why |
-|---|---|---|
-| **Pydantic v2** | Policy validation, settings | Industry standard, fast, great DX |
-| **pydantic-settings** | Configuration management | Env vars + YAML + defaults |
-| **PyYAML** | Policy file loading | YAML policies are human-readable |
-| **structlog** | Structured logging | Context-rich, JSON-serializable |
-| **cryptography** | Merkle chain hashing | Battle-tested SHA-256 |
-| **Hatch** | Build system | Modern PEP 517 builder |
-
-### Platform Support
-
-| Python | Linux | macOS | Windows |
-|---|---|---|---|
-| 3.11+ | ✓ Full | ✓ Full | ✓ Most features |
-
----
-
-## Contributing
-
-EnforceCore is Apache 2.0 licensed. Contributions are welcome.
-
-- [GitHub Repository](https://github.com/akios-ai/enforcecore)
-- [Issue Tracker](https://github.com/akios-ai/enforcecore/issues)
+Contributions are welcome under Apache 2.0 — see the [GitHub repository](https://github.com/akios-ai/enforcecore).

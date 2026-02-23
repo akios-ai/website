@@ -14,18 +14,11 @@ EnforceCore is the open-source enforcement framework that powers [AKIOS](index.h
 
 Every major agent framework — LangGraph, CrewAI, AutoGen, Semantic Kernel — is building more capable agents. But almost nobody is building the **control layer**.
 
-Today, if an agent calls a tool, there is no standard way to:
-- Enforce what it's allowed to do **before** the call executes
-- Verify what it **actually did** after the call returns
-- Prove to a regulator or auditor that violations were **structurally impossible**
-
 Most "safety" solutions are prompt-level guardrails — suggestions to the LLM that can be bypassed, ignored, or jailbroken. They operate at the wrong layer.
 
 **EnforceCore operates at the runtime boundary — the only layer that cannot be bypassed.**
 
-## Quick Start
-
-Protect any tool-calling function with a decorator and a YAML policy:
+## Get Started
 
 ```python
 from enforcecore import enforce
@@ -35,114 +28,7 @@ async def call_external_api(url: str, data: dict):
     return await httpx.post(url, json=data)
 ```
 
-**Policy file (`my_policy.yaml`):**
-```yaml
-name: api_access_policy
-version: "1.0"
-rules:
-  allowed_tools:
-    - "call_external_api"
-  denied_tools:
-    - "execute_shell"
-  pii_redaction:
-    enabled: true
-    categories: [email, phone, ssn, credit_card, ip_address]
-  network:
-    allowed_domains: ["api.example.com"]
-    denied_domains: ["*.evil.com"]
-  resource_limits:
-    max_call_duration_seconds: 30
-    max_cost_usd: 5.00
-on_violation: "block"
-```
-
-Every call to `call_external_api` now passes through policy evaluation, PII redaction, resource constraints, and cryptographic audit logging — automatically.
-
-## How It Works
-
-```mermaid
-sequenceDiagram
-    participant Agent as Agent Application
-    participant Enforcer as EnforceCore Enforcer
-    participant Policy as Policy Engine
-    participant PII as PII Redactor
-    participant Sandbox as Sandbox
-    participant Audit as Merkle Auditor
-    participant Resource as External Resource
-
-    Agent->>Enforcer: tool_call(args)
-    Enforcer->>Policy: Load & resolve policy
-    Policy->>Policy: Pre-call checks
-    alt Denied
-        Policy-->>Agent: ❌ Violation raised
-        Policy->>Audit: Log denial
-    else Allowed
-        Enforcer->>PII: Redact PII from inputs
-        PII->>Sandbox: Execute inside sandbox
-        Sandbox->>Resource: Constrained call
-        Resource-->>Sandbox: Raw response
-        Sandbox->>PII: Redact PII from outputs
-        PII->>Policy: Post-call checks
-        Policy->>Audit: Record Merkle entry
-        Audit-->>Agent: ✅ Sanitized result
-    end
-```
-
-### Component Architecture
-
-```mermaid
-graph LR
-    subgraph APP["Agent Application"]
-        LG["LangGraph"]
-        CA["CrewAI"]
-        AG["AutoGen"]
-        PY["Plain Python"]
-    end
-
-    subgraph EC["EnforceCore"]
-        DEC["@enforce() Decorator"]
-        PE["Policy Engine\nYAML + Pydantic"]
-        PR["PII Redactor\n5 categories + 11 secret categories"]
-        MA["Merkle Auditor\nSHA-256 chain"]
-        RG["Resource Guard\ntime / memory / cost"]
-    end
-
-    subgraph EXT["External Resources"]
-        API["APIs"]
-        FS["Files"]
-        NET["Network"]
-        DB["Databases"]
-    end
-
-    LG --> DEC
-    CA --> DEC
-    AG --> DEC
-    PY --> DEC
-    DEC --> PE
-    PE --> PR
-    PR --> RG
-    RG --> API
-    RG --> FS
-    RG --> NET
-    RG --> DB
-    PE --> MA
-    PR --> MA
-    RG --> MA
-```
-
-## Core Components
-
-### Policy Engine
-Declarative YAML policies validated by Pydantic. Define what agents can and cannot do — evaluated at every call boundary. Supports policy composition: inherit, override, merge.
-
-### PII Redactor
-Real-time detection and redaction on inputs and outputs. Configurable strategies: mask, hash, remove, or placeholder. Pure regex engine — no spaCy, no Presidio. 5 PII categories, 11 secret detection categories, Unicode hardening. ~0.028–0.129 ms per call (measured).
-
-### Merkle Auditor
-SHA-256 Merkle tree audit trail for every enforced call. JSONL storage with tamper-proof verification. Every entry is cryptographically chained to the previous one. OS-enforced append-only files (`chattr +a` / `chflags uappend`) and hash-only remote witness backends for maximum tamper-evidence.
-
-### Resource Guard
-Cross-platform resource limits: time, memory, cost. Linux strict enforcement (RLIMIT_AS), macOS advisory (RLIMIT_RSS), thread timeout on Windows. Shared thread pool with leak detection. Automatic kill-switch when limits are exceeded.
+Every call now passes through policy evaluation, PII redaction, resource constraints, and cryptographic audit logging. See the [Quickstart](/enforcecore/quickstart) for the full tutorial.
 
 ## Core Principles
 
@@ -151,16 +37,6 @@ Cross-platform resource limits: time, memory, cost. Linux strict enforcement (RL
 3. **Verify, don't trust** — Every enforced call produces a cryptographic audit entry. The full trail is Merkle-tree verifiable.
 4. **Fail closed** — If enforcement logic itself fails, the call is blocked. Never fail open.
 5. **Framework-agnostic** — No lock-in. Works everywhere Python runs.
-
-## Why Not Prompt-Level Guardrails?
-
-| Approach | Layer | Bypassable? | Auditable? | Framework-locked? |
-|----------|-------|-------------|------------|-------------------|
-| Prompt instructions | Inside LLM | Yes (jailbreaks) | No | Often |
-| Output filters | After execution | Damage already done | Partially | Usually |
-| **EnforceCore** | **Call boundary** | **No** | **Yes (Merkle proofs)** | **No** |
-
-Prompt guardrails and output filters have their place. But they are not enforcement. EnforceCore provides the structural guarantee that regulators and enterprises require.
 
 ## Relationship to AKIOS
 
@@ -207,51 +83,15 @@ pip install enforcecore
 
 **Requirements:** Python 3.11+. Dependencies: Pydantic v2, PyYAML, structlog, cryptography.
 
-## Framework Integrations
+## Full Documentation
 
-EnforceCore provides thin adapters (~20–50 lines each) for major agent frameworks:
-
-| Framework | Status | Integration |
-|-----------|--------|-------------|
-| **LangGraph** | Available | `@enforced_tool` decorator |
-| **CrewAI** | Available | `@enforced_tool` decorator |
-| **AutoGen** | Available | `@enforced_tool` decorator |
-| **Plain Python** | Available | `@enforce()` decorator |
-
-## Use Cases
-
-**EU AI Act Compliance** — High-risk AI systems must demonstrate technical safeguards at runtime. EnforceCore provides measurable, provable, auditable enforcement.
-
-**Enterprise Agent Deployment** — Guarantee that agents cannot exfiltrate data, exceed cost budgets, or access unauthorized resources.
-
-**Multi-Agent Governance** — When Agent A calls Agent B which calls Agent C — EnforceCore sits at every boundary in that chain.
-
-**Research** — A common foundation for studying runtime verification, sandboxing, and formal guarantees in agentic systems.
-
-## Performance
-
-EnforceCore is designed for production workloads. Benchmarked on Python 3.13 with 1,000 iterations:
-
-| Component | P50 (ms) | P99 (ms) |
-|-----------|----------|----------|
-| Policy evaluation | 0.012 | 0.228 |
-| PII redaction (short text) | 0.028 | 0.275 |
-| PII redaction (~2KB text) | 0.129 | 0.220 |
-| Audit entry | 0.068 | 0.232 |
-| Secret detection | 0.012 | 0.017 |
-| **Full E2E pipeline** | **0.056** | **0.892** |
-
-Negligible compared to tool call latency (100ms–10s for API calls).
-
-## Links
-
-- **Full Documentation:** [akios.ai/enforcecore](/enforcecore/) — Architecture, API reference, formal properties, threat model
-- **GitHub:** [github.com/akios-ai/enforcecore](https://github.com/akios-ai/enforcecore)
-- **PyPI:** [pypi.org/project/enforcecore](https://pypi.org/project/enforcecore/)
-- **License:** Apache 2.0
-
-## Learn More
-
-- **[AKIOS Quickstart](quickstart.html)** — See EnforceCore in action within AKIOS
-- **[Security Features](security.html)** — Deep dive into the security layers EnforceCore provides
-- **[Community](../community.html)** — Join the discussion
+- **[Overview](/enforcecore/)** — What EnforceCore is and why it exists
+- **[Quickstart](/enforcecore/quickstart)** — Step-by-step tutorial
+- **[Architecture](/enforcecore/architecture)** — Design, pipeline, formal invariants, threat model
+- **[API Reference](/enforcecore/api-reference)** — Every public symbol, environment variable, and CLI command
+- **[Evaluation](/enforcecore/evaluation)** — Adversarial scenarios and benchmarks
+- **[Integrations](/enforcecore/integrations)** — LangGraph, CrewAI, AutoGen adapters
+- **[Troubleshooting](/enforcecore/troubleshooting)** — Common errors and FAQ
+- **[Roadmap](/enforcecore/roadmap)** — Release history and future plans
+- **[GitHub](https://github.com/akios-ai/enforcecore)** — Source code (Apache 2.0)
+- **[PyPI](https://pypi.org/project/enforcecore/)** — Package registry
