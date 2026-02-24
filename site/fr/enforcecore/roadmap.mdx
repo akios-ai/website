@@ -11,13 +11,35 @@ Historique des versions, état actuel et directions futures d'EnforceCore.
 
 ## Historique des Versions
 
-### v1.0.0b5 (bêta) — Version Actuelle
+### v1.0.0b5 (bêta) — Version Précédente
 
 - **Witness piloté par Settings** — `ENFORCECORE_AUDIT_WITNESS_FILE` pour activation sans code
 - **Immutable piloté par Settings** — `ENFORCECORE_AUDIT_IMMUTABLE=true` pour activation sans code
 - **Validation de settings au démarrage** — validation Pydantic v2 complète au démarrage
 - **Journalisation des changements de settings** — tous les changements de configuration enregistrés dans les logs structurés
-- **Couverture : 95%**, 1 510 tests, 22 invariants formels
+- **Couverture : 95%**, 1 510 tests, 22 invariants formels
+
+### v1.0.0b6 — Correction PII Passeport + Module de Comparaison
+
+- **Catégorie PII `passport` ajoutée** — regex ICAO Doc 9303 (`[A-Z]{1,2}\d{6,9}`), placeholder `<PASSPORT>`, masque `**-*******`. Corrige `RedactionError: Unknown PII category: 'passport'` responsable de 19 erreurs d'évaluation.
+- **Module de comparaison de frameworks** — `enforcecore.eval.framework_comparison` pour comparaisons de politiques côte à côte
+- **3 nouveaux exemples de démarrage rapide** — `quickstart_langgraph.py`, `quickstart_autogen.py`, `quickstart_crewai.py`
+- **Résultats d'évaluation actualisés** — 20/20 scénarios contenus, **0 erreur** (contre 19 avant la correction passeport)
+- **1 510 tests**
+
+### v1.0.0 — Première Version Stable
+
+Première version **stable**. Promue depuis v1.0.0b6 après validation CI sur Python 3.11, 3.12 et 3.13.
+
+- Aucun nouveau code — API gelée à 30 symboles Tier 1
+- Confinement adversarial 100 % — 20/20 scénarios, 0 erreur
+- Overhead sous-milliseconde — `policy_pre_call` p99 = 0,021 ms, `pii_redaction` p99 = 0,035 ms
+
+### v1.0.1 — Patch
+
+- **Correction crash `verify_with_witness`** sur les objets `WitnessRecord` — normalisation vers `.entry_hash` avant comparaison
+- **Correction `PolicyRules` ignorant silencieusement les clés YAML inconnues** — remappage des alias (`pii` → `pii_redaction`, `resources` → `resource_limits`, `network_policy` → `network`) avec avertissements de dépréciation
+- **14 fichiers de documentation mis à jour** — balises bêta supprimées, statut stable corrigé
 
 ### v1.0.0b4 (bêta)
 
@@ -89,14 +111,17 @@ Historique des versions, état actuel et directions futures d'EnforceCore.
 
 ## État Actuel
 
-**v1.0.0b5** — 1 510 tests, 95% de couverture, 30 symboles Tier 1 gelés, 22 invariants formels. API bêta stable, activement renforcée.
+**v1.0.1** — stable. 1 510 tests, 95 % de couverture, 30 symboles Tier 1 gelés, 22 invariants formels, 20/20 scénarios adversariaux contenus (0 erreur), 6 catégories PII.
+
+```bash
+pip install enforcecore
+```
 
 ---
 
 ## Directions Futures
 
-- **v1.0.0rc1** — Release candidate, audit de sécurité externe
-- **v1.0.0** — Release stable
+- **v1.1 — Policy Hub** — dépôt communautaire de politiques vérifiées
 - **Compteur de tokens** — suivi des tokens LLM par appel
 - **Chaîne de garde** — séquencement multi-agents avec isolation par agent
 - **Support WASM** — enforcement dans le navigateur

@@ -4,14 +4,15 @@ keywords: enforcecore runtime enforcement AI agents policy PII redactor Merkle a
 ---
 
 <div style="text-align: center; margin-bottom: 2rem;">
-  <img src="../assets/img/logo-enforcecore.svg" alt="EnforceCore Logo" style="max-width: 180px; height: auto;" />
+  <img class="ec-logo-light" src="../assets/img/logo-enforcecore-light.svg" alt="EnforceCore Logo" style="max-width: 180px; height: auto;" />
+  <img class="ec-logo-dark" src="../assets/img/logo-enforcecore-dark.svg" alt="EnforceCore Logo" style="max-width: 180px; height: auto;" />
 </div>
 
 # EnforceCore
 
 **Lightweight, open-source runtime enforcement for any Python-based AI agent.**
 
-> **Current release: v1.0.0b5 (beta)** — Production-grade enforcement, frozen API, actively hardened. [Available on PyPI](https://pypi.org/project/enforcecore/).
+> **Current release: v1.0.1 (stable)** — Production-ready, first stable API, 1,510 tests, 22 formal invariants. [Available on PyPI](https://pypi.org/project/enforcecore/).
 
 EnforceCore is a modular enforcement framework that intercepts every external call your agent makes — tool calls, API requests, file access — and applies mandatory policy checks, PII redaction, secret scanning, content rule enforcement, rate limiting, resource limits, and tamper-proof audit logging.
 
@@ -56,7 +57,7 @@ Every enforced call produces a SHA-256 Merkle-chained audit entry. The full trai
 | Component | What it does |
 |---|---|
 | **Policy Engine** | Declarative YAML + Pydantic v2 policies. Allowed/denied tools, conditions, violation handling. Policy composition with `extends:` and `Policy.merge()`. |
-| **PII Redactor** | Regex-based detection of 5 PII categories. Auto-redacts inputs and outputs. Unicode hardening (NFC, homoglyphs, URL/HTML decoding). ~0.1–0.5 ms per call. |
+| **PII Redactor** | Regex-based detection of 6 PII categories. Auto-redacts inputs and outputs. Unicode hardening (NFC, homoglyphs, URL/HTML decoding). ~0.1–0.5 ms per call. |
 | **Secret Scanner** | 11 built-in secret categories (AWS keys, GitHub tokens, GCP service accounts, Azure connection strings, database URIs, SSH keys, and more). Custom patterns via `PatternRegistry`. Shannon entropy filtering for false-positive reduction. |
 | **Content Rules Engine** | 4 built-in rule categories: shell injection, path traversal, SQL injection, code execution. Extensible via `RuleEngine`. |
 | **Rate Limiter** | Per-tool and global sliding-window rate limiting. Prevents runaway agents from exceeding call budgets. |

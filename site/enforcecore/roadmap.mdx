@@ -342,17 +342,39 @@ Settings-driven tamper-evidence — zero-code hardening via environment variable
 - **18 new edge-case tests** — `_has_linux_immutable_cap()` multi-branch logic, `is_append_only()` mocked, `verify_with_witness()` empty trails, concurrent stress tests, settings env-var overrides.
 - **1,510 tests**, 95% coverage
 
+### v1.0.0b6 — Passport PII Fix + Framework Comparison
+
+- **`passport` PII category added** — ICAO Doc 9303 regex (`[A-Z]{1,2}\d{6,9}`), `<PASSPORT>` placeholder, `**-*******` mask. Fixes `RedactionError: Unknown PII category: 'passport'` that caused 19 eval errors.
+- **Framework comparison module** — `enforcecore.eval.framework_comparison` for side-by-side policy comparisons
+- **3 new quickstart examples** — `quickstart_langgraph.py`, `quickstart_autogen.py`, `quickstart_crewai.py`
+- **Eval results refreshed** — 20/20 adversarial scenarios contained, **0 errors** (was 19 errors before passport fix)
+- **1,510 tests**
+
+### v1.0.0 — First Stable Release
+
+First **stable** release. Promoted from v1.0.0b6 after CI green on Python 3.11, 3.12, and 3.13.
+
+- No new code — API surface frozen at 30 Tier 1 symbols
+- 100% adversarial containment — 20/20 scenarios, 0 errors
+- Sub-millisecond overhead — `policy_pre_call` p99 = 0.021 ms, `pii_redaction` p99 = 0.035 ms
+
+### v1.0.1 — Patch
+
+- **Fixed `verify_with_witness` crash** on `WitnessRecord` objects — normalizes to `.entry_hash` before comparison
+- **Fixed `PolicyRules` silently ignoring unknown YAML keys** — added alias remapping (`pii` → `pii_redaction`, `resources` → `resource_limits`, `network_policy` → `network`) with deprecation warnings; truly unknown keys now raise a warning
+- **14 documentation files updated** — beta tags removed, corrected for stable status
+
 ---
 
 ## Current Status
 
-EnforceCore is in **beta** at v1.0.0b5. The 30-symbol Tier 1 API is frozen. All 110 original symbols remain importable for backwards compatibility.
+EnforceCore is **stable** at v1.0.1. The 30-symbol Tier 1 API is frozen. All 110 original symbols remain importable for backwards compatibility.
 
 ```bash
-pip install enforcecore==1.0.0b5
+pip install enforcecore
 ```
 
-**Key numbers:** 1,510 tests · 95% coverage · 22 formal invariants · 30 frozen Tier 1 symbols · 20 adversarial scenarios · 15 benchmarks · 4 dependencies.
+**Key numbers:** 1,510 tests · 95% coverage · 22 formal invariants · 30 frozen Tier 1 symbols · 20 adversarial scenarios (20/20 contained, 0 errors) · 15 benchmarks · 6 PII categories · 4 dependencies.
 
 See [Architecture](/enforcecore/architecture) for technical details, [Evaluation](/enforcecore/evaluation) for benchmarks, or [API Reference](/enforcecore/api-reference) for the full symbol list.
 
@@ -361,9 +383,6 @@ See [Architecture](/enforcecore/architecture) for technical details, [Evaluation
 ## Future Directions
 
 These are potential future work — not committed:
-
-### v1.0.0 Stable (Beta → GA)
-Promote from beta to stable release. Final production deployment guide and GA announcement.
 
 ### v1.1 — Policy Hub
 Community repository of reusable, audited policies with versioning and peer review.

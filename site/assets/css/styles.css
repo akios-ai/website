@@ -2204,6 +2204,12 @@ Mobile: Single column blog layout
   height: auto;
 }
 
+/* Dark/light logo switching */
+.ec-logo-dark { display: none; }
+.ec-logo-light { display: block; }
+[data-theme="dark"] .ec-logo-dark { display: block; }
+[data-theme="dark"] .ec-logo-light { display: none; }
+
 .enforcecore-features {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
