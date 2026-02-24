@@ -4,14 +4,15 @@ keywords: enforcecore runtime enforcement agents IA politique PII rédaction Mer
 ---
 
 <div style="text-align: center; margin-bottom: 2rem;">
-  <img src="../../assets/img/logo-enforcecore.svg" alt="Logo EnforceCore" style="max-width: 180px; height: auto;" />
+  <img class="ec-logo-light" src="../../assets/img/logo-enforcecore-light.svg" alt="Logo EnforceCore" style="max-width: 180px; height: auto;" />
+  <img class="ec-logo-dark" src="../../assets/img/logo-enforcecore-dark.svg" alt="Logo EnforceCore" style="max-width: 180px; height: auto;" />
 </div>
 
 # EnforceCore
 
 **Framework d'enforcement runtime léger et open source pour tout agent IA basé sur Python.**
 
-> **Version actuelle : v1.0.0b5 (bêta)** — Enforcement de qualité production, API gelée, activement renforcé. [Disponible sur PyPI](https://pypi.org/project/enforcecore/).
+> **Version actuelle : v1.0.1 (stable)** — Première version stable, API de production, 1 510 tests, 22 invariants formels. [Disponible sur PyPI](https://pypi.org/project/enforcecore/).
 
 EnforceCore est un framework d'enforcement modulaire qui intercepte chaque appel externe de votre agent — appels d'outils, requêtes API, accès fichiers — et applique des vérifications de politique obligatoires, la rédaction de données personnelles, la détection de secrets, les règles de contenu, le rate limiting, les limites de ressources et un journal d'audit inviolable.
 
@@ -56,7 +57,7 @@ Chaque appel produit une entrée d'audit chaînée par Merkle en SHA-256. La pis
 | Composant | Fonction |
 |---|---|
 | **Policy Engine** | Politiques déclaratives YAML + Pydantic v2. Outils autorisés/refusés, conditions, gestion des violations. Composition avec `extends:` et `Policy.merge()`. |
-| **Rédacteur PII** | Détection regex de 5 catégories. Rédaction auto entrées/sorties. Protection unicode (NFC, homoglyphes, URL/HTML). ~0,1–0,5 ms. |
+| **Rédacteur PII** | Détection regex de 6 catégories. Rédaction auto entrées/sorties. Protection unicode (NFC, homoglyphes, URL/HTML). ~0,1–0,5 ms. |
 | **Scanner de Secrets** | 11 catégories intégrées (AWS, GitHub, GCP, Azure, DB URIs, SSH, etc.). Patterns personnalisés via `PatternRegistry`. Filtrage entropie Shannon. |
 | **Moteur Règles de Contenu** | 4 catégories : injection shell, traversée de chemin, injection SQL, exécution de code. Extensible via `RuleEngine`. |
 | **Rate Limiter** | Limitation par outil et globale avec fenêtre glissante. |

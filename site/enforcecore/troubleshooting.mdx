@@ -216,7 +216,7 @@ Yes. Since v1.0.6: NFC normalization, zero-width character stripping, homoglyph 
 
 ### What PII categories are supported?
 
-5 categories: email, phone, SSN, credit card, IP address. 4 redaction strategies: placeholder, mask, hash, remove. See the [API Reference](/enforcecore/api-reference#redactor-api) for the full table.
+6 categories: email, phone, SSN, credit card, IP address, passport. 4 redaction strategies: placeholder, mask, hash, remove. See the [API Reference](/enforcecore/api-reference#redactor-api) for the full table.
 
 ### Why regex instead of spaCy/Presidio?
 
@@ -248,7 +248,7 @@ As of v1.0.0b1, EnforceCore has **30 Tier 1 symbols** — the stable, frozen pub
 
 ### Is EnforceCore stable enough for production?
 
-Yes. EnforceCore is in **beta** (v1.0.0b5) with 1,510 tests, 95% coverage, 22 formal invariants, and a frozen 30-symbol API. "Beta" means the API contract is stable and actively hardened — it has not yet been promoted to GA because we are accumulating production deployment feedback.
+Yes. EnforceCore is **stable** (v1.0.1) with 1,510 tests, 95% coverage, 22 formal invariants, and a frozen 30-symbol API.
 
 ### What changed in the security audit (v1.0.24a1)?
 
