@@ -103,14 +103,94 @@
             
             <main class="docs-content">
                 <h1>Migration Guide</h1>
-<p>Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.0.12–V1.0.15 updates, the V1.0.11 update, and the original pre-V1.0 migration.</p>
+<p>Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.1.0–V1.6.0 updates, the V1.0.12–V1.0.15 updates, and the original pre-V1.0 migration.</p>
+<h2>Upgrading to V1.6.0 (from V1.0.15)</h2>
+<p>V1.6.0 is a <strong>major feature release</strong> with new agents, parallel execution, a plugin system, a REST API, Ollama support, and EnforceCore integration. Most changes are additive — existing workflows continue to work unchanged.</p>
+<pre><code class="language-bash"># Pip
+pip install --upgrade akios
+
+# Docker — pull latest image
+docker pull akiosai/akios:v1.6.0
+
+# Verify
+akios --version
+</code></pre>
+<h3>What&#39;s New in V1.1.0–V1.6.0</h3>
+<p><strong>v1.1.0 — Webhook &amp; Database Agents + Parallel Execution:</strong></p>
+<ul>
+<li><strong>2 new agents</strong> — <code>webhook</code> (Slack, Teams, Discord, PagerDuty) and <code>database</code> (SQLite, PostgreSQL read queries)</li>
+<li><strong>Parallel execution</strong> — <code>parallel:</code> blocks in workflow YAML run steps concurrently</li>
+<li><strong>Plugin system</strong> — pip-installable agent packages via <code>akios.agents</code> entry points</li>
+<li><strong>Doctor redesigned</strong> — 9 diagnostic checks with structured output</li>
+</ul>
+<p><strong>v1.2.0 — EnforceCore Integration:</strong></p>
+<ul>
+<li><strong><code>pip install akios[enforcecore]</code></strong> — optional dependency activates EnforceCore as enforcement backend</li>
+<li><strong><code>use_enforcecore: true</code></strong> in <code>config.yaml</code> delegates policy, PII, and audit to EnforceCore</li>
+<li><strong><code>akios protect secrets</code></strong> — scan for leaked secrets (requires EnforceCore)</li>
+</ul>
+<p><strong>v1.3.0 — Merkle Bridge:</strong></p>
+<ul>
+<li><strong>Merkle Bridge</strong> — links AKIOS audit entries to EnforceCore&#39;s audit store via <code>external_hash</code></li>
+</ul>
+<p><strong>v1.4.0 — PII Boundary Change (⚠ Breaking):</strong></p>
+<ul>
+<li><strong>53 → 44 PII patterns</strong> — 8 healthcare-specific patterns (NPI, DEA, MRN, etc.) and 5 financial patterns removed from OSS; available via EnforceCore NER backend (<code>enforcecore[ner]</code>)</li>
+<li><strong>Pluggable PII backend</strong> now supports EnforceCore NER + secret scanner</li>
+</ul>
+<p><strong>v1.4.2 — Ollama Provider:</strong></p>
+<ul>
+<li><strong>Ollama support</strong> — run local open-source models (llama3.2, mistral, codellama, etc.)</li>
+<li><strong>No API key needed</strong> — set <code>AKIOS_LLM_PROVIDER=ollama</code> and <code>OLLAMA_HOST=http://localhost:11434</code></li>
+<li>HTTPS enforcement exempted for <code>localhost</code> / <code>127.0.0.1</code></li>
+</ul>
+<p><strong>v1.5.0 — Dashboard, Reports, Audit Tools:</strong></p>
+<ul>
+<li><strong><code>akios run --report</code></strong> — generate HTML security posture report after execution</li>
+<li><strong><code>akios audit migrate</code></strong> — migrate JSONL audit to SQLite or PostgreSQL</li>
+<li><strong><code>akios audit prune</code></strong> — enforce retention policies on audit ledger</li>
+<li><strong><code>audit_retention_days</code> / <code>audit_archive_days</code></strong> config settings</li>
+</ul>
+<p><strong>v1.5.2 — PII Restoration:</strong></p>
+<ul>
+<li><strong>5 general health patterns restored</strong> — brings total back to 44 from 39</li>
+</ul>
+<p><strong>v1.6.0 — Compliance Dashboard:</strong></p>
+<ul>
+<li><strong><code>akios dashboard</code></strong> — local compliance dashboard reading from audit trail</li>
+<li>Minor bug fixes and performance improvements</li>
+</ul>
+<h3>Migration Notes</h3>
+<p><strong>PII boundary change (v1.4.0 — ⚠ Breaking):</strong> If you relied on healthcare PII patterns (NPI, DEA, MRN) or financial patterns in the OSS regex engine, these are now available only via EnforceCore&#39;s NER backend:</p>
+<pre><code class="language-bash">pip install akios[enforcecore] enforcecore[ner]
+# Then in config.yaml:
+use_enforcecore: true
+</code></pre>
+<p><strong>Ollama users (v1.4.2+):</strong> Install Ollama separately, then configure:</p>
+<pre><code class="language-bash">AKIOS_LLM_PROVIDER=ollama
+AKIOS_LLM_MODEL=llama3.2
+OLLAMA_HOST=http://localhost:11434
+</code></pre>
+<p><strong>New agents (v1.1.0+):</strong> No migration needed — <code>webhook</code> and <code>database</code> agents are additive. Existing workflows using only <code>filesystem</code>, <code>http</code>, <code>llm</code>, <code>tool_executor</code> continue unchanged.</p>
+<p><strong>Plugin system (v1.1.0+):</strong> If you wrote custom <code>tool_executor</code> wrappers, consider converting to proper plugins:</p>
+<pre><code class="language-bash">pip install akios-my-plugin  # Any package with akios.agents entry point
+</code></pre>
+<p><strong>Audit migration (v1.5.0+):</strong> Optionally migrate your JSONL audit ledger to a database:</p>
+<pre><code class="language-bash">akios audit migrate --backend sqlite --target audit/audit.db
+</code></pre>
+<p><strong>Verification after upgrade:</strong></p>
+<pre><code class="language-bash">akios --version                    # Should show 1.6.0
+akios status --security            # Verify all protections active
+akios doctor                       # Run 9 diagnostic checks
+</code></pre>
+<hr>
 <h2>Upgrading to V1.0.15 (from V1.0.11)</h2>
 <p>V1.0.15 is a drop-in upgrade with no breaking CLI or workflow changes. Four releases shipped between v1.0.11 and v1.0.15:</p>
 <pre><code class="language-bash"># Pip
 pip install --upgrade akios
 
 # Docker — pull latest image
-docker pull akiosai/akios:v1.0.15
+docker pull akiosai/akios:v1.6.0
 
 # Verify
 akios --version
@@ -166,7 +246,7 @@ AKIOS_BEDROCK_REGION=us-east-1
 akios run workflow.yml --json-output
 </code></pre>
 <p><strong>Verification after upgrade:</strong></p>
-<pre><code class="language-bash">akios --version                    # Should show 1.0.15
+<pre><code class="language-bash">akios --version                    # Should show 1.6.0
 akios status --security            # Verify all protections active
 akios doctor                       # Run diagnostics
 </code></pre>
@@ -178,7 +258,7 @@ akios doctor                       # Run diagnostics
 pip install --upgrade akios
 
 # Docker — pull latest image
-docker pull akiosai/akios:v1.0.15
+docker pull akiosai/akios:v1.6.0
 
 # Verify
 akios --version
@@ -228,7 +308,7 @@ import PyPDF2
 import pypdf
 </code></pre>
 <p><strong>Verification after upgrade:</strong></p>
-<pre><code class="language-bash">akios --version                    # Should show 1.0.15
+<pre><code class="language-bash">akios --version                    # Should show 1.6.0
 akios status --security            # Verify all protections active
 akios workflow validate templates/hello-workflow.yml  # Test validation
 akios doctor                       # Run diagnostics
@@ -254,7 +334,7 @@ pip install --upgrade akios
 
 # Verify version
 akios --version
-# Should show: akios 1.0.15 or later
+# Should show: akios 1.6.0 or later
 
 # Test installation
 akios status
@@ -287,10 +367,10 @@ AKIOS_FORCE_PULL=1 ./akios --version
 <h3>Option 3: Direct Docker (For CI/CD)</h3>
 <p><strong>Container-based</strong> for automation.</p>
 <pre><code class="language-bash"># Pull latest image
-docker pull akiosai/akios:v1.0.15
+docker pull akiosai/akios:v1.6.0
 
 # Test run
-docker run --rm akiosai/akios:v1.0.15 --version
+docker run --rm akiosai/akios:v1.6.0 --version
 </code></pre>
 <p><strong>When to use:</strong></p>
 <ul>
@@ -310,7 +390,7 @@ akios status
 akios status --security
 </code></pre>
 <p><strong>Expected output:</strong></p>
-<pre><code>AKIOS v1.0.15
+<pre><code>AKIOS v1.6.0
 Security Level: Kernel-hard (Linux) or Policy-based (Docker)
 Audit: Active
 PII Protection: Active
@@ -372,7 +452,7 @@ akios run workflow.yml
 <pre><code class="language-yaml"># .github/workflows/akios.yml
 steps:
   - name: Install AKIOS
-    run: pip install akios&gt;=1.0.15
+    run: pip install akios&gt;=1.6.0
     
   - name: Run workflow
     run: akios run workflows/production/*.yml
@@ -484,7 +564,7 @@ mv wrapper.sh akios
 <h2>Post-Migration Checklist</h2>
 <p><strong>✓ Verify everything works:</strong></p>
 <ul>
-<li><input disabled="" type="checkbox"> <code>akios --version</code> shows 1.0.15+</li>
+<li><input disabled="" type="checkbox"> <code>akios --version</code> shows 1.6.0+</li>
 <li><input disabled="" type="checkbox"> <code>akios status --security</code> shows security active</li>
 <li><input disabled="" type="checkbox"> Workflows run successfully in mock mode</li>
 <li><input disabled="" type="checkbox"> Workflows run successfully with real APIs</li>

@@ -48,7 +48,7 @@ Store sensitive configuration in the `.env` file:
 ### AI Provider Settings
 ```bash
 # Choose your provider
-AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini, bedrock
+AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini, bedrock, ollama
 
 # Choose your model
 AKIOS_LLM_MODEL=grok-3   # Provider-specific model name
@@ -60,6 +60,10 @@ GROK_API_KEY=your-key-here
 AKIOS_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
 AKIOS_BEDROCK_REGION=us-east-1
 # IAM credentials picked up automatically from AWS CLI / instance profile
+
+# Ollama settings (v1.4.2+)
+OLLAMA_HOST=http://localhost:11434   # Ollama server address
+# No API key needed — Ollama runs locally
 ```
 
 ### Mode Settings
@@ -213,6 +217,22 @@ Subdomains must be added explicitly — they are not automatically allowed.
 - Format for audit exports
 - **Default:** `json`
 
+**`audit_retention_days: 0`** (v1.5.0+)
+- Automatically prune audit events older than this many days when running `akios audit prune`
+- `0` means no automatic pruning
+- **Default:** `0`
+
+**`audit_archive_days: 0`** (v1.5.0+)
+- Compress and archive audit events older than this many days (`.gz` files)
+- `0` means no automatic archiving
+- **Default:** `0`
+
+**`use_enforcecore: false`** (v1.2.0+)
+- Enable EnforceCore integration for enhanced enforcement
+- Requires `pip install akios[enforcecore]`
+- When enabled, AKIOS delegates policy evaluation, PII redaction, and audit to EnforceCore
+- **Default:** `false`
+
 ### General Settings
 
 **`environment: "development"`**
@@ -323,12 +343,13 @@ akios setup --force
 ```
 
 **Invalid provider/model:**
-- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini`
+- OpenAI: `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`
 - Anthropic: `claude-3.5-haiku`, `claude-3.5-sonnet`
 - Grok: `grok-3`
 - Mistral: `mistral-small`, `mistral-medium`, `mistral-large`
 - Gemini: `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`
 - Bedrock: `anthropic.claude-*`, `meta.llama*`, `amazon.titan-*` (IAM auth, v1.0.13+)
+- Ollama: `llama3.2`, `llama3`, `mistral`, `codellama`, `gemma2`, `phi3` (local, v1.4.2+)
 
 **API key issues:**
 ```bash

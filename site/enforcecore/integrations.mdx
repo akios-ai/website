@@ -102,6 +102,39 @@ def search(query: str) -> str:
 
 ---
 
+## LangChain Callback Handler (v1.13.0+)
+
+For LangChain applications, EnforceCore provides a callback handler that automatically enforces every LLM call, tool call, and chain step:
+
+```python
+from enforcecore.integrations.langchain import EnforceCoreCallbackHandler
+
+# Create handler with your policy
+handler = EnforceCoreCallbackHandler(policy="policy.yaml")
+
+# Use with any LangChain chain or agent
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(model="gpt-4o", callbacks=[handler])
+response = llm.invoke("Summarize this document")
+
+# Or with an agent
+from langchain.agents import create_openai_functions_agent
+agent = create_openai_functions_agent(llm, tools, prompt)
+result = agent.invoke({"input": "Search for..."}, config={"callbacks": [handler]})
+```
+
+The callback handler:
+- Enforces policy on every LLM call and tool invocation
+- Redacts PII from inputs and outputs automatically
+- Records audit entries for every operation
+- Tracks cost across the entire chain
+- Works with LangGraph, LangChain, and any `langchain_core`-based system
+
+> **Note:** As of v1.14.0, `EnforceCoreCallbackHandler` has been submitted upstream to `langchain-community` for official inclusion.
+
+---
+
 ## Plain Python
 
 No adapter needed — use `@enforce()` directly:

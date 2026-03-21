@@ -103,8 +103,8 @@ akios setup --mock-mode
 ```
 
 **Configures:**
-- AI provider (OpenAI, Anthropic, Grok, Mistral, Gemini)
-- API key with validation
+- AI provider (OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock, Ollama)
+- API key with validation (or IAM for Bedrock, or skip for Ollama)
 - Budget limits ($1.00 default)
 - Token limits (1000 per call default)
 - Network access settings
@@ -187,6 +187,8 @@ akios run workflow.yml --force
 - `--dry-run, -d` - Validate without executing
 - `--force, -f` - Skip confirmation prompts
 - `--debug` - Enable debug logging
+- `--report` - Generate HTML security posture report after execution (v1.5.0+)
+- `--json-output` - Machine-readable JSON output for CI/CD (v1.0.12+)
 
 ### `akios templates list`
 Show all available workflow templates.
@@ -513,18 +515,88 @@ akios audit stats --json
 
 Displays: total entries, chain length, time span, entries per day, most common actions, PII detections count, and chain integrity status.
 
+### `akios serve` — REST API Server (v1.0.9+)
+
+Start a FastAPI-based REST API server for programmatic workflow execution.
+
+```bash
+# Start API server (default: localhost:8000)
+akios serve
+
+# Custom host and port
+akios serve --host 0.0.0.0 --port 9000
+```
+
+**Endpoints:**
+- `GET /api/v1/health` — Health check
+- `POST /api/v1/workflow/run` — Run a workflow
+- `GET /api/v1/workflow/list` — List available workflows
+- `POST /api/v1/workflow/validate` — Validate a workflow
+- `GET /api/v1/status` — System status
+- `GET /api/v1/version` — Version info
+
+### `akios dashboard` — Compliance Dashboard (v1.6.0+)
+
+Launch a local compliance dashboard that reads from your audit trail.
+
+```bash
+# Launch dashboard (opens browser)
+akios dashboard
+
+# Custom port
+akios dashboard --port 9090
+
+# Don't open browser automatically
+akios dashboard --no-browser
+```
+
+### `akios audit migrate` — Audit Migration (v1.5.0+)
+
+Migrate audit events from the primary JSONL ledger to a database.
+
+```bash
+# Migrate to SQLite (built-in, no extra deps)
+akios audit migrate --backend sqlite --target audit/audit.db
+
+# Migrate to PostgreSQL (requires psycopg2-binary)
+akios audit migrate --backend postgresql --target postgresql://user:pass@host/db
+
+# JSON output
+akios audit migrate --backend sqlite --target audit/audit.db --json
+```
+
+Migration is additive — the source JSONL is preserved.
+
+### `akios audit prune` — Audit Retention (v1.5.0+)
+
+Enforce retention policies on the live JSONL audit ledger.
+
+```bash
+# Delete events older than 90 days
+akios audit prune --days 90
+
+# Archive events older than 180 days (compressed .gz)
+akios audit prune --archive-days 180
+
+# Preview without making changes
+akios audit prune --dry-run
+```
+
+Reads `audit_retention_days` / `audit_archive_days` from `config.yaml` when no CLI flags provided. Events with unparseable timestamps are always kept.
+
 ## LLM Provider/Model Validation
 
 AKIOS validates LLM provider and model compatibility at startup to prevent API failures.
 
 | Provider | Models |
 |----------|--------|
-| **OpenAI** | `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini` |
+| **OpenAI** | `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo` |
 | **Anthropic** | `claude-3.5-haiku`, `claude-3.5-sonnet` |
 | **Grok** | `grok-3` |
 | **Mistral** | `mistral-small`, `mistral-medium`, `mistral-large` |
 | **Gemini** | `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash` |
-| **Bedrock** | `anthropic.claude-*`, `meta.llama*`, `amazon.titan-*` (via IAM, v1.0.13+) |
+| **Bedrock** | `anthropic.claude-*`, `meta.llama*`, `amazon.titan-*` (via IAM) |
+| **Ollama** | `llama3.2`, `llama3`, `mistral`, `codellama`, `gemma2`, `phi3` (local) |
 
 Validation is case-insensitive. Invalid combinations fail early with clear error messages:
 

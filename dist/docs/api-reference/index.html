@@ -105,7 +105,7 @@
                 <h1>Python API Reference</h1>
 <p>Use AKIOS programmatically from your Python code. This is useful for integrating AKIOS workflows into larger applications.</p>
 <h2>Installation</h2>
-<pre><code class="language-bash">pip install akios&gt;=1.0.15
+<pre><code class="language-bash">pip install akios&gt;=1.6.0
 </code></pre>
 <h2>Quick Example</h2>
 <pre><code class="language-python">from akios.core.runtime.engine import RuntimeEngine
@@ -233,15 +233,21 @@ response = http.delete(url)
 <li><code>delete(url, headers=None)</code> → dict</li>
 </ul>
 <h3>LlmAgent</h3>
-<p>AI model calls with budget tracking.</p>
+<p>AI model calls with budget tracking. Supports 7 providers: OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock (IAM), and Ollama (local).</p>
 <pre><code class="language-python">from akios.core.runtime.agents.llm import LlmAgent
 
-# Create agent
+# Create agent (cloud provider)
 llm = LlmAgent({
     &quot;provider&quot;: &quot;grok&quot;,
     &quot;model&quot;: &quot;grok-3&quot;,
     &quot;api_key&quot;: &quot;your-key&quot;,
     &quot;budget_limit&quot;: 1.0  # USD
+})
+
+# Or use Ollama for local models (no API key needed)
+llm_local = LlmAgent({
+    &quot;provider&quot;: &quot;ollama&quot;,
+    &quot;model&quot;: &quot;llama3.2&quot;
 })
 
 # Generate completion
@@ -284,6 +290,115 @@ print(result[&quot;stdout&quot;])
 <ul>
 <li><code>run(command, timeout=30)</code> → dict</li>
 </ul>
+<h3>WebhookAgent (v1.1.0+)</h3>
+<p>Send webhook notifications to external platforms.</p>
+<pre><code class="language-python">from akios.core.runtime.agents.webhook import WebhookAgent
+
+# Create agent
+webhook = WebhookAgent({
+    &quot;network_access_allowed&quot;: True
+})
+
+# Send notification
+result = webhook.notify(
+    url=&quot;https://hooks.slack.com/services/T.../B.../xxx&quot;,
+    payload={&quot;text&quot;: &quot;Workflow complete&quot;},
+    platform=&quot;slack&quot;
+)
+
+# Generic POST
+result = webhook.send(
+    url=&quot;https://api.example.com/webhook&quot;,
+    payload={&quot;event&quot;: &quot;done&quot;, &quot;status&quot;: &quot;success&quot;}
+)
+</code></pre>
+<p><strong>Available methods:</strong></p>
+<ul>
+<li><code>notify(url, payload, platform=None)</code> → dict</li>
+<li><code>send(url, payload, headers=None)</code> → dict</li>
+</ul>
+<p><strong>Supported platforms:</strong> Slack, Microsoft Teams, Discord, PagerDuty, generic HTTP POST.</p>
+<h3>DatabaseAgent (v1.1.0+)</h3>
+<p>Read-only database queries with parameterised execution.</p>
+<pre><code class="language-python">from akios.core.runtime.agents.database import DatabaseAgent
+
+# Create agent
+db = DatabaseAgent({
+    &quot;connection_string&quot;: &quot;sqlite:///data/app.db&quot;
+})
+
+# Query
+rows = db.query(
+    sql=&quot;SELECT * FROM users WHERE status = ?&quot;,
+    params=[&quot;active&quot;]
+)
+print(f&quot;Found {len(rows)} active users&quot;)
+
+# Count
+count = db.count(&quot;SELECT COUNT(*) FROM orders&quot;)
+print(f&quot;Total orders: {count}&quot;)
+</code></pre>
+<p><strong>Available methods:</strong></p>
+<ul>
+<li><code>query(sql, params=None)</code> → List[dict]</li>
+<li><code>count(sql, params=None)</code> → int</li>
+<li><code>execute(sql, params=None)</code> → dict (requires <code>allow_writes: true</code>)</li>
+</ul>
+<h2>REST API (v1.0.9+)</h2>
+<p>AKIOS exposes a FastAPI-based REST API via <code>akios serve</code>.</p>
+<pre><code class="language-python">import httpx
+
+# Run a workflow via REST API
+response = httpx.post(&quot;http://localhost:8000/api/v1/workflow/run&quot;, json={
+    &quot;workflow&quot;: &quot;workflows/process-document.yml&quot;,
+    &quot;context&quot;: {&quot;user_id&quot;: &quot;123&quot;}
+})
+print(response.json())
+
+# Check health
+response = httpx.get(&quot;http://localhost:8000/api/v1/health&quot;)
+print(response.json())  # {&quot;status&quot;: &quot;ok&quot;}
+</code></pre>
+<p><strong>Endpoints:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GET</td>
+<td><code>/api/v1/health</code></td>
+<td>Health check</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/workflow/run</code></td>
+<td>Run a workflow</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/v1/workflow/list</code></td>
+<td>List available workflows</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/v1/workflow/validate</code></td>
+<td>Validate a workflow</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/v1/status</code></td>
+<td>System status</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/v1/version</code></td>
+<td>Version info</td>
+</tr>
+</tbody></table>
 <h2>Error Handling</h2>
 <p>AKIOS raises clear exceptions when something goes wrong.</p>
 <pre><code class="language-python">from akios.core.runtime.engine import RuntimeEngine
@@ -473,7 +588,7 @@ class CustomDetector(PIIDetectorProtocol):
         # Your custom redaction logic
         ...
 </code></pre>
-<p>The default regex-based detector covers 53 patterns with &gt;95% accuracy.</p>
+<p>The default regex-based detector covers 44 patterns with &gt;95% accuracy. For additional PII categories (healthcare, financial), use the EnforceCore NER backend (<code>enforcecore[ner]</code>).</p>
 <h2>Legacy Compatibility</h2>
 <p>For backward compatibility:</p>
 <pre><code class="language-python"># Old name (still works as alias)

@@ -158,7 +158,7 @@ akios audit verify
 <p>Workflows must have this structure:</p>
 <pre><code class="language-yaml">steps:
   - name: &quot;Step name&quot;
-    agent: &quot;filesystem&quot;     # Required: filesystem, http, llm, tool_executor
+    agent: &quot;filesystem&quot;     # Required: filesystem, http, llm, tool_executor, webhook, database
     action: &quot;read&quot;          # Required: agent-specific action
     parameters:             # Required: action-specific parameters
       path: &quot;data/input/file.txt&quot;
@@ -172,14 +172,19 @@ akios audit verify
 </ul>
 <p>See <a href="policy-schema.html">Policy Schema</a> for complete reference.</p>
 <h3>Can I use AKIOS offline?</h3>
-<p>Partially:</p>
+<p>Mostly yes since v1.4.2:</p>
 <ul>
 <li>✅ <strong>Install offline:</strong> Package pip files or Docker image</li>
 <li>✅ <strong>Run workflows offline:</strong> Filesystem and tool agents work</li>
-<li>❌ <strong>LLM calls:</strong> Require API access (local models planned for future)</li>
+<li>✅ <strong>LLM calls with Ollama:</strong> Run models locally — no internet needed (v1.4.2+)</li>
+<li>❌ <strong>Cloud LLM calls:</strong> OpenAI, Anthropic, etc. require API access</li>
 <li>❌ <strong>HTTP requests:</strong> Require network</li>
 </ul>
-<p>For air-gapped environments, see <a href="deployment.html#air-gapped-deployments">Deployment Guide</a>.</p>
+<p>For air-gapped environments with local LLMs, use Ollama:</p>
+<pre><code class="language-bash">AKIOS_LLM_PROVIDER=ollama
+AKIOS_LLM_MODEL=llama3.2
+</code></pre>
+<p>See <a href="deployment.html#air-gapped-deployments">Deployment Guide</a>.</p>
 <h3>How much does AKIOS cost?</h3>
 <p>AKIOS itself is free and open-source. You only pay for:</p>
 <ul>
@@ -191,16 +196,20 @@ akios audit verify
 </code></pre>
 <h3>What AI providers are supported?</h3>
 <ul>
-<li><strong>OpenAI:</strong> gpt-3.5-turbo, gpt-4, gpt-4o</li>
+<li><strong>OpenAI:</strong> gpt-4o, gpt-4o-mini, gpt-4-turbo</li>
 <li><strong>Anthropic:</strong> claude-3.5-haiku, claude-3.5-sonnet</li>
 <li><strong>Grok:</strong> grok-3</li>
-<li><strong>Mistral:</strong> mistral-large</li>
-<li><strong>Gemini:</strong> gemini-1.5-pro</li>
+<li><strong>Mistral:</strong> mistral-small, mistral-medium, mistral-large</li>
+<li><strong>Gemini:</strong> gemini-1.0-pro, gemini-1.5-pro, gemini-1.5-flash</li>
+<li><strong>AWS Bedrock:</strong> anthropic.claude-<em>, meta.llama</em>, amazon.titan-* (IAM auth, v1.0.13+)</li>
+<li><strong>Ollama:</strong> llama3.2, llama3, mistral, codellama, gemma2, phi3 (local, v1.4.2+)</li>
 </ul>
 <p>See <a href="installation.html">Installation</a> for setup instructions.</p>
 <h3>Can I write custom agents?</h3>
-<p>V1.0 focuses on the four core agents (filesystem, http, llm, tool_executor). Custom agents are planned for future versions.</p>
-<p>For now, use tool_executor agent to run custom commands:</p>
+<p><strong>Yes!</strong> Since v1.1.0, AKIOS has a <strong>plugin system</strong> for custom agents. Install any pip package that registers an <code>akios.agents</code> entry point:</p>
+<pre><code class="language-bash">pip install akios-my-custom-agent
+</code></pre>
+<p>The plugin agent appears alongside the 6 built-in agents. For simpler needs, use the <code>tool_executor</code> agent:</p>
 <pre><code class="language-yaml">steps:
   - agent: tool_executor
     action: run
@@ -249,16 +258,19 @@ python3 --version
 <p>Anything outside these paths is denied.</p>
 <h3>PII Redaction</h3>
 <p>Real-time masking, hashing, or removal of sensitive patterns:</p>
-<p><strong>Redacts 53 pattern types:</strong></p>
+<p><strong>Redacts 44 pattern types:</strong></p>
 <ul>
 <li>Email addresses</li>
 <li>Phone numbers</li>
 <li>Credit cards</li>
 <li>Social Security Numbers</li>
 <li>API keys</li>
-<li>Passwords</li>
+<li>JWTs</li>
 <li>And more...</li>
 </ul>
+<blockquote>
+<p><strong>Note:</strong> Healthcare-specific patterns (NPI, DEA, MRN) were moved to the EnforceCore NER backend in v1.4.0. Install <code>enforcecore[ner]</code> for those.</p>
+</blockquote>
 <p><strong>Strategies:</strong></p>
 <ul>
 <li><code>mask</code> - Replace with <code>[REDACTED]</code></li>
@@ -299,7 +311,7 @@ cost_kill_enabled: true         # auto-terminate
 </code></pre>
 <p>Prevents runaway costs from infinite loops or excessive API calls.</p>
 <h3>Agents</h3>
-<p>The four core primitives for building workflows:</p>
+<p>The six core primitives for building workflows:</p>
 <p><strong>📚 filesystem</strong> - File operations</p>
 <ul>
 <li>read, write, list, stat, exists</li>
@@ -320,7 +332,17 @@ cost_kill_enabled: true         # auto-terminate
 <li>run allowlisted commands</li>
 <li>Sandboxed subprocess</li>
 </ul>
-<p>No arbitrary code execution — only these four agents.</p>
+<p><strong>🔔 webhook</strong> (v1.1.0+) - Notifications</p>
+<ul>
+<li>notify (Slack, Teams, Discord, PagerDuty)</li>
+<li>send (generic HTTP POST)</li>
+</ul>
+<p><strong>🗄️ database</strong> (v1.1.0+) - Database queries</p>
+<ul>
+<li>query, count, execute</li>
+<li>Read-only by default</li>
+</ul>
+<p>Custom agents available via the plugin system (v1.1.0+).</p>
 <h3>Workflow</h3>
 <p>YAML file defining a sequence of agent actions:</p>
 <pre><code class="language-yaml">steps:
@@ -378,7 +400,7 @@ cost_kill_enabled: true         # auto-terminate
 <li><code>retry</code> — Retry with <code>retry_count</code> and <code>retry_delay</code></li>
 </ul>
 <h3>PIIDetectorProtocol</h3>
-<p>A pluggable interface (Python Protocol class) for custom PII detection backends. Implement this protocol to add domain-specific PII patterns beyond the built-in 53 patterns.</p>
+<p>A pluggable interface (Python Protocol class) for custom PII detection backends. Implement this protocol to add domain-specific PII patterns beyond the built-in 44 patterns. The EnforceCore NER backend (<code>enforcecore[ner]</code>) implements this protocol for entity-based PII detection.</p>
 <h3>Context Keywords</h3>
 <p>A list of domain-specific terms (e.g., <code>policy_number</code>, <code>account_ref</code>) that suppress false-positive PII matches. Configured via <code>context_keywords</code> in <code>config.yaml</code>.</p>
 <h2>Related Docs</h2>

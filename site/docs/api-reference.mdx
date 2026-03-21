@@ -157,17 +157,23 @@ response = http.delete(url)
 
 ### LlmAgent
 
-AI model calls with budget tracking.
+AI model calls with budget tracking. Supports 7 providers: OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock (IAM), and Ollama (local).
 
 ```python
 from akios.core.runtime.agents.llm import LlmAgent
 
-# Create agent
+# Create agent (cloud provider)
 llm = LlmAgent({
     "provider": "grok",
     "model": "grok-3",
     "api_key": "your-key",
     "budget_limit": 1.0  # USD
+})
+
+# Or use Ollama for local models (no API key needed)
+llm_local = LlmAgent({
+    "provider": "ollama",
+    "model": "llama3.2"
 })
 
 # Generate completion
@@ -212,6 +218,96 @@ print(result["stdout"])
 
 **Available methods:**
 - `run(command, timeout=30)` → dict
+
+### WebhookAgent (v1.1.0+)
+
+Send webhook notifications to external platforms.
+
+```python
+from akios.core.runtime.agents.webhook import WebhookAgent
+
+# Create agent
+webhook = WebhookAgent({
+    "network_access_allowed": True
+})
+
+# Send notification
+result = webhook.notify(
+    url="https://hooks.slack.com/services/T.../B.../xxx",
+    payload={"text": "Workflow complete"},
+    platform="slack"
+)
+
+# Generic POST
+result = webhook.send(
+    url="https://api.example.com/webhook",
+    payload={"event": "done", "status": "success"}
+)
+```
+
+**Available methods:**
+- `notify(url, payload, platform=None)` → dict
+- `send(url, payload, headers=None)` → dict
+
+**Supported platforms:** Slack, Microsoft Teams, Discord, PagerDuty, generic HTTP POST.
+
+### DatabaseAgent (v1.1.0+)
+
+Read-only database queries with parameterised execution.
+
+```python
+from akios.core.runtime.agents.database import DatabaseAgent
+
+# Create agent
+db = DatabaseAgent({
+    "connection_string": "sqlite:///data/app.db"
+})
+
+# Query
+rows = db.query(
+    sql="SELECT * FROM users WHERE status = ?",
+    params=["active"]
+)
+print(f"Found {len(rows)} active users")
+
+# Count
+count = db.count("SELECT COUNT(*) FROM orders")
+print(f"Total orders: {count}")
+```
+
+**Available methods:**
+- `query(sql, params=None)` → List[dict]
+- `count(sql, params=None)` → int
+- `execute(sql, params=None)` → dict (requires `allow_writes: true`)
+
+## REST API (v1.0.9+)
+
+AKIOS exposes a FastAPI-based REST API via `akios serve`.
+
+```python
+import httpx
+
+# Run a workflow via REST API
+response = httpx.post("http://localhost:8000/api/v1/workflow/run", json={
+    "workflow": "workflows/process-document.yml",
+    "context": {"user_id": "123"}
+})
+print(response.json())
+
+# Check health
+response = httpx.get("http://localhost:8000/api/v1/health")
+print(response.json())  # {"status": "ok"}
+```
+
+**Endpoints:**
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | `/api/v1/health` | Health check |
+| POST | `/api/v1/workflow/run` | Run a workflow |
+| GET | `/api/v1/workflow/list` | List available workflows |
+| POST | `/api/v1/workflow/validate` | Validate a workflow |
+| GET | `/api/v1/status` | System status |
+| GET | `/api/v1/version` | Version info |
 
 ## Error Handling
 
@@ -424,7 +520,7 @@ class CustomDetector(PIIDetectorProtocol):
         ...
 ```
 
-The default regex-based detector covers 53 patterns with >95% accuracy.
+The default regex-based detector covers 44 patterns with >95% accuracy. For additional PII categories (healthcare, financial), use the EnforceCore NER backend (`enforcecore[ner]`).
 
 ## Legacy Compatibility
 

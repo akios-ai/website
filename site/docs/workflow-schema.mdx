@@ -29,7 +29,7 @@ steps:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `step` | number | No | Optional step number (auto-assigned) |
-| `agent` | string | Yes | Agent to execute: `llm`, `http`, `filesystem`, `tool_executor` |
+| `agent` | string | Yes | Agent to execute: `llm`, `http`, `filesystem`, `tool_executor`, `webhook`, `database` |
 | `action` | string | Yes | Agent-specific action (see below) |
 | `config` | object | No | Agent configuration overrides |
 | `parameters` | object | Yes | Action-specific parameters |
@@ -92,7 +92,7 @@ steps:
   action: complete
   parameters:
     prompt: "Summarize the following document"
-    model: gpt-3.5-turbo      # optional, uses config default
+    model: gpt-4o              # optional, uses config default
     max_tokens: 1000           # optional, default 1000
     temperature: 0.7           # optional, default 0.7
 ```
@@ -109,11 +109,13 @@ steps:
 ```
 
 **Supported providers & models:**
-- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini`
+- OpenAI: `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`
 - Anthropic: `claude-3.5-haiku`, `claude-3.5-sonnet`
 - Grok: `grok-3`
 - Mistral: `mistral-small`, `mistral-medium`, `mistral-large`
 - Gemini: `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`
+- AWS Bedrock: `anthropic.claude-3-5-sonnet-*`, `meta.llama3-*`, `amazon.titan-*`
+- Ollama: `llama3.2`, `llama3`, `mistral`, `codellama`, `gemma2`, `phi3` (local models, no API key)
 
 ### HTTP Agent
 
@@ -178,6 +180,97 @@ Write is disabled by default. PII redaction applies to all content.
 **Allowed commands:** `echo`, `cat`, `grep`, `head`, `tail`, `wc`, `sort`, `uniq`, `cut`, `tr`, `date`, `pwd`, `ls`, `find`, `ps`, `df`, `free`
 
 **Limits:** 30s default timeout (300s max), 1MB max output.
+
+### Webhook Agent (v1.1.0+)
+
+**Actions:** `notify`, `send`
+
+```yaml
+- agent: webhook
+  action: notify
+  parameters:
+    platform: slack
+    webhook_url: "${SLACK_WEBHOOK_URL}"
+    message: "Workflow completed: ${steps.1.output}"
+```
+
+```yaml
+- agent: webhook
+  action: send
+  parameters:
+    platform: teams
+    webhook_url: "${TEAMS_WEBHOOK_URL}"
+    message: "Alert: ${alert_text}"
+```
+
+**Supported platforms:** `slack` (Slack blocks), `teams` (Teams cards), `discord` (Discord messages), `generic` (plain HTTP POST).
+
+**Security:** PII redaction on messages, HTTPS enforcement, rate limiting (10/min).
+
+### Database Agent (v1.1.0+)
+
+**Actions:** `query`, `execute`, `count`
+
+```yaml
+- agent: database
+  action: query
+  parameters:
+    backend: sqlite
+    connection: "data/app.db"
+    sql: "SELECT * FROM users WHERE status = ?"
+    params: ["active"]
+    max_rows: 100
+```
+
+```yaml
+- agent: database
+  action: count
+  parameters:
+    backend: postgresql
+    connection: "${DATABASE_URL}"
+    sql: "SELECT COUNT(*) FROM orders WHERE created_at > ?"
+    params: ["2026-01-01"]
+```
+
+**Security:** Parameterized queries only (no raw SQL), DDL always blocked, read-only by default. PII redaction on query results, audit logging of all queries. Max 10,000 rows, 60s timeout.
+
+## Parallel Execution (v1.1.0+)
+
+Run steps concurrently with `parallel:` blocks:
+
+```yaml
+name: "parallel-enrichment"
+description: "Fetch data from multiple sources simultaneously"
+steps:
+  - step: 1
+    agent: filesystem
+    action: read
+    parameters:
+      path: "data/input/document.txt"
+
+  - parallel:
+    - agent: llm
+      action: complete
+      parameters:
+        prompt: "Summarize: ${steps.1.output}"
+    - agent: http
+      action: get
+      parameters:
+        url: "https://api.example.com/enrich"
+    - agent: llm
+      action: complete
+      parameters:
+        prompt: "Extract entities: ${steps.1.output}"
+
+  - step: 3
+    agent: filesystem
+    action: write
+    parameters:
+      path: "data/output/enriched.txt"
+      content: "${parallel.output}"
+```
+
+**Constraints:** ThreadPoolExecutor with max 4 workers. Thread-safe execution context and cost tracking. Kill switches evaluated between parallel groups. No nested parallel blocks.
 
 ## Complete Workflow Examples
 
@@ -273,7 +366,7 @@ Workflows are validated at `akios run` time (<50ms overhead). Validation checks:
 | Error | Fix |
 |-------|-----|
 | Missing `agent` field | Add `agent: llm` (or http/filesystem/tool_executor) |
-| Unknown agent | Use one of: `llm`, `http`, `filesystem`, `tool_executor` |
+| Unknown agent | Use one of: `llm`, `http`, `filesystem`, `tool_executor`, `webhook`, `database` |
 | Invalid action | Check agent-specific actions above |
 | Missing parameters | Add required `parameters` block |
 | Path not allowed | Use allowed paths only |

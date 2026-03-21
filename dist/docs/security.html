@@ -193,22 +193,24 @@ akios cage up --no-budget   # Disable budget enforcement only
 </code></pre>
 <h3>2. PII Redaction</h3>
 <p><strong>What it does:</strong> Automatically removes sensitive data</p>
-<p><strong>Protected data types (53 patterns across 6 categories):</strong></p>
+<p><strong>Protected data types (44 patterns across 6 categories):</strong></p>
 <ul>
-<li>Email addresses, phone numbers</li>
-<li>Social Security numbers, credit cards</li>
-<li>API keys, passwords, tokens</li>
-<li>IP addresses, MAC addresses</li>
-<li>Medical records, health data (NPI, DEA, MRN)</li>
-<li>Financial account numbers</li>
-<li>Insurance data (policy numbers, group numbers, claim numbers, prior-authorization numbers)</li>
+<li>Email addresses, phone numbers (FR/US/UK/DE)</li>
+<li>Social Security numbers (US + French), credit cards</li>
+<li>API keys, passwords, tokens, AWS keys, JWT</li>
+<li>IP addresses (IPv4/IPv6), MAC addresses</li>
+<li>Health insurance IDs, medical records, medication dosages, lab results, diagnosis codes</li>
+<li>Postal addresses, GPS coordinates</li>
 </ul>
+<blockquote>
+<p><strong>Note (v1.4.0):</strong> Specialized healthcare identifiers (NPI, DEA, MRN) and financial patterns (IBAN, BIC, routing numbers) were removed from AKIOS OSS to focus on general-purpose detection. Contact us if you need extended PII coverage.</p>
+</blockquote>
 <p><strong>Applied twice:</strong></p>
 <ul>
 <li>Before sending to AI providers (inputs)</li>
 <li>After receiving from AI providers (outputs)</li>
 </ul>
-<p><strong>Pluggable PII backend:</strong> AKIOS uses a <code>PIIDetectorProtocol</code> interface, allowing custom PII detection implementations. The default regex-based detector covers 53 patterns with &gt;95% accuracy.</p>
+<p><strong>Pluggable PII backend:</strong> AKIOS uses a <code>PIIDetectorProtocol</code> interface, allowing custom PII detection implementations. The default regex-based detector covers 44 patterns with &gt;95% accuracy. When EnforceCore is installed (<code>pip install akios[enforcecore]</code>), an additional NER-based detection tier (Presidio) and 11-category secret scanner are layered on top.</p>
 <p><strong>Context keywords:</strong> Reduce false-positive PII matches by requiring contextual keywords near a pattern match. Configure <code>context_keywords</code> in your policy to require words like &quot;SSN&quot;, &quot;social security&quot;, or &quot;tax ID&quot; near a numeric pattern before flagging it.</p>
 <p><strong>Verify it&#39;s working:</strong></p>
 <pre><code class="language-bash">akios status --security
@@ -254,19 +256,14 @@ akios cage up --no-budget   # Disable budget enforcement only
 <td>4111-1111-1111-1111 → <code>«CREDIT_CARD»</code></td>
 </tr>
 <tr>
-<td>NPI</td>
-<td><code>«NPI»</code></td>
-<td>1234567890 → <code>«NPI»</code></td>
+<td>API Key</td>
+<td><code>«API_KEY»</code></td>
+<td>sk-abc123... → <code>«API_KEY»</code></td>
 </tr>
 <tr>
-<td>DEA</td>
-<td><code>«DEA»</code></td>
-<td>AB1234567 → <code>«DEA»</code></td>
-</tr>
-<tr>
-<td>MRN</td>
-<td><code>«MRN»</code></td>
-<td>MRN-2024-001 → <code>«MRN»</code></td>
+<td>JWT</td>
+<td><code>«JWT»</code></td>
+<td>eyJhbG... → <code>«JWT»</code></td>
 </tr>
 </tbody></table>
 <p><strong>Scan files before processing:</strong></p>
@@ -311,11 +308,13 @@ akios audit stats
 <h2>HTTPS Enforcement</h2>
 <p>All external API calls made by AKIOS are restricted to HTTPS. Plain HTTP requests are rejected at the transport layer. This applies to:</p>
 <ul>
-<li>LLM provider calls (OpenAI, Anthropic, Grok, Mistral, Gemini)</li>
+<li>LLM provider calls (OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock)</li>
 <li>HTTP agent requests to <code>allowed_domains</code></li>
 <li>Any external call made within the security cage</li>
 </ul>
-<p>There is no option to downgrade to HTTP. This is a structural guarantee, not a configuration choice.</p>
+<blockquote>
+<p><strong>Note:</strong> Ollama runs locally (default <code>http://localhost:11434</code>) and is exempt from the HTTPS requirement since traffic never leaves the machine.</p>
+</blockquote>
 <h2>Check Your Security Status</h2>
 <p><strong>Quick check:</strong></p>
 <pre><code class="language-bash">akios status
@@ -441,10 +440,10 @@ allowed_domains:
 <h2>Non-Root Docker Containers</h2>
 <p>As of v1.0.10, the official AKIOS Docker image runs as a non-root <code>akios</code> user by default. Containers no longer run as root, reducing the blast radius of any container escape vulnerability.</p>
 <pre><code class="language-bash"># Official image — already non-root
-docker run --rm akiosai/akios:v1.0.15 status
+docker run --rm akiosai/akios:v1.6.0 status
 
 # Verify
-docker run --rm akiosai/akios:v1.0.15 id
+docker run --rm akiosai/akios:v1.6.0 id
 # uid=1000(akios) gid=1000(akios)
 </code></pre>
 <h2>Safe Condition Evaluator</h2>

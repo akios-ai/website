@@ -1,6 +1,96 @@
 # Migration Guide
 
-Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.0.12–V1.0.15 updates, the V1.0.11 update, and the original pre-V1.0 migration.
+Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.1.0–V1.6.0 updates, the V1.0.12–V1.0.15 updates, and the original pre-V1.0 migration.
+
+## Upgrading to V1.6.0 (from V1.0.15)
+
+V1.6.0 is a **major feature release** with new agents, parallel execution, a plugin system, a REST API, Ollama support, and EnforceCore integration. Most changes are additive — existing workflows continue to work unchanged.
+
+```bash
+# Pip
+pip install --upgrade akios
+
+# Docker — pull latest image
+docker pull akiosai/akios:v{{version}}
+
+# Verify
+akios --version
+```
+
+### What's New in V1.1.0–V1.6.0
+
+**v1.1.0 — Webhook & Database Agents + Parallel Execution:**
+- **2 new agents** — `webhook` (Slack, Teams, Discord, PagerDuty) and `database` (SQLite, PostgreSQL read queries)
+- **Parallel execution** — `parallel:` blocks in workflow YAML run steps concurrently
+- **Plugin system** — pip-installable agent packages via `akios.agents` entry points
+- **Doctor redesigned** — 9 diagnostic checks with structured output
+
+**v1.2.0 — EnforceCore Integration:**
+- **`pip install akios[enforcecore]`** — optional dependency activates EnforceCore as enforcement backend
+- **`use_enforcecore: true`** in `config.yaml` delegates policy, PII, and audit to EnforceCore
+- **`akios protect secrets`** — scan for leaked secrets (requires EnforceCore)
+
+**v1.3.0 — Merkle Bridge:**
+- **Merkle Bridge** — links AKIOS audit entries to EnforceCore's audit store via `external_hash`
+
+**v1.4.0 — PII Boundary Change (⚠ Breaking):**
+- **53 → 44 PII patterns** — 8 healthcare-specific patterns (NPI, DEA, MRN, etc.) and 5 financial patterns removed from OSS; available via EnforceCore NER backend (`enforcecore[ner]`)
+- **Pluggable PII backend** now supports EnforceCore NER + secret scanner
+
+**v1.4.2 — Ollama Provider:**
+- **Ollama support** — run local open-source models (llama3.2, mistral, codellama, etc.)
+- **No API key needed** — set `AKIOS_LLM_PROVIDER=ollama` and `OLLAMA_HOST=http://localhost:11434`
+- HTTPS enforcement exempted for `localhost` / `127.0.0.1`
+
+**v1.5.0 — Dashboard, Reports, Audit Tools:**
+- **`akios run --report`** — generate HTML security posture report after execution
+- **`akios audit migrate`** — migrate JSONL audit to SQLite or PostgreSQL
+- **`akios audit prune`** — enforce retention policies on audit ledger
+- **`audit_retention_days` / `audit_archive_days`** config settings
+
+**v1.5.2 — PII Restoration:**
+- **5 general health patterns restored** — brings total back to 44 from 39
+
+**v1.6.0 — Compliance Dashboard:**
+- **`akios dashboard`** — local compliance dashboard reading from audit trail
+- Minor bug fixes and performance improvements
+
+### Migration Notes
+
+**PII boundary change (v1.4.0 — ⚠ Breaking):** If you relied on healthcare PII patterns (NPI, DEA, MRN) or financial patterns in the OSS regex engine, these are now available only via EnforceCore's NER backend:
+```bash
+pip install akios[enforcecore] enforcecore[ner]
+# Then in config.yaml:
+use_enforcecore: true
+```
+
+**Ollama users (v1.4.2+):** Install Ollama separately, then configure:
+```bash
+AKIOS_LLM_PROVIDER=ollama
+AKIOS_LLM_MODEL=llama3.2
+OLLAMA_HOST=http://localhost:11434
+```
+
+**New agents (v1.1.0+):** No migration needed — `webhook` and `database` agents are additive. Existing workflows using only `filesystem`, `http`, `llm`, `tool_executor` continue unchanged.
+
+**Plugin system (v1.1.0+):** If you wrote custom `tool_executor` wrappers, consider converting to proper plugins:
+```bash
+pip install akios-my-plugin  # Any package with akios.agents entry point
+```
+
+**Audit migration (v1.5.0+):** Optionally migrate your JSONL audit ledger to a database:
+```bash
+akios audit migrate --backend sqlite --target audit/audit.db
+```
+
+**Verification after upgrade:**
+```bash
+akios --version                    # Should show {{version}}
+akios status --security            # Verify all protections active
+akios doctor                       # Run 9 diagnostic checks
+```
+
+---
 
 ## Upgrading to V1.0.15 (from V1.0.11)
 

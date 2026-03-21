@@ -135,7 +135,7 @@
 <p>On t4g.micro (our validated baseline as of v1.0.11):</p>
 <ul>
 <li><strong>Security pipeline:</strong> ~0.47ms (full pipeline: PII + policy + audit + budget)</li>
-<li><strong>PII scan:</strong> ~0.46ms (53 regex patterns)</li>
+<li><strong>PII scan:</strong> ~0.46ms (44 regex patterns)</li>
 <li><strong>Merkle hash:</strong> ~0.001ms (SHA-256)</li>
 <li><strong>Docker cold start:</strong> ~1.4s</li>
 </ul>
@@ -220,7 +220,7 @@ cat audit/audit_events.jsonl | head -3
 <p>✅ <strong>We provide:</strong></p>
 <ul>
 <li>Secure sandbox isolation</li>
-<li>PII redaction (53 patterns)</li>
+<li>PII redaction (44 patterns)</li>
 <li>Audit logging</li>
 <li>Budget controls for LLM API calls</li>
 </ul>

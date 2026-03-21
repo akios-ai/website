@@ -120,13 +120,15 @@ on_violation: "block"
 
 Real-time PII detection and redaction on both inputs and outputs.
 
-- **5 categories:** email, phone, SSN, credit card, IP address
+- **6 categories:** email, phone, SSN, credit card, IP address, passport
 - **4 strategies:** placeholder (`<EMAIL>`), mask, hash, remove
-- **Compiled regex** — no heavy NLP deps (no spaCy, no Presidio)
+- **Compiled regex** — no heavy NLP deps by default
+- **NER backend** (v1.4.0+) — optional Presidio-based detection via `enforcecore[ner]` for healthcare, financial, and domain-specific PII
 - **~0.1–0.5ms per call** — fast enough for production
 - **Unicode hardening** — NFC normalization, homoglyph detection, URL/HTML decoding
 - **Secret scanner** — 11 built-in categories for credential detection (AWS keys, GitHub tokens, GCP, Azure, database URIs, SSH keys, and more)
 - **Custom patterns** — `PatternRegistry` for domain-specific detectors
+- **Sensitivity labels** (v1.4.0+) — IFC-inspired flow labels (`PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED`)
 
 ```python
 # Standalone usage
@@ -146,6 +148,8 @@ Tamper-proof, cryptographically verifiable audit trails.
 - 14-field audit entries (tool, policy, decision, timing, redaction counts, hashes)
 - Cross-session chain continuity
 - Tamper detection: modified, deleted, inserted, or reordered entries- **OS-enforced append-only** — `Auditor(immutable=True)` sets `chattr +a` (Linux) or `chflags uappend` (macOS) on the audit file, preventing truncation or chain rebuild even by the file owner
+- **Pluggable audit stores** (v1.2.0+) — `JsonlAuditStore`, `SqliteAuditStore`, `PostgresAuditStore` — choose your persistence backend
+- **Merkle Bridge** (v1.12.0+) — `external_hash` and `skip_entry_hash` fields for linking with AKIOS audit entries
 - **Hash-only remote witness** — `Auditor(witness=...)` publishes entry hashes to a separate backend (`CallbackWitness`, `FileWitness`, `LogWitness`), enabling tamper detection even if an attacker rebuilds the Merkle chain
 - **`verify_with_witness()`** — cross-checks trail hashes against witness records to detect chain-rebuild attacks
 - **Settings-driven** — enable via `ENFORCECORE_AUDIT_IMMUTABLE=true` and `ENFORCECORE_AUDIT_WITNESS_FILE=/path` without code changes
@@ -225,24 +229,31 @@ enforcecore/
 │   ├── types.py          ← Shared types, exceptions, enums
 │   ├── policy.py         ← Policy models + engine + merge/composition
 │   ├── enforcer.py       ← Main coordinator
+│   ├── multitenant.py    ← MultiTenantEnforcer (v1.6.0+)
+│   ├── policy_server.py  ← PolicyServerClient (v1.7.0+)
 │   └── config.py         ← Global configuration
 ├── redactor/
 │   ├── engine.py         ← PII detection + redaction
 │   ├── strategies.py     ← Redaction strategies
 │   ├── secrets.py        ← Secret scanner (11 categories)
-│   └── patterns.py       ← Custom pattern registry
+│   ├── patterns.py       ← Custom pattern registry
+│   ├── ner.py            ← NER-based PII (Presidio, v1.4.0+)
+│   ├── sensitivity.py    ← Sensitivity labels (v1.4.0+)
+│   └── streaming.py      ← StreamingRedactor (v1.11.0+)
 ├── auditor/
 │   ├── merkle.py         ← Merkle tree implementation
 │   ├── logger.py         ← Audit log writer
 │   ├── verifier.py       ← Trail verification
 │   ├── backends.py       ← JSONL, Null, Callback, Multi backends
+│   ├── stores.py         ← SQLite, PostgreSQL audit stores (v1.2.0+)
 │   ├── witness.py        ← CallbackWitness, FileWitness, LogWitness
 │   ├── immutable.py      ← OS-enforced append-only (chattr/chflags)
 │   └── rotation.py       ← Size-based rotation + gzip
 ├── guard/
 │   ├── platform.py       ← Platform detection
 │   ├── resource.py       ← Resource limits + shared thread pool
-│   └── killswitch.py     ← Hard termination
+│   ├── killswitch.py     ← Hard termination
+│   └── sandbox.py        ← SubprocessSandbox (v1.3.0+)
 ├── rules/
 │   ├── engine.py         ← Content rule engine
 │   ├── builtins.py       ← Shell injection, path traversal, SQL, code exec
@@ -253,16 +264,23 @@ enforcecore/
 │   ├── registry.py       ← Hook registration + dispatch
 │   └── decorators.py     ← @on_pre_call, @on_post_call, etc.
 ├── observability/
-│   ├── metrics.py        ← OpenTelemetry counters
+│   ├── metrics.py        ← OpenTelemetry counters + Prometheus
 │   ├── instrumentor.py   ← OpenTelemetry spans
 │   └── webhooks.py       ← HTTP event webhooks
+├── plugins/              ← Plugin system (v1.9.0+)
+│   ├── base.py           ← GuardPlugin, RedactorPlugin, AuditBackendPlugin
+│   └── manager.py        ← PluginManager + discovery
+├── compliance/           ← Compliance reporting (v1.8.0+)
+│   ├── reporter.py       ← ComplianceReporter
+│   └── frameworks.py     ← EU AI Act, SOC 2, GDPR templates
 ├── integrations/
 │   ├── langgraph.py      ← LangGraph adapter
 │   ├── crewai.py         ← CrewAI adapter
-│   └── autogen.py        ← AutoGen adapter
+│   ├── autogen.py        ← AutoGen adapter
+│   └── langchain.py      ← LangChain callback handler (v1.13.0+)
 ├── eval/                 ← Evaluation suite (20 scenarios, 15 benchmarks)
 ├── cli/                  ← CLI commands (info, validate, verify, eval, dry-run, inspect)
-└── __init__.py           ← Public API (30 Tier 1 + 80 Tier 2 symbols)
+└── __init__.py           ← Public API (63 symbols)
 ```
 
 ---

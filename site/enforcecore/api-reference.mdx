@@ -5,11 +5,11 @@ keywords: enforcecore api reference enforce decorator enforcer policy redactor a
 
 # API Reference
 
-EnforceCore exposes **30 Tier 1 public symbols** from the top-level `enforcecore` package — the stable, frozen contract. An additional 80 Tier 2 symbols remain importable for backwards compatibility but are not covered by the stability guarantee.
+EnforceCore exposes **63 public API symbols** from the top-level `enforcecore` package — the stable contract. Additional internal symbols remain importable for backwards compatibility but are not covered by the stability guarantee.
 
-> **API Stability:** The 30 Tier 1 symbols are frozen as of v1.0.0b1. No additions or removals until v2.0.0. Tier 2 imports emit deprecation warnings and may be reorganized in v2.0.
+> **API Stability:** The 63 public symbols follow semantic versioning as of v1.2.0. Breaking changes only in major releases.
 
-### Tier 1 Symbols (Stable — 30)
+### Public API Symbols (63)
 
 | Category | Symbols |
 |---|---|
@@ -17,11 +17,19 @@ EnforceCore exposes **30 Tier 1 public symbols** from the top-level `enforcecore
 | **Policy** | `Policy`, `load_policy` |
 | **Redaction** | `Redactor`, `RedactionResult`, `RedactionStrategy`, `SecretScanner` |
 | **Audit** | `Auditor`, `AuditEntry`, `VerificationResult`, `verify_trail`, `load_trail` |
+| **Audit Stores** (v1.2.0+) | `JsonlAuditStore`, `SqliteAuditStore`, `PostgresAuditStore` |
 | **Resource Management** | `ResourceGuard`, `CostTracker`, `KillSwitch`, `RateLimiter` |
+| **Subprocess Sandbox** (v1.3.0+) | `SubprocessSandbox`, `SandboxViolationError` |
+| **Sensitivity Labels** (v1.4.0+) | `SensitivityEnforcer`, `SensitivityLabel`, `SensitivityViolationError` |
+| **NER PII** (v1.4.0+) | `NERRedactor` (requires `enforcecore[ner]`) |
+| **Multi-Tenant** (v1.6.0+) | `MultiTenantEnforcer` |
+| **Policy Server** (v1.7.0+) | `PolicyServerClient`, `PolicyServerError` |
+| **Compliance** (v1.8.0+) | `ComplianceReporter`, `ComplianceError` |
+| **Plugins** (v1.9.0+) | `GuardPlugin`, `RedactorPlugin`, `AuditBackendPlugin`, `PluginManager`, `PluginLoadError` |
+| **Streaming** (v1.11.0+) | `stream_enforce`, `StreamingRedactor`, `StreamingViolation`, `StreamingContext`, `StreamingResult` |
+| **LangChain** (v1.13.0+) | `EnforceCoreCallbackHandler` |
 | **Exceptions** | `EnforceCoreError`, `EnforcementViolation`, `ToolDeniedError`, `ContentViolationError`, `PolicyError`, `PolicyLoadError`, `CostLimitError`, `ResourceLimitError` |
 | **Configuration** | `Settings`, `settings`, `__version__` |
-
-> **Tip:** If you only import Tier 1 symbols, your code is guaranteed forward-compatible through the entire v1.x series.
 
 ---
 

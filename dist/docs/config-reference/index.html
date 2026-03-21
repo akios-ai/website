@@ -139,7 +139,7 @@ pii_redaction_enabled: true
 <p>Store sensitive configuration in the <code>.env</code> file:</p>
 <h3>AI Provider Settings</h3>
 <pre><code class="language-bash"># Choose your provider
-AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini, bedrock
+AKIOS_LLM_PROVIDER=grok  # openai, anthropic, grok, mistral, gemini, bedrock, ollama
 
 # Choose your model
 AKIOS_LLM_MODEL=grok-3   # Provider-specific model name
@@ -151,6 +151,10 @@ GROK_API_KEY=your-key-here
 AKIOS_BEDROCK_MODEL_ID=anthropic.claude-3-5-sonnet-20241022-v2:0
 AKIOS_BEDROCK_REGION=us-east-1
 # IAM credentials picked up automatically from AWS CLI / instance profile
+
+# Ollama settings (v1.4.2+)
+OLLAMA_HOST=http://localhost:11434   # Ollama server address
+# No API key needed — Ollama runs locally
 </code></pre>
 <h3>Mode Settings</h3>
 <pre><code class="language-bash"># Use real AI APIs (0) or mock responses (1)
@@ -301,6 +305,25 @@ allowed_domains:
 <li>Format for audit exports</li>
 <li><strong>Default:</strong> <code>json</code></li>
 </ul>
+<p><strong><code>audit_retention_days: 0</code></strong> (v1.5.0+)</p>
+<ul>
+<li>Automatically prune audit events older than this many days when running <code>akios audit prune</code></li>
+<li><code>0</code> means no automatic pruning</li>
+<li><strong>Default:</strong> <code>0</code></li>
+</ul>
+<p><strong><code>audit_archive_days: 0</code></strong> (v1.5.0+)</p>
+<ul>
+<li>Compress and archive audit events older than this many days (<code>.gz</code> files)</li>
+<li><code>0</code> means no automatic archiving</li>
+<li><strong>Default:</strong> <code>0</code></li>
+</ul>
+<p><strong><code>use_enforcecore: false</code></strong> (v1.2.0+)</p>
+<ul>
+<li>Enable EnforceCore integration for enhanced enforcement</li>
+<li>Requires <code>pip install akios[enforcecore]</code></li>
+<li>When enabled, AKIOS delegates policy evaluation, PII redaction, and audit to EnforceCore</li>
+<li><strong>Default:</strong> <code>false</code></li>
+</ul>
 <h3>General Settings</h3>
 <p><strong><code>environment: &quot;development&quot;</code></strong></p>
 <ul>
@@ -393,12 +416,13 @@ akios setup --force
 </code></pre>
 <p><strong>Invalid provider/model:</strong></p>
 <ul>
-<li>OpenAI: <code>gpt-3.5-turbo</code>, <code>gpt-4</code>, <code>gpt-4-turbo</code>, <code>gpt-4o</code>, <code>gpt-4o-mini</code></li>
+<li>OpenAI: <code>gpt-4o</code>, <code>gpt-4o-mini</code>, <code>gpt-4-turbo</code></li>
 <li>Anthropic: <code>claude-3.5-haiku</code>, <code>claude-3.5-sonnet</code></li>
 <li>Grok: <code>grok-3</code></li>
 <li>Mistral: <code>mistral-small</code>, <code>mistral-medium</code>, <code>mistral-large</code></li>
 <li>Gemini: <code>gemini-1.0-pro</code>, <code>gemini-1.5-pro</code>, <code>gemini-1.5-flash</code></li>
 <li>Bedrock: <code>anthropic.claude-*</code>, <code>meta.llama*</code>, <code>amazon.titan-*</code> (IAM auth, v1.0.13+)</li>
+<li>Ollama: <code>llama3.2</code>, <code>llama3</code>, <code>mistral</code>, <code>codellama</code>, <code>gemma2</code>, <code>phi3</code> (local, v1.4.2+)</li>
 </ul>
 <p><strong>API key issues:</strong></p>
 <pre><code class="language-bash"># Run setup wizard to fix

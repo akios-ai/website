@@ -104,11 +104,11 @@
             <main class="docs-content">
                 <h1>Quickstart Guide</h1>
 <blockquote>
-<p><strong>Current Version:</strong> <code>1.0.15</code></p>
+<p><strong>Current Version:</strong> <code>1.6.0</code></p>
 </blockquote>
 <p>Go from zero to your first secure AI workflow in 15 minutes. This guide walks you through everything step-by-step.</p>
 <blockquote>
-<p><strong>Current version: 1.0.15.</strong> Rich terminal UI, environment auto-detection, accessibility modes, workflow validation, 53 PII patterns, Merkle audit proofs, and ablation benchmarking.</p>
+<p><strong>Current version: 1.6.0.</strong> 6 core agents, 7 LLM providers (including local via Ollama), parallel execution, plugin system, 44 PII patterns, Merkle audit proofs, HTML compliance reports, and ablation benchmarking.</p>
 </blockquote>
 <h2>What You&#39;ll Build</h2>
 <p>By the end of this guide, you&#39;ll have:</p>
@@ -121,13 +121,13 @@
 <h2>Prerequisites</h2>
 <ul>
 <li><strong>5 minutes of your time</strong></li>
-<li><strong>An API key</strong> from OpenAI, Anthropic, Grok, Mistral, or Gemini (get <a href="#step-3-configure-your-api-key-2-minutes">free keys below</a>)</li>
+<li><strong>An API key</strong> from OpenAI, Anthropic, Grok, Mistral, Gemini, or AWS Bedrock (get <a href="#step-3-configure-your-api-key-2-minutes">free keys below</a>) — or use <strong>Ollama</strong> for free local models</li>
 <li><strong>Docker installed</strong> (for cross-platform) OR <strong>Python 3.9+</strong> (for Linux)</li>
 </ul>
 <h2>Step 1: Install AKIOS (2 minutes)</h2>
 <p>Choose your platform:</p>
 <p><strong>Linux users:</strong></p>
-<pre><code class="language-bash">pip install akios&gt;=1.0.15
+<pre><code class="language-bash">pip install akios&gt;=1.6.0
 </code></pre>
 <p><strong>macOS/Windows users or teams:</strong></p>
 <pre><code class="language-bash">curl -O https://raw.githubusercontent.com/akios-ai/akios/main/src/akios/cli/data/wrapper.sh
@@ -164,8 +164,8 @@ akios setup
 </code></pre>
 <p><strong>The wizard asks you:</strong></p>
 <ol>
-<li>Which AI provider? (OpenAI, Anthropic, Grok, Mistral, or Gemini)</li>
-<li>What&#39;s your API key? (Paste it securely)</li>
+<li>Which AI provider? (OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock, or Ollama)</li>
+<li>What&#39;s your API key? (Paste it securely — or skip for Bedrock IAM / Ollama local)</li>
 <li>Set a budget limit? (Default $1.00 per workflow)</li>
 </ol>
 <p><strong>Get free API keys:</strong></p>
@@ -175,6 +175,8 @@ akios setup
 <li><a href="https://console.x.ai/">xAI</a> - Grok models</li>
 <li><a href="https://console.mistral.ai/">Mistral</a> - Mistral models</li>
 <li><a href="https://makersuite.google.com/app/apikey">Google</a> - Gemini models</li>
+<li><a href="https://aws.amazon.com/bedrock/">AWS Bedrock</a> - Claude, Llama, Titan (IAM auth, no API key)</li>
+<li><a href="https://ollama.com/">Ollama</a> - Free local models (Llama, Mistral, Gemma — no API key)</li>
 </ul>
 <h2>Step 4: Run Your First Workflow (5 minutes)</h2>
 <pre><code class="language-bash"># Linux (pip)

@@ -12,7 +12,7 @@ keywords: enforcecore runtime enforcement AI agents policy PII redactor Merkle a
 
 **Lightweight, open-source runtime enforcement for any Python-based AI agent.**
 
-> **Current release: v1.0.1 (stable)** — Production-ready, first stable API, 1,510 tests, 22 formal invariants. [Available on PyPI](https://pypi.org/project/enforcecore/).
+> **Current release: v1.14.0** — Production-ready, 63-symbol public API, 2,347 tests, 22 formal invariants. [Available on PyPI](https://pypi.org/project/enforcecore/).
 
 EnforceCore is a modular enforcement framework that intercepts every external call your agent makes — tool calls, API requests, file access — and applies mandatory policy checks, PII redaction, secret scanning, content rule enforcement, rate limiting, resource limits, and tamper-proof audit logging.
 
@@ -56,18 +56,27 @@ Every enforced call produces a SHA-256 Merkle-chained audit entry. The full trai
 
 | Component | What it does |
 |---|---|
-| **Policy Engine** | Declarative YAML + Pydantic v2 policies. Allowed/denied tools, conditions, violation handling. Policy composition with `extends:` and `Policy.merge()`. |
+| **Policy Engine** | Declarative YAML + Pydantic v2 policies. Allowed/denied tools, conditions, violation handling. Policy composition with `extends:` and `Policy.merge()`. Circular `extends` detection. |
 | **PII Redactor** | Regex-based detection of 6 PII categories. Auto-redacts inputs and outputs. Unicode hardening (NFC, homoglyphs, URL/HTML decoding). ~0.1–0.5 ms per call. |
+| **NER PII Backend** (v1.4.0+) | Presidio-based named entity recognition for PII detection. Install via `enforcecore[ner]`. Covers healthcare, financial, and domain-specific PII beyond regex. |
 | **Secret Scanner** | 11 built-in secret categories (AWS keys, GitHub tokens, GCP service accounts, Azure connection strings, database URIs, SSH keys, and more). Custom patterns via `PatternRegistry`. Shannon entropy filtering for false-positive reduction. |
 | **Content Rules Engine** | 4 built-in rule categories: shell injection, path traversal, SQL injection, code execution. Extensible via `RuleEngine`. |
+| **Subprocess Sandbox** (v1.3.0+) | Process-isolated execution via `multiprocessing.Process`. Prevents sandbox escape. |
+| **Sensitivity Labels** (v1.4.0+) | IFC-inspired information flow labels (`PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED`). `SensitivityEnforcer` blocks data flow from higher to lower labels. |
 | **Rate Limiter** | Per-tool and global sliding-window rate limiting. Prevents runaway agents from exceeding call budgets. |
 | **Network Enforcement** | `DomainChecker` with wildcard allow/deny lists. Block unauthorized outbound connections at the policy level. |
-| **Merkle Auditor** | SHA-256 chained audit trail. Every call logged. Tamper detection built in. 4 pluggable backends (JSONL, Null, Callback, Multi). OS-enforced append-only files (`chattr +a` / `chflags uappend`). 3 witness backends (Callback, File, Log) for hash-only remote tamper detection. Audit rotation with gzip compression. JSON-safety validation on every entry. |
+| **Merkle Auditor** | SHA-256 chained audit trail. Every call logged. Tamper detection built in. Pluggable backends: JSONL, SQLite, PostgreSQL, Null, Callback, Multi. OS-enforced append-only files. 3 witness backends. Audit rotation with gzip compression. Merkle Bridge for AKIOS integration (v1.12.0+). |
 | **Resource Guard** | Time limits, memory limits, cost tracking. Cross-platform (Linux, macOS, Windows). Shared thread pool, leak detection. |
+| **Multi-Tenant** (v1.6.0+) | `MultiTenantEnforcer` — per-tenant policy, audit, and PII isolation. Policy inheritance with `extends:` chains. |
+| **Remote Policy Server** (v1.7.0+) | `PolicyServerClient` — fetch policies from a remote HTTP endpoint with HMAC-SHA256 signature verification and ETag caching. |
+| **Compliance Reporter** (v1.8.0+) | `ComplianceReporter` — generate EU AI Act, SOC 2, and GDPR compliance reports in HTML and JSON. Webhook dispatch for continuous monitoring. |
+| **Plugin Ecosystem** (v1.9.0+) | `GuardPlugin`, `RedactorPlugin`, `AuditBackendPlugin`, `PluginManager`. Build and distribute enforcement plugins via pip packages. |
+| **Streaming Enforcement** (v1.11.0+) | `stream_enforce()`, `StreamingRedactor`, framework adapters (FastAPI, LangChain). Token-by-token enforcement for LLM streaming responses. |
+| **LangChain Integration** (v1.13.0+) | `EnforceCoreCallbackHandler` — drop-in callback for LangChain/LangGraph with automatic enforcement. Accepted upstream in langchain-community. |
 | **Hook System** | 4 lifecycle hooks (pre-call, post-call, violation, redaction) with decorators and `HookRegistry`. Build custom observability pipelines. |
 | **CLI** | 6 commands: `info`, `validate`, `verify`, `eval`, `dry-run`, `inspect`. Validate policies and audit trails from the terminal. |
-| **Observability** | OpenTelemetry integration (`EnforceCoreMetrics` + `EnforceCoreInstrumentor`). Event webhooks for violation/cost/audit events. |
-| **Integration Adapters** | Drop-in adapters for LangGraph, CrewAI, AutoGen. ~20–50 lines each. |
+| **Observability** | OpenTelemetry integration (`enforcecore[otel]`) + Prometheus metrics (`enforcecore[prometheus]`). Event webhooks for violation/cost/audit events. Grafana dashboard template. |
+| **Integration Adapters** | Drop-in adapters for LangGraph, CrewAI, AutoGen, LangChain. ~20–50 lines each. |
 | **Evaluation Suite** | 20 adversarial scenarios across 10 threat categories. 15-benchmark suite with P50/P95/P99/P99.9 stats. |
 
 ---
@@ -80,7 +89,15 @@ pip install enforcecore
 
 Python 3.11+ required. No heavy dependencies — Pydantic v2, PyYAML, structlog, cryptography.
 
-> **Note:** EnforceCore is currently in **beta** (v1.0.0b5). The 30-symbol public API is frozen — no additions or removals until v2.0.0. All 110 original symbols remain importable for backwards compatibility, but the stable contract covers the 30 Tier 1 symbols.
+**Optional extras:**
+```bash
+pip install enforcecore[ner]         # Presidio NER-based PII detection
+pip install enforcecore[otel]        # OpenTelemetry integration
+pip install enforcecore[prometheus]  # Prometheus metrics
+pip install enforcecore[all]         # All extras
+```
+
+> **API stability:** The 63-symbol public API follows semantic versioning. Breaking changes only in major releases.
 
 ---
 
@@ -115,7 +132,7 @@ See the [Quick Start guide](quickstart.html) for a full walkthrough — policy s
 
 EnforceCore backs its guarantees with measurable evidence:
 
-- **1,510 tests**, 95% coverage, 22 formal invariants ([Hypothesis](https://hypothesis.readthedocs.io/) property-based testing)
+- **2,347 tests**, 95% coverage, 22 formal invariants ([Hypothesis](https://hypothesis.readthedocs.io/) property-based testing)
 - **Formal threat model** — 4 adversary types, 4 security properties, tamper-proof audit trails with OS-enforced append-only + witness backends
 - **20 adversarial scenarios** across 10 threat categories, 15 performance benchmarks
 - **0.056 ms** full E2E overhead (P50) — negligible compared to tool call latency

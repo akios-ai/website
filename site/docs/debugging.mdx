@@ -100,11 +100,13 @@ akios status --verbose
 ### "Invalid provider/model combination"
 
 **Supported combinations:**
-- OpenAI: `gpt-3.5-turbo`, `gpt-4`, `gpt-4-turbo`, `gpt-4o`, `gpt-4o-mini`
+- OpenAI: `gpt-4o`, `gpt-4o-mini`, `gpt-4-turbo`
 - Anthropic: `claude-3.5-haiku`, `claude-3.5-sonnet`
 - Grok: `grok-3`
 - Mistral: `mistral-small`, `mistral-medium`, `mistral-large`
 - Gemini: `gemini-1.0-pro`, `gemini-1.5-pro`, `gemini-1.5-flash`
+- Bedrock: `anthropic.claude-*`, `meta.llama*`, `amazon.titan-*` (IAM auth)
+- Ollama: `llama3.2`, `llama3`, `mistral`, `codellama`, `gemma2`, `phi3` (local)
 
 ```bash
 # Fix in .env
@@ -168,7 +170,7 @@ Each step needs:
 - `action` - What action to perform
 - `parameters` - Action-specific settings
 
-**Allowed agents:** `llm`, `http`, `filesystem`, `tool_executor`
+**Allowed agents:** `llm`, `http`, `filesystem`, `tool_executor`, `webhook`, `database`
 
 ### "Path not allowed" (Filesystem Agent)
 

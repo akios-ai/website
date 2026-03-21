@@ -7,7 +7,7 @@
 
 **Runtime enforcement for AI agents. Open source. Framework-agnostic. Apache 2.0.**
 
-> **Current release: v1.0.1 (stable)** — Frozen 30-symbol API, 1,510 tests, 22 formal invariants. See the [full EnforceCore documentation](/enforcecore/) for complete details.
+> **Current release: v1.14.0** — 63-symbol public API, 2,347 tests, 22 formal invariants. See the [full EnforceCore documentation](/enforcecore/) for complete details.
 
 EnforceCore is the open-source enforcement framework that powers [AKIOS](index.html). It provides mandatory policy enforcement at every external call boundary — tool calls, API calls, file access, network access — so that violations become structurally impossible, not just discouraged.
 
@@ -47,7 +47,7 @@ graph TB
         CLI["CLI & Templates"]
         CAGE["Security Cage"]
         DEPLOY["Deployment Tools"]
-        AGENTS["Built-in Agents\nFS / HTTP / LLM / Tool"]
+        AGENTS["Built-in Agents\nFS / HTTP / LLM / Tool / Webhook / DB"]
     end
 
     subgraph ENFORCECORE["EnforceCore (Apache 2.0)"]
@@ -55,6 +55,13 @@ graph TB
         PR2["PII Redactor"]
         MA2["Merkle Auditor"]
         RG2["Resource Guard"]
+        SS2["Subprocess Sandbox"]
+        NER2["NER PII Backend"]
+        SL2["Sensitivity Labels"]
+        MT2["Multi-Tenant"]
+        SR2["Streaming Enforcer"]
+        PL2["Plugin System"]
+        CR2["Compliance Reporter"]
     end
 
     CAGE --> PE2
