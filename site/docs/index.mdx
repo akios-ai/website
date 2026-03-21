@@ -85,7 +85,7 @@ Welcome to the AKIOS documentation.
   </a>
   <a href="migration-guide.html" class="docs-card">
     <h3 class="docs-card-title">Migration →</h3>
-    <p class="docs-card-text">Upgrade to V1.0.15 or migrate from earlier versions safely.</p>
+    <p class="docs-card-text">Upgrade to V1.6.0 or migrate from earlier versions safely.</p>
   </a>
   <a href="faq-glossary.html" class="docs-card">
     <h3 class="docs-card-title">FAQ & Glossary →</h3>
@@ -93,20 +93,32 @@ Welcome to the AKIOS documentation.
   </a>
 </div>
 
-### New in V1.0.12–V1.0.15
+### New in V1.1.0–V1.6.0
 
 <div class="features-grid docs-cards">
-  <a href="cli-reference.html" class="docs-card">
-    <h3 class="docs-card-title">AWS Bedrock Provider →</h3>
-    <p class="docs-card-text">Claude, Llama, and Titan models via IAM — no API keys needed. Added in v1.0.13.</p>
+  <a href="workflow-schema.html" class="docs-card">
+    <h3 class="docs-card-title">Webhook & Database Agents →</h3>
+    <p class="docs-card-text">Two new agents: webhook (Slack, Discord, Teams) and database (PostgreSQL, SQLite). 6 agents total. Added in v1.1.0.</p>
+  </a>
+  <a href="workflow-schema.html" class="docs-card">
+    <h3 class="docs-card-title">Parallel Execution →</h3>
+    <p class="docs-card-text">Run steps concurrently with parallel: blocks in workflow YAML. Plugin system for pip-installable agents. Added in v1.1.0.</p>
   </a>
   <a href="cli-reference.html" class="docs-card">
-    <h3 class="docs-card-title">JSON Output Mode →</h3>
-    <p class="docs-card-text">Machine-readable output with --json-output for CI/CD integration. Token tracking and PII metadata. Added in v1.0.12.</p>
+    <h3 class="docs-card-title">Dashboard & Reports →</h3>
+    <p class="docs-card-text">akios dashboard for local compliance UI, akios run --report for HTML security posture reports. Added in v1.5.0–v1.6.0.</p>
+  </a>
+  <a href="cli-reference.html" class="docs-card">
+    <h3 class="docs-card-title">Ollama Local Models →</h3>
+    <p class="docs-card-text">Run Llama, Mistral, Gemma locally via Ollama — no API key needed. 7 LLM providers total. Added in v1.4.2.</p>
   </a>
   <a href="migration-guide.html" class="docs-card">
-    <h3 class="docs-card-title">SDK Hardening →</h3>
-    <p class="docs-card-text">13 end-user fixes (v1.0.14) + 8 SDK integration fixes (v1.0.15). Bedrock pricing, error categories, JSON contracts.</p>
+    <h3 class="docs-card-title">EnforceCore Integration →</h3>
+    <p class="docs-card-text">Optional dependency: secret scanning, content rules, EU AI Act reports, Merkle bridge. pip install akios[enforcecore]. Added in v1.2.0.</p>
+  </a>
+  <a href="cli-reference.html" class="docs-card">
+    <h3 class="docs-card-title">Audit Migrate & Prune →</h3>
+    <p class="docs-card-text">Migrate JSONL to SQLite/PostgreSQL, enforce retention policies. Added in v1.5.0.</p>
   </a>
 </div>
 

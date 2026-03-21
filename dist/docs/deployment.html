@@ -112,6 +112,9 @@
 </ul>
 <h2>Out of scope (V1.0)</h2>
 <p>No compose stacks, db/redis, proxies, monitoring, systemd, scaling, hardening scripts. Keep it single-container/single-binary.</p>
+<blockquote>
+<p><strong>New in V1.0.9+:</strong> AKIOS now includes a built-in REST API via <code>akios serve</code>. See the <a href="#rest-api-deployment">REST API Deployment</a> section below.</p>
+</blockquote>
 <h2>Minimal Docker example</h2>
 <pre><code class="language-dockerfile">FROM python:3.12-slim
 RUN pip install akios
@@ -199,7 +202,7 @@ akios clean --old-runs 7
 AKIOS_FORCE_PULL=1 ./akios status
 
 # Or manually
-docker pull akiosai/akios:v1.0.15
+docker pull akiosai/akios:v1.6.0
 </code></pre>
 <h3>Linux Kernel Requirements</h3>
 <p>For maximum security on Linux:</p>
@@ -225,18 +228,46 @@ akios status --verbose
 # Check configuration
 cat config.yaml
 </code></pre>
-<h2>What V1.0 Doesn&#39;t Include</h2>
-<p>AKIOS V1.0 focuses on single-process security:</p>
+<h2>REST API Deployment (v1.0.9+)</h2>
+<p>AKIOS includes a built-in FastAPI server for programmatic workflow execution:</p>
+<pre><code class="language-bash"># Start REST API server
+akios serve --host 0.0.0.0 --port 8000
+</code></pre>
+<p><strong>Docker deployment with REST API:</strong></p>
+<pre><code class="language-dockerfile">FROM python:3.12-slim
+RUN pip install akios
+EXPOSE 8000
+CMD [&quot;akios&quot;, &quot;serve&quot;, &quot;--host&quot;, &quot;0.0.0.0&quot;, &quot;--port&quot;, &quot;8000&quot;]
+</code></pre>
+<pre><code class="language-bash">docker run -d -p 8000:8000 \
+  -v $(pwd)/.env:/app/.env:ro \
+  -v $(pwd)/workflows:/app/workflows:ro \
+  -v $(pwd)/audit:/app/audit \
+  my-akios-api
+</code></pre>
+<p><strong>Health check:</strong></p>
+<pre><code class="language-bash">curl http://localhost:8000/api/v1/health
+# {&quot;status&quot;: &quot;ok&quot;}
+</code></pre>
+<p>The REST API inherits all AKIOS security features: sandbox, PII redaction, audit logging, and budget controls. See the <a href="api-reference.html">API Reference</a> for endpoint details.</p>
+<h2>What V1.0–V1.6 Doesn&#39;t Include</h2>
+<p>AKIOS V1.6 focuses on single-process and REST API security:</p>
 <p><strong>Not included:</strong></p>
 <ul>
 <li>Docker Compose stacks</li>
-<li>Database/Redis integration</li>
+<li>Database/Redis integration (audit can migrate to SQLite/PostgreSQL via <code>akios audit migrate</code>)</li>
 <li>Reverse proxies</li>
 <li>systemd services</li>
 <li>Auto-scaling</li>
-<li>Built-in monitoring dashboards</li>
 </ul>
-<p><strong>Future versions</strong> will add enterprise deployment features. For now, keep it simple: one container, one workflow, maximum security.</p>
+<p><strong>Now included (V1.0.9+):</strong></p>
+<ul>
+<li>Built-in REST API (<code>akios serve</code>)</li>
+<li>Local compliance dashboard (<code>akios dashboard</code>, v1.6.0+)</li>
+<li>Structured JSON logging (v1.0.10+)</li>
+<li>HTML security reports (<code>akios run --report</code>, v1.5.0+)</li>
+</ul>
+<p><strong>Future versions</strong> will add enterprise deployment features. For now: one container, one workflow (or REST API), maximum security.</p>
 <h2>Legal &amp; Compliance Notes</h2>
 <p>AKIOS is a security tool, not a guarantee. Users are responsible for compliance with applicable laws and regulations in their jurisdiction. The security cage reduces risk but does not eliminate it. Always validate outputs and run AKIOS in appropriate environments for your security needs. See the <a href="security.html">Security</a> page for compliance frameworks supported by audit exports.</p>
 <h2>Production Checklist</h2>

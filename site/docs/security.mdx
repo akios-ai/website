@@ -95,20 +95,21 @@ akios status --security
 
 **What it does:** Automatically removes sensitive data
 
-**Protected data types (53 patterns across 6 categories):**
-- Email addresses, phone numbers
-- Social Security numbers, credit cards
-- API keys, passwords, tokens
-- IP addresses, MAC addresses
-- Medical records, health data (NPI, DEA, MRN)
-- Financial account numbers
-- Insurance data (policy numbers, group numbers, claim numbers, prior-authorization numbers)
+**Protected data types (44 patterns across 6 categories):**
+- Email addresses, phone numbers (FR/US/UK/DE)
+- Social Security numbers (US + French), credit cards
+- API keys, passwords, tokens, AWS keys, JWT
+- IP addresses (IPv4/IPv6), MAC addresses
+- Health insurance IDs, medical records, medication dosages, lab results, diagnosis codes
+- Postal addresses, GPS coordinates
+
+> **Note (v1.4.0):** Specialized healthcare identifiers (NPI, DEA, MRN) and financial patterns (IBAN, BIC, routing numbers) were removed from AKIOS OSS to focus on general-purpose detection. Contact us if you need extended PII coverage.
 
 **Applied twice:**
 - Before sending to AI providers (inputs)
 - After receiving from AI providers (outputs)
 
-**Pluggable PII backend:** AKIOS uses a `PIIDetectorProtocol` interface, allowing custom PII detection implementations. The default regex-based detector covers 53 patterns with >95% accuracy.
+**Pluggable PII backend:** AKIOS uses a `PIIDetectorProtocol` interface, allowing custom PII detection implementations. The default regex-based detector covers 44 patterns with >95% accuracy. When EnforceCore is installed (`pip install akios[enforcecore]`), an additional NER-based detection tier (Presidio) and 11-category secret scanner are layered on top.
 
 **Context keywords:** Reduce false-positive PII matches by requiring contextual keywords near a pattern match. Configure `context_keywords` in your policy to require words like "SSN", "social security", or "tax ID" near a numeric pattern before flagging it.
 
@@ -128,9 +129,8 @@ akios status --security
 | Name | `«NAME»` | James T. Kirk → `«NAME»` |
 | Address | `«ADDRESS»` | 1701 Enterprise Way → `«ADDRESS»` |
 | Credit Card | `«CREDIT_CARD»` | 4111-1111-1111-1111 → `«CREDIT_CARD»` |
-| NPI | `«NPI»` | 1234567890 → `«NPI»` |
-| DEA | `«DEA»` | AB1234567 → `«DEA»` |
-| MRN | `«MRN»` | MRN-2024-001 → `«MRN»` |
+| API Key | `«API_KEY»` | sk-abc123... → `«API_KEY»` |
+| JWT | `«JWT»` | eyJhbG... → `«JWT»` |
 
 **Scan files before processing:**
 ```bash
@@ -187,11 +187,11 @@ akios audit stats
 ## HTTPS Enforcement
 
 All external API calls made by AKIOS are restricted to HTTPS. Plain HTTP requests are rejected at the transport layer. This applies to:
-- LLM provider calls (OpenAI, Anthropic, Grok, Mistral, Gemini)
+- LLM provider calls (OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock)
 - HTTP agent requests to `allowed_domains`
 - Any external call made within the security cage
 
-There is no option to downgrade to HTTP. This is a structural guarantee, not a configuration choice.
+> **Note:** Ollama runs locally (default `http://localhost:11434`) and is exempt from the HTTPS requirement since traffic never leaves the machine.
 
 ## Check Your Security Status
 

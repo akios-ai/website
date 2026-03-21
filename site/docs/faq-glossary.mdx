@@ -76,7 +76,7 @@ Workflows must have this structure:
 ```yaml
 steps:
   - name: "Step name"
-    agent: "filesystem"     # Required: filesystem, http, llm, tool_executor
+    agent: "filesystem"     # Required: filesystem, http, llm, tool_executor, webhook, database
     action: "read"          # Required: agent-specific action
     parameters:             # Required: action-specific parameters
       path: "data/input/file.txt"
@@ -92,13 +92,20 @@ See [Policy Schema](policy-schema.html) for complete reference.
 
 ### Can I use AKIOS offline?
 
-Partially:
+Mostly yes since v1.4.2:
 - ✅ **Install offline:** Package pip files or Docker image
 - ✅ **Run workflows offline:** Filesystem and tool agents work
-- ❌ **LLM calls:** Require API access (local models planned for future)
+- ✅ **LLM calls with Ollama:** Run models locally — no internet needed (v1.4.2+)
+- ❌ **Cloud LLM calls:** OpenAI, Anthropic, etc. require API access
 - ❌ **HTTP requests:** Require network
 
-For air-gapped environments, see [Deployment Guide](deployment.html#air-gapped-deployments).
+For air-gapped environments with local LLMs, use Ollama:
+```bash
+AKIOS_LLM_PROVIDER=ollama
+AKIOS_LLM_MODEL=llama3.2
+```
+
+See [Deployment Guide](deployment.html#air-gapped-deployments).
 
 ### How much does AKIOS cost?
 
@@ -113,19 +120,25 @@ budget_limit_per_run: 1.0  # USD
 
 ### What AI providers are supported?
 
-- **OpenAI:** gpt-3.5-turbo, gpt-4, gpt-4o
+- **OpenAI:** gpt-4o, gpt-4o-mini, gpt-4-turbo
 - **Anthropic:** claude-3.5-haiku, claude-3.5-sonnet
 - **Grok:** grok-3
-- **Mistral:** mistral-large
-- **Gemini:** gemini-1.5-pro
+- **Mistral:** mistral-small, mistral-medium, mistral-large
+- **Gemini:** gemini-1.0-pro, gemini-1.5-pro, gemini-1.5-flash
+- **AWS Bedrock:** anthropic.claude-*, meta.llama*, amazon.titan-* (IAM auth, v1.0.13+)
+- **Ollama:** llama3.2, llama3, mistral, codellama, gemma2, phi3 (local, v1.4.2+)
 
 See [Installation](installation.html) for setup instructions.
 
 ### Can I write custom agents?
 
-V1.0 focuses on the four core agents (filesystem, http, llm, tool_executor). Custom agents are planned for future versions.
+**Yes!** Since v1.1.0, AKIOS has a **plugin system** for custom agents. Install any pip package that registers an `akios.agents` entry point:
 
-For now, use tool_executor agent to run custom commands:
+```bash
+pip install akios-my-custom-agent
+```
+
+The plugin agent appears alongside the 6 built-in agents. For simpler needs, use the `tool_executor` agent:
 ```yaml
 steps:
   - agent: tool_executor
@@ -187,14 +200,16 @@ Anything outside these paths is denied.
 ### PII Redaction
 Real-time masking, hashing, or removal of sensitive patterns:
 
-**Redacts 53 pattern types:**
+**Redacts 44 pattern types:**
 - Email addresses
 - Phone numbers
 - Credit cards
 - Social Security Numbers
 - API keys
-- Passwords
+- JWTs
 - And more...
+
+> **Note:** Healthcare-specific patterns (NPI, DEA, MRN) were moved to the EnforceCore NER backend in v1.4.0. Install `enforcecore[ner]` for those.
 
 **Strategies:**
 - `mask` - Replace with `[REDACTED]`
@@ -240,7 +255,7 @@ cost_kill_enabled: true         # auto-terminate
 Prevents runaway costs from infinite loops or excessive API calls.
 
 ### Agents
-The four core primitives for building workflows:
+The six core primitives for building workflows:
 
 **📚 filesystem** - File operations
 - read, write, list, stat, exists
@@ -258,7 +273,15 @@ The four core primitives for building workflows:
 - run allowlisted commands
 - Sandboxed subprocess
 
-No arbitrary code execution — only these four agents.
+**🔔 webhook** (v1.1.0+) - Notifications
+- notify (Slack, Teams, Discord, PagerDuty)
+- send (generic HTTP POST)
+
+**🗄️ database** (v1.1.0+) - Database queries
+- query, count, execute
+- Read-only by default
+
+Custom agents available via the plugin system (v1.1.0+).
 
 ### Workflow
 YAML file defining a sequence of agent actions:
@@ -329,7 +352,7 @@ The `on_error` field controls what happens when a step fails:
 - `retry` — Retry with `retry_count` and `retry_delay`
 
 ### PIIDetectorProtocol
-A pluggable interface (Python Protocol class) for custom PII detection backends. Implement this protocol to add domain-specific PII patterns beyond the built-in 53 patterns.
+A pluggable interface (Python Protocol class) for custom PII detection backends. Implement this protocol to add domain-specific PII patterns beyond the built-in 44 patterns. The EnforceCore NER backend (`enforcecore[ner]`) implements this protocol for entity-based PII detection.
 
 ### Context Keywords
 A list of domain-specific terms (e.g., `policy_number`, `account_ref`) that suppress false-positive PII matches. Configured via `context_keywords` in `config.yaml`.

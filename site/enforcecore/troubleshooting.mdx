@@ -114,6 +114,42 @@ A rule in the policy failed to evaluate — often due to malformed conditions or
 enforcecore validate --policy policy.yaml
 ```
 
+### `SandboxViolationError: Sandbox boundary breached` (v1.3.0+)
+
+Tool code attempted to access the enforcement layer's memory or perform a disallowed operation inside the subprocess sandbox.
+
+**Fix:** Review the tool code. The subprocess sandbox isolates tool execution from the enforcement layer.
+
+### `SensitivityViolationError: Data flow from CONFIDENTIAL to PUBLIC denied` (v1.4.0+)
+
+Sensitivity labels detected data flowing from a higher classification to a lower one.
+
+**Fix:** Ensure data flows respect the label hierarchy: `PUBLIC → INTERNAL → CONFIDENTIAL → RESTRICTED`.
+
+### `StreamingViolation: PII detected in streaming chunk` (v1.11.0+)
+
+The streaming enforcer detected PII in a token chunk during LLM streaming.
+
+**Fix:** The `StreamingRedactor` will auto-redact. If you need to handle this differently, catch `StreamingViolation` and implement custom logic.
+
+### `PluginLoadError: Failed to load plugin` (v1.9.0+)
+
+A plugin could not be loaded by the `PluginManager`.
+
+**Fix:** Ensure the plugin package is installed and implements the correct interface (`GuardPlugin`, `RedactorPlugin`, or `AuditBackendPlugin`).
+
+### `ComplianceError: Compliance report generation failed` (v1.8.0+)
+
+The compliance reporter could not generate a report — usually due to missing audit data.
+
+**Fix:** Ensure audit logging is enabled and the audit trail has data.
+
+### `PolicyServerError: Failed to fetch remote policy` (v1.7.0+)
+
+The `PolicyServerClient` could not retrieve a policy from the remote endpoint.
+
+**Fix:** Check the server URL, HMAC key configuration, and network connectivity.
+
 ### `RuntimeWarning: fail_open is enabled without ENFORCECORE_DEV_MODE=1`
 
 `fail_open=True` is set but you're not in dev mode.
@@ -216,11 +252,11 @@ Yes. Since v1.0.6: NFC normalization, zero-width character stripping, homoglyph 
 
 ### What PII categories are supported?
 
-6 categories: email, phone, SSN, credit card, IP address, passport. 4 redaction strategies: placeholder, mask, hash, remove. See the [API Reference](/enforcecore/api-reference#redactor-api) for the full table.
+6 built-in regex categories: email, phone, SSN, credit card, IP address, passport. 4 redaction strategies: placeholder, mask, hash, remove. Since v1.4.0, the optional NER backend (`enforcecore[ner]`) adds healthcare, financial, and domain-specific PII detection via Presidio. See the [API Reference](/enforcecore/api-reference#redactor-api) for the full table.
 
-### Why regex instead of spaCy/Presidio?
+### Why regex instead of spaCy/Presidio by default?
 
-Presidio requires spaCy + Pydantic v1, incompatible with Python 3.14. Regex is zero-dep, portable, and ~0.1–0.5ms per call.
+The default regex engine has zero NLP dependencies, is portable, and runs at ~0.1–0.5ms per call. Since v1.4.0, Presidio-based NER detection is available as an optional extra: `pip install enforcecore[ner]`.
 
 ### What's the enforcement overhead?
 
@@ -242,13 +278,13 @@ Four hook points: `@on_pre_call`, `@on_post_call`, `@on_violation`, `@on_redacti
 
 Removed in v1.0.16a1. Use `Enforcer.from_file()` factory or `@enforce()` decorator instead. See the [API Reference](/enforcecore/api-reference) for migration details.
 
-### What is the Tier 1 / Tier 2 API split?
+### What is the public API surface?
 
-As of v1.0.0b1, EnforceCore has **30 Tier 1 symbols** — the stable, frozen public contract. The remaining 80 Tier 2 symbols are still importable but are not covered by the stability guarantee. Tier 2 imports emit deprecation warnings. If you only use Tier 1 symbols, your code is guaranteed forward-compatible through the v1.x series. See the [API Reference](/enforcecore/api-reference) for the full Tier 1 list.
+As of v1.14.0, EnforceCore has **63 public API symbols** — the stable contract following semantic versioning. The original 30 core symbols are augmented with symbols from newer modules (streaming, plugins, compliance, multi-tenant, etc.). See the [API Reference](/enforcecore/api-reference) for the full list.
 
 ### Is EnforceCore stable enough for production?
 
-Yes. EnforceCore is **stable** (v1.0.1) with 1,510 tests, 95% coverage, 22 formal invariants, and a frozen 30-symbol API.
+Yes. EnforceCore is **stable** (v1.14.0) with 2,347 tests, 95% coverage, 22 formal invariants, and a 63-symbol public API following semantic versioning.
 
 ### What changed in the security audit (v1.0.24a1)?
 

@@ -47,7 +47,7 @@ steps:
 
 ## Available Agents
 
-AKIOS provides four core agents:
+AKIOS provides six core agents:
 
 | Agent | Purpose | Common Actions |
 |-------|---------|----------------|
@@ -55,6 +55,8 @@ AKIOS provides four core agents:
 | **http** | Web/API requests | `get`, `post`, `put`, `delete` |
 | **filesystem** | File operations | `read`, `write`, `list`, `stat`, `exists` |
 | **tool_executor** | Safe commands | `run` |
+| **webhook** | Notifications (v1.1.0+) | `notify`, `send` |
+| **database** | Database queries (v1.1.0+) | `query`, `count`, `execute` |
 
 ### Agent: llm (AI Models)
 
@@ -132,6 +134,46 @@ Run allowlisted commands safely.
   parameters:
     command: ["ls", "-la", "data/"]
     timeout: 10
+```
+
+### Agent: webhook (Notifications) (v1.1.0+)
+
+Send webhook notifications to external platforms.
+
+**Actions:**
+- `notify` - Send to a named platform (Slack, Teams, Discord, PagerDuty)
+- `send` - Generic HTTP POST
+
+**Example:**
+```yaml
+- name: "Alert team"
+  agent: webhook
+  action: notify
+  parameters:
+    url: "https://hooks.slack.com/services/T.../B.../xxx"
+    platform: slack
+    payload:
+      text: "Workflow completed successfully"
+```
+
+### Agent: database (Queries) (v1.1.0+)
+
+Read-only database queries with parameterised execution.
+
+**Actions:**
+- `query` - Run a SELECT query and return rows
+- `count` - Run a COUNT query and return the count
+- `execute` - Run an INSERT/UPDATE/DELETE (requires `allow_writes: true`)
+
+**Example:**
+```yaml
+- name: "Get active users"
+  agent: database
+  action: query
+  parameters:
+    sql: "SELECT * FROM users WHERE status = ?"
+    params: ["active"]
+    connection_string: "sqlite:///data/app.db"
 ```
 
 ## Complete Workflow Examples
@@ -318,7 +360,7 @@ steps:
 ## Validation Tips
 
 **✓ Do:**
-- Use valid agent names (llm, http, filesystem, tool_executor)
+- Use valid agent names (llm, http, filesystem, tool_executor, webhook, database)
 - Include all required fields (name, agent, action, parameters)
 - Match actions to agents correctly
 - Provide all required parameters for each action

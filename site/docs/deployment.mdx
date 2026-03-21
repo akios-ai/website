@@ -10,6 +10,8 @@ Minimal, security-first deployment: single-process runtime via pip or Docker. No
 ## Out of scope (V1.0)
 No compose stacks, db/redis, proxies, monitoring, systemd, scaling, hardening scripts. Keep it single-container/single-binary.
 
+> **New in V1.0.9+:** AKIOS now includes a built-in REST API via `akios serve`. See the [REST API Deployment](#rest-api-deployment) section below.
+
 ## Minimal Docker example
 ```dockerfile
 FROM python:3.12-slim
@@ -162,19 +164,57 @@ akios status --verbose
 cat config.yaml
 ```
 
-## What V1.0 Doesn't Include
+## REST API Deployment (v1.0.9+)
 
-AKIOS V1.0 focuses on single-process security:
+AKIOS includes a built-in FastAPI server for programmatic workflow execution:
+
+```bash
+# Start REST API server
+akios serve --host 0.0.0.0 --port 8000
+```
+
+**Docker deployment with REST API:**
+```dockerfile
+FROM python:3.12-slim
+RUN pip install akios
+EXPOSE 8000
+CMD ["akios", "serve", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+```bash
+docker run -d -p 8000:8000 \
+  -v $(pwd)/.env:/app/.env:ro \
+  -v $(pwd)/workflows:/app/workflows:ro \
+  -v $(pwd)/audit:/app/audit \
+  my-akios-api
+```
+
+**Health check:**
+```bash
+curl http://localhost:8000/api/v1/health
+# {"status": "ok"}
+```
+
+The REST API inherits all AKIOS security features: sandbox, PII redaction, audit logging, and budget controls. See the [API Reference](api-reference.html) for endpoint details.
+
+## What V1.0–V1.6 Doesn't Include
+
+AKIOS V1.6 focuses on single-process and REST API security:
 
 **Not included:**
 - Docker Compose stacks
-- Database/Redis integration
+- Database/Redis integration (audit can migrate to SQLite/PostgreSQL via `akios audit migrate`)
 - Reverse proxies
 - systemd services
 - Auto-scaling
-- Built-in monitoring dashboards
 
-**Future versions** will add enterprise deployment features. For now, keep it simple: one container, one workflow, maximum security.
+**Now included (V1.0.9+):**
+- Built-in REST API (`akios serve`)
+- Local compliance dashboard (`akios dashboard`, v1.6.0+)
+- Structured JSON logging (v1.0.10+)
+- HTML security reports (`akios run --report`, v1.5.0+)
+
+**Future versions** will add enterprise deployment features. For now: one container, one workflow (or REST API), maximum security.
 
 ## Legal & Compliance Notes
 

@@ -134,7 +134,7 @@ pip show akios
 
 # Reinstall if needed
 pip uninstall akios
-pip install akios&gt;=1.0.15
+pip install akios&gt;=1.6.0
 
 # Check PATH
 which akios
@@ -178,11 +178,13 @@ akios status --verbose
 <h3>&quot;Invalid provider/model combination&quot;</h3>
 <p><strong>Supported combinations:</strong></p>
 <ul>
-<li>OpenAI: <code>gpt-3.5-turbo</code>, <code>gpt-4</code>, <code>gpt-4-turbo</code>, <code>gpt-4o</code>, <code>gpt-4o-mini</code></li>
+<li>OpenAI: <code>gpt-4o</code>, <code>gpt-4o-mini</code>, <code>gpt-4-turbo</code></li>
 <li>Anthropic: <code>claude-3.5-haiku</code>, <code>claude-3.5-sonnet</code></li>
 <li>Grok: <code>grok-3</code></li>
 <li>Mistral: <code>mistral-small</code>, <code>mistral-medium</code>, <code>mistral-large</code></li>
 <li>Gemini: <code>gemini-1.0-pro</code>, <code>gemini-1.5-pro</code>, <code>gemini-1.5-flash</code></li>
+<li>Bedrock: <code>anthropic.claude-*</code>, <code>meta.llama*</code>, <code>amazon.titan-*</code> (IAM auth)</li>
+<li>Ollama: <code>llama3.2</code>, <code>llama3</code>, <code>mistral</code>, <code>codellama</code>, <code>gemma2</code>, <code>phi3</code> (local)</li>
 </ul>
 <pre><code class="language-bash"># Fix in .env
 AKIOS_LLM_PROVIDER=grok
@@ -229,7 +231,7 @@ akios run templates/hello-workflow.yml
 <li><code>action</code> - What action to perform</li>
 <li><code>parameters</code> - Action-specific settings</li>
 </ul>
-<p><strong>Allowed agents:</strong> <code>llm</code>, <code>http</code>, <code>filesystem</code>, <code>tool_executor</code></p>
+<p><strong>Allowed agents:</strong> <code>llm</code>, <code>http</code>, <code>filesystem</code>, <code>tool_executor</code>, <code>webhook</code>, <code>database</code></p>
 <h3>&quot;Path not allowed&quot; (Filesystem Agent)</h3>
 <p>Only these directories are accessible:</p>
 <ul>
@@ -272,7 +274,7 @@ export AKIOS_BUDGET_LIMIT_PER_RUN=5.0
 <p><strong>Fix:</strong> AKIOS now shows a clear error message with guidance. Create your virtualenv <em>before</em> entering the cage, or use <code>--no-sandbox</code> for development.</p>
 <h3>&quot;Docker image outdated&quot;</h3>
 <pre><code class="language-bash"># Pull latest image
-docker pull akiosai/akios:v1.0.15
+docker pull akiosai/akios:v1.6.0
 
 # Or force pull with wrapper
 AKIOS_FORCE_PULL=1 ./akios status
@@ -294,10 +296,10 @@ akios --debug run workflow.yml
 <h3>&quot;Audit logs not persisting in Docker&quot;</h3>
 <p>Docker containers use memory-buffered writes. To ensure persistence:</p>
 <pre><code class="language-bash"># Mount a host directory for audit logs
-docker run --rm -v $(pwd)/audit:/app/audit akiosai/akios:v1.0.15 run workflow.yml
+docker run --rm -v $(pwd)/audit:/app/audit akiosai/akios:v1.6.0 run workflow.yml
 
 # Or use tmpfs for better performance
-docker run --rm --tmpfs /app/audit akiosai/akios:v1.0.15 run workflow.yml
+docker run --rm --tmpfs /app/audit akiosai/akios:v1.6.0 run workflow.yml
 </code></pre>
 <h2>Security Issues</h2>
 <h3>&quot;Security validation failed&quot;</h3>

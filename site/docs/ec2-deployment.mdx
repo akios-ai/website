@@ -33,7 +33,7 @@ Want to test AKIOS at scale? This guide helps you set up on AWS and validate per
 
 On t4g.micro (our validated baseline as of v1.0.11):
 - **Security pipeline:** ~0.47ms (full pipeline: PII + policy + audit + budget)
-- **PII scan:** ~0.46ms (53 regex patterns)
+- **PII scan:** ~0.46ms (44 regex patterns)
 - **Merkle hash:** ~0.001ms (SHA-256)
 - **Docker cold start:** ~1.4s
 
@@ -136,7 +136,7 @@ pip install --upgrade akios
 
 ✅ **We provide:**
 - Secure sandbox isolation
-- PII redaction (53 patterns)
+- PII redaction (44 patterns)
 - Audit logging
 - Budget controls for LLM API calls
 

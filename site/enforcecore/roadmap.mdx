@@ -366,15 +366,119 @@ First **stable** release. Promoted from v1.0.0b6 after CI green on Python 3.11, 
 
 ---
 
+## Stable Releases (v1.2.0 – v1.14.0)
+
+After reaching v1.0.1, EnforceCore transitioned to stable semantic versioning. Each minor release adds a well-tested feature module.
+
+### v1.2.0 — Pluggable AuditStore + EU AI Act Reporting
+
+- **`JsonlAuditStore`, `SqliteAuditStore`, `PostgresAuditStore`** — swap audit persistence with a single config change
+- **EU AI Act compliance report** — generate human-readable compliance reports from audit data
+- **1,584 tests**
+
+### v1.3.0 — Subprocess Sandbox
+
+- **`SubprocessSandbox`** — process-isolated execution via `multiprocessing.Process`
+- **`SandboxViolationError`** for sandbox escapes
+- Prevents tool code from accessing the enforcement layer's memory space
+- **1,641 tests**
+
+### v1.4.0 — NER PII + Sensitivity Labels
+
+- **NER-based PII detection** — Presidio-powered entity recognition via `enforcecore[ner]` extra
+- **`NERRedactor`** — covers healthcare (NPI, DEA, MRN), financial, and domain-specific PII beyond regex
+- **Sensitivity labels** — IFC-inspired flow labels: `PUBLIC`, `INTERNAL`, `CONFIDENTIAL`, `RESTRICTED`
+- **`SensitivityEnforcer`** — blocks data flow from higher to lower classification levels
+- **`SensitivityViolationError`** for label violations
+- **1,728 tests**
+
+### v1.5.0 — OpenTelemetry + Prometheus Observability
+
+- **`enforcecore[otel]`** — OpenTelemetry metrics and tracing integration
+- **`enforcecore[prometheus]`** — Prometheus metrics endpoint
+- **Grafana dashboard template** — ready-to-import JSON for enforcement monitoring
+- **1,814 tests**
+
+### v1.6.0 — Multi-Tenant Enforcement
+
+- **`MultiTenantEnforcer`** — per-tenant policy, audit, and PII isolation
+- **Policy Inheritance** — `extends:` chains with circular dependency detection
+- **1,897 tests**
+
+### v1.7.0 — Remote Policy Server
+
+- **`PolicyServerClient`** — fetch policies from a remote HTTP endpoint
+- **HMAC-SHA256 signature verification** for policy authenticity
+- **ETag caching** — only refetch when server indicates a change
+- **`PolicyServerError`** exception
+- **1,963 tests**
+
+### v1.8.0 — Compliance Reporting
+
+- **`ComplianceReporter`** — generate EU AI Act, SOC 2, and GDPR compliance reports
+- **HTML and JSON export** formats
+- **Webhook dispatch** — send compliance events to monitoring endpoints
+- **`ComplianceError`** exception
+- **2,031 tests**
+
+### v1.9.0 — Plugin Ecosystem
+
+- **`GuardPlugin`, `RedactorPlugin`, `AuditBackendPlugin`** — three plugin extension points
+- **`PluginManager`** — discover and load plugins from pip packages
+- **`PluginLoadError`** exception
+- Build and distribute enforcement plugins as standard Python packages
+- **2,098 tests**
+
+### v1.10.0 — Bug Fixes
+
+- **SQLite INSERT fix** — corrected audit store INSERT statement
+- **dateutil phantom dependency removed** — eliminated hidden runtime dependency
+- **2,112 tests**
+
+### v1.11.0 — AsyncIO Streaming Enforcement
+
+- **`stream_enforce()`** — token-by-token enforcement for LLM streaming responses
+- **`StreamingRedactor`** — incremental PII detection across streaming chunks
+- **Framework adapters** — FastAPI `StreamingResponse` and LangChain streaming support
+- **`StreamingViolation`**, **`StreamingContext`**, **`StreamingResult`** types
+- **2,189 tests**
+
+### v1.12.0 — Merkle Bridge (AKIOS Integration)
+
+- **`external_hash` field** on audit entries — link to AKIOS audit chain
+- **`skip_entry_hash` option** — disable self-hashing when AKIOS provides the hash
+- Enables bidirectional audit trail verification between AKIOS and EnforceCore
+- **2,247 tests**
+
+### v1.13.0 — LangChain Callback Handler
+
+- **`EnforceCoreCallbackHandler`** — drop-in LangChain/LangGraph callback
+- Automatic enforcement on every LLM call, tool call, and chain step
+- **2,298 tests**
+
+### v1.14.0 — LangChain Upstream + Cookbook
+
+- **Upstream PR** to `langchain-community` for official inclusion
+- **Cookbook entry** with usage examples
+- **2,347 tests**
+
+---
+
 ## Current Status
 
-EnforceCore is **stable** at v1.0.1. The 30-symbol Tier 1 API is frozen. All 110 original symbols remain importable for backwards compatibility.
+EnforceCore is **stable** at v1.14.0. The 63-symbol public API follows semantic versioning.
 
 ```bash
 pip install enforcecore
+
+# Optional extras
+pip install enforcecore[ner]         # NER PII detection
+pip install enforcecore[otel]        # OpenTelemetry
+pip install enforcecore[prometheus]  # Prometheus metrics
+pip install enforcecore[all]         # Everything
 ```
 
-**Key numbers:** 1,510 tests · 95% coverage · 22 formal invariants · 30 frozen Tier 1 symbols · 20 adversarial scenarios (20/20 contained, 0 errors) · 15 benchmarks · 6 PII categories · 4 dependencies.
+**Key numbers:** 2,347 tests · 95% coverage · 22 formal invariants · 63 public API symbols · 20 adversarial scenarios (20/20 contained, 0 errors) · 15 benchmarks · 6 PII categories · 4 core dependencies.
 
 See [Architecture](/enforcecore/architecture) for technical details, [Evaluation](/enforcecore/evaluation) for benchmarks, or [API Reference](/enforcecore/api-reference) for the full symbol list.
 
@@ -384,17 +488,11 @@ See [Architecture](/enforcecore/architecture) for technical details, [Evaluation
 
 These are potential future work — not committed:
 
-### v1.1 — Policy Hub
+### v1.15+ — Policy Hub
 Community repository of reusable, audited policies with versioning and peer review.
 
-### v1.2 — Formal Verification
-Integration with model checkers for mathematical policy guarantees.
-
-### v1.3 — Multi-Language Support
-TypeScript and Go bindings for non-Python ecosystems.
-
 ### v2.0 — Distributed Enforcement
-Enforcement for multi-agent systems across processes and machines, with shared state and coordinated rate limiting. Tier 2 symbols may be removed in this version.
+Enforcement for multi-agent systems across processes and machines, with shared state and coordinated rate limiting. Multi-language bindings (TypeScript, Go) for non-Python ecosystems.
 
 ---
 

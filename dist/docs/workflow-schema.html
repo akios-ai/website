@@ -159,7 +159,7 @@ steps:
 <td><code>agent</code></td>
 <td>string</td>
 <td>Yes</td>
-<td>Agent to execute: <code>llm</code>, <code>http</code>, <code>filesystem</code>, <code>tool_executor</code></td>
+<td>Agent to execute: <code>llm</code>, <code>http</code>, <code>filesystem</code>, <code>tool_executor</code>, <code>webhook</code>, <code>database</code></td>
 </tr>
 <tr>
 <td><code>action</code></td>
@@ -249,7 +249,7 @@ steps:
   action: complete
   parameters:
     prompt: &quot;Summarize the following document&quot;
-    model: gpt-3.5-turbo      # optional, uses config default
+    model: gpt-4o              # optional, uses config default
     max_tokens: 1000           # optional, default 1000
     temperature: 0.7           # optional, default 0.7
 </code></pre>
@@ -264,11 +264,13 @@ steps:
 </code></pre>
 <p><strong>Supported providers &amp; models:</strong></p>
 <ul>
-<li>OpenAI: <code>gpt-3.5-turbo</code>, <code>gpt-4</code>, <code>gpt-4-turbo</code>, <code>gpt-4o</code>, <code>gpt-4o-mini</code></li>
+<li>OpenAI: <code>gpt-4o</code>, <code>gpt-4o-mini</code>, <code>gpt-4-turbo</code></li>
 <li>Anthropic: <code>claude-3.5-haiku</code>, <code>claude-3.5-sonnet</code></li>
 <li>Grok: <code>grok-3</code></li>
 <li>Mistral: <code>mistral-small</code>, <code>mistral-medium</code>, <code>mistral-large</code></li>
 <li>Gemini: <code>gemini-1.0-pro</code>, <code>gemini-1.5-pro</code>, <code>gemini-1.5-flash</code></li>
+<li>AWS Bedrock: <code>anthropic.claude-3-5-sonnet-*</code>, <code>meta.llama3-*</code>, <code>amazon.titan-*</code></li>
+<li>Ollama: <code>llama3.2</code>, <code>llama3</code>, <code>mistral</code>, <code>codellama</code>, <code>gemma2</code>, <code>phi3</code> (local models, no API key)</li>
 </ul>
 <h3>HTTP Agent</h3>
 <p><strong>Actions:</strong> <code>get</code>, <code>post</code>, <code>put</code>, <code>delete</code></p>
@@ -313,6 +315,77 @@ steps:
 </code></pre>
 <p><strong>Allowed commands:</strong> <code>echo</code>, <code>cat</code>, <code>grep</code>, <code>head</code>, <code>tail</code>, <code>wc</code>, <code>sort</code>, <code>uniq</code>, <code>cut</code>, <code>tr</code>, <code>date</code>, <code>pwd</code>, <code>ls</code>, <code>find</code>, <code>ps</code>, <code>df</code>, <code>free</code></p>
 <p><strong>Limits:</strong> 30s default timeout (300s max), 1MB max output.</p>
+<h3>Webhook Agent (v1.1.0+)</h3>
+<p><strong>Actions:</strong> <code>notify</code>, <code>send</code></p>
+<pre><code class="language-yaml">- agent: webhook
+  action: notify
+  parameters:
+    platform: slack
+    webhook_url: &quot;${SLACK_WEBHOOK_URL}&quot;
+    message: &quot;Workflow completed: ${steps.1.output}&quot;
+</code></pre>
+<pre><code class="language-yaml">- agent: webhook
+  action: send
+  parameters:
+    platform: teams
+    webhook_url: &quot;${TEAMS_WEBHOOK_URL}&quot;
+    message: &quot;Alert: ${alert_text}&quot;
+</code></pre>
+<p><strong>Supported platforms:</strong> <code>slack</code> (Slack blocks), <code>teams</code> (Teams cards), <code>discord</code> (Discord messages), <code>generic</code> (plain HTTP POST).</p>
+<p><strong>Security:</strong> PII redaction on messages, HTTPS enforcement, rate limiting (10/min).</p>
+<h3>Database Agent (v1.1.0+)</h3>
+<p><strong>Actions:</strong> <code>query</code>, <code>execute</code>, <code>count</code></p>
+<pre><code class="language-yaml">- agent: database
+  action: query
+  parameters:
+    backend: sqlite
+    connection: &quot;data/app.db&quot;
+    sql: &quot;SELECT * FROM users WHERE status = ?&quot;
+    params: [&quot;active&quot;]
+    max_rows: 100
+</code></pre>
+<pre><code class="language-yaml">- agent: database
+  action: count
+  parameters:
+    backend: postgresql
+    connection: &quot;${DATABASE_URL}&quot;
+    sql: &quot;SELECT COUNT(*) FROM orders WHERE created_at &gt; ?&quot;
+    params: [&quot;2026-01-01&quot;]
+</code></pre>
+<p><strong>Security:</strong> Parameterized queries only (no raw SQL), DDL always blocked, read-only by default. PII redaction on query results, audit logging of all queries. Max 10,000 rows, 60s timeout.</p>
+<h2>Parallel Execution (v1.1.0+)</h2>
+<p>Run steps concurrently with <code>parallel:</code> blocks:</p>
+<pre><code class="language-yaml">name: &quot;parallel-enrichment&quot;
+description: &quot;Fetch data from multiple sources simultaneously&quot;
+steps:
+  - step: 1
+    agent: filesystem
+    action: read
+    parameters:
+      path: &quot;data/input/document.txt&quot;
+
+  - parallel:
+    - agent: llm
+      action: complete
+      parameters:
+        prompt: &quot;Summarize: ${steps.1.output}&quot;
+    - agent: http
+      action: get
+      parameters:
+        url: &quot;https://api.example.com/enrich&quot;
+    - agent: llm
+      action: complete
+      parameters:
+        prompt: &quot;Extract entities: ${steps.1.output}&quot;
+
+  - step: 3
+    agent: filesystem
+    action: write
+    parameters:
+      path: &quot;data/output/enriched.txt&quot;
+      content: &quot;${parallel.output}&quot;
+</code></pre>
+<p><strong>Constraints:</strong> ThreadPoolExecutor with max 4 workers. Thread-safe execution context and cost tracking. Kill switches evaluated between parallel groups. No nested parallel blocks.</p>
 <h2>Complete Workflow Examples</h2>
 <h3>Simple AI Generation</h3>
 <pre><code class="language-yaml">name: &quot;hello-ai&quot;
@@ -401,7 +474,7 @@ url: &quot;https://api.example.com/v1?key=${API_KEY}&quot;
 </tr>
 <tr>
 <td>Unknown agent</td>
-<td>Use one of: <code>llm</code>, <code>http</code>, <code>filesystem</code>, <code>tool_executor</code></td>
+<td>Use one of: <code>llm</code>, <code>http</code>, <code>filesystem</code>, <code>tool_executor</code>, <code>webhook</code>, <code>database</code></td>
 </tr>
 <tr>
 <td>Invalid action</td>

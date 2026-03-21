@@ -136,7 +136,7 @@ steps:
       prompt: &quot;Say hello&quot;
 </code></pre>
 <h2>Available Agents</h2>
-<p>AKIOS provides four core agents:</p>
+<p>AKIOS provides six core agents:</p>
 <table>
 <thead>
 <tr>
@@ -164,6 +164,16 @@ steps:
 <td><strong>tool_executor</strong></td>
 <td>Safe commands</td>
 <td><code>run</code></td>
+</tr>
+<tr>
+<td><strong>webhook</strong></td>
+<td>Notifications (v1.1.0+)</td>
+<td><code>notify</code>, <code>send</code></td>
+</tr>
+<tr>
+<td><strong>database</strong></td>
+<td>Database queries (v1.1.0+)</td>
+<td><code>query</code>, <code>count</code>, <code>execute</code></td>
 </tr>
 </tbody></table>
 <h3>Agent: llm (AI Models)</h3>
@@ -231,6 +241,40 @@ steps:
   parameters:
     command: [&quot;ls&quot;, &quot;-la&quot;, &quot;data/&quot;]
     timeout: 10
+</code></pre>
+<h3>Agent: webhook (Notifications) (v1.1.0+)</h3>
+<p>Send webhook notifications to external platforms.</p>
+<p><strong>Actions:</strong></p>
+<ul>
+<li><code>notify</code> - Send to a named platform (Slack, Teams, Discord, PagerDuty)</li>
+<li><code>send</code> - Generic HTTP POST</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-yaml">- name: &quot;Alert team&quot;
+  agent: webhook
+  action: notify
+  parameters:
+    url: &quot;https://hooks.slack.com/services/T.../B.../xxx&quot;
+    platform: slack
+    payload:
+      text: &quot;Workflow completed successfully&quot;
+</code></pre>
+<h3>Agent: database (Queries) (v1.1.0+)</h3>
+<p>Read-only database queries with parameterised execution.</p>
+<p><strong>Actions:</strong></p>
+<ul>
+<li><code>query</code> - Run a SELECT query and return rows</li>
+<li><code>count</code> - Run a COUNT query and return the count</li>
+<li><code>execute</code> - Run an INSERT/UPDATE/DELETE (requires <code>allow_writes: true</code>)</li>
+</ul>
+<p><strong>Example:</strong></p>
+<pre><code class="language-yaml">- name: &quot;Get active users&quot;
+  agent: database
+  action: query
+  parameters:
+    sql: &quot;SELECT * FROM users WHERE status = ?&quot;
+    params: [&quot;active&quot;]
+    connection_string: &quot;sqlite:///data/app.db&quot;
 </code></pre>
 <h2>Complete Workflow Examples</h2>
 <h3>Example 1: Simple AI Generation</h3>
@@ -382,7 +426,7 @@ steps:
 <h2>Validation Tips</h2>
 <p><strong>✓ Do:</strong></p>
 <ul>
-<li>Use valid agent names (llm, http, filesystem, tool_executor)</li>
+<li>Use valid agent names (llm, http, filesystem, tool_executor, webhook, database)</li>
 <li>Include all required fields (name, agent, action, parameters)</li>
 <li>Match actions to agents correctly</li>
 <li>Provide all required parameters for each action</li>

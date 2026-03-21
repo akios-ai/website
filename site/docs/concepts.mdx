@@ -13,15 +13,17 @@ Docker is convenient and strong; use native Linux for the strictest guarantees (
 
 ## Core protections
 - **Sandbox & quotas**: syscall filtering, CPU/memory/file limits, default-deny network.
-- **PII redaction**: 53 detection patterns across 6 categories on inputs/outputs, configurable aggressiveness.
+- **PII redaction**: 44 detection patterns across 6 categories on inputs/outputs, configurable aggressiveness.
 - **Audit**: Merkle-style, tamper-evident logs with PDF/JSON export.
 - **Cost/loop kills**: budgets and token caps, loop detection.
 
-## Core agents (4)
+## Core agents (6)
 - **filesystem** — read/write/list/stat/exists within allowed paths.
 - **http** — rate-limited (10 req/min) web/API calls with PII redaction.
-- **llm** — token/cost-tracked calls to OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock (v1.0.13+).
+- **llm** — token/cost-tracked calls to OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock, and Ollama (local models).
 - **tool_executor** — allowlisted commands (17 safe commands) in a sandboxed subprocess.
+- **webhook** — send notifications to Slack, Discord, Microsoft Teams, or generic HTTP POST endpoints. PII redaction on messages, HTTPS enforcement.
+- **database** — query PostgreSQL and SQLite with parameterized queries only (no raw SQL), DDL always blocked, read-only by default. PII redaction on query results.
 
 ## Environment detection (v1.0.5+)
 AKIOS auto-detects its runtime environment at startup (<5ms):
@@ -70,8 +72,17 @@ akios cage down --passes 3  # DOD 5220.22-M (3-pass)
 akios cage down --fast      # Truncate-only (dev/CI)
 ```
 
+## Parallel execution (v1.1.0+)
+Run steps concurrently with `parallel:` blocks in workflow YAML. ThreadPoolExecutor with max 4 workers, thread-safe execution context, and cost tracking. Kill switches evaluated between parallel groups.
+
+## Plugin system (v1.1.0+)
+pip-installable agent packages via `akios.agents` entry points. Auto-discovery at import time via `importlib.metadata`. Type-checked: only BaseAgent subclasses registered.
+
+## REST API (v1.0.9+)
+`akios serve` starts a FastAPI-based REST API with 6 endpoints: health check, workflow run, workflow list, workflow validate, status, and version.
+
 ## EnforceCore
-The enforcement engine inside AKIOS has been extracted into an independent open-source framework: [EnforceCore](enforcecore.html). Now in **beta** (v1.0.0b3) with a frozen 30-symbol API, EnforceCore provides the same policy enforcement, PII redaction, Merkle audit, and resource guards — available to any Python agent framework under Apache 2.0.
+The enforcement engine inside AKIOS has been extracted into an independent open-source framework: [EnforceCore](enforcecore.html). Now at **v1.14.0** with a 63-symbol API, EnforceCore provides policy enforcement, PII redaction (regex + optional NER), Merkle audit with pluggable backends (JSONL, SQLite, PostgreSQL), resource guards, secret scanning, content rules, subprocess sandbox, multi-tenant enforcement, compliance reporting (EU AI Act, SOC2, GDPR), streaming enforcement, plugin ecosystem, and LangChain integration — available to any Python agent framework under Apache 2.0. Install as optional AKIOS dependency: `pip install akios[enforcecore]`.
 
 ## Architecture
 Single-process runtime, no sidecars. State is ephemeral per run; persistence is file-based (data/, audit/). Deployable as pip package or Docker (wrapper or direct). Minimal surface = easy to audit and operate in air‑gapped or high-assurance environments.

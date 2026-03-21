@@ -4,7 +4,7 @@
 
 Go from zero to your first secure AI workflow in 15 minutes. This guide walks you through everything step-by-step.
 
-> **Current version: {{version}}.** Rich terminal UI, environment auto-detection, accessibility modes, workflow validation, 53 PII patterns, Merkle audit proofs, and ablation benchmarking.
+> **Current version: {{version}}.** 6 core agents, 7 LLM providers (including local via Ollama), parallel execution, plugin system, 44 PII patterns, Merkle audit proofs, HTML compliance reports, and ablation benchmarking.
 
 ## What You'll Build
 
@@ -17,7 +17,7 @@ By the end of this guide, you'll have:
 ## Prerequisites
 
 - **5 minutes of your time**
-- **An API key** from OpenAI, Anthropic, Grok, Mistral, or Gemini (get [free keys below](#step-3-configure-your-api-key-2-minutes))
+- **An API key** from OpenAI, Anthropic, Grok, Mistral, Gemini, or AWS Bedrock (get [free keys below](#step-3-configure-your-api-key-2-minutes)) — or use **Ollama** for free local models
 - **Docker installed** (for cross-platform) OR **Python 3.9+** (for Linux)
 
 ## Step 1: Install AKIOS (2 minutes)
@@ -72,8 +72,8 @@ akios setup
 ```
 
 **The wizard asks you:**
-1. Which AI provider? (OpenAI, Anthropic, Grok, Mistral, or Gemini)
-2. What's your API key? (Paste it securely)
+1. Which AI provider? (OpenAI, Anthropic, Grok, Mistral, Gemini, AWS Bedrock, or Ollama)
+2. What's your API key? (Paste it securely — or skip for Bedrock IAM / Ollama local)
 3. Set a budget limit? (Default $1.00 per workflow)
 
 **Get free API keys:**
@@ -82,6 +82,8 @@ akios setup
 - [xAI](https://console.x.ai/) - Grok models
 - [Mistral](https://console.mistral.ai/) - Mistral models
 - [Google](https://makersuite.google.com/app/apikey) - Gemini models
+- [AWS Bedrock](https://aws.amazon.com/bedrock/) - Claude, Llama, Titan (IAM auth, no API key)
+- [Ollama](https://ollama.com/) - Free local models (Llama, Mistral, Gemma — no API key)
 
 ## Step 4: Run Your First Workflow (5 minutes)
 
