@@ -1,9 +1,11 @@
 # Déploiement (AKIOS V1.0)
 
+> **Statut :** AKIOS 1.x n'est plus maintenu et n'est pas destiné à un usage en production. Un AKIOS repensé est en développement.
+
 Déploiement minimal et sécurité d’abord : cage mono-processus via pip ou Docker. Pas de sidecars, pas de proxy, pas de stack multi-services.
 
 ## Périmètre supporté
-- **Paquet pip** (Linux : sécurité kernel-hard ; macOS/Windows : isolation standard).
+- **Paquet pip** (Linux : sécurité au niveau noyau ; macOS/Windows : isolation standard).
 - **Conteneur Docker** (multi-plateforme, sécurité basée sur politiques).
 - Option Dockerfile minimal + exemple 1 service uniquement.
 
@@ -34,7 +36,7 @@ sudo apt install libseccomp-dev python3-seccomp
 ```
 
 - Image obsolète : `AKIOS_FORCE_PULL=1 ./akios status`.
-- Non supporté : toute stack multi-services — voir les versions futures si besoin.
+- Non supporté : toute stack multi-services.
 
 ## Notes juridiques & conformité
 

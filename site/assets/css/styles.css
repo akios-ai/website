@@ -193,6 +193,14 @@ img {
   padding-bottom: var(--space-2);
 }
 
+.section-status {
+  padding: var(--space-3) 0;
+}
+
+.section-status .callout p {
+  margin: 0;
+}
+
 .band {
   width: 100%;
   background-color: var(--bg-alt);
@@ -2179,58 +2187,6 @@ Mobile: Single column blog layout
 
 [data-theme="dark"] .back-to-top {
   background: var(--bg-alt);
-}
-
-/* =============================================
-   ENFORCECORE LANDING SECTION LAYOUT
-   ============================================= */
-
-.enforcecore-layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: var(--space-6);
-  align-items: center;
-  margin: var(--space-5) 0;
-}
-
-.enforcecore-logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.enforcecore-logo img {
-  max-width: 100%;
-  height: auto;
-}
-
-/* Dark/light logo switching */
-.ec-logo-dark { display: none; }
-.ec-logo-light { display: block; }
-[data-theme="dark"] .ec-logo-dark { display: block; }
-[data-theme="dark"] .ec-logo-light { display: none; }
-
-.enforcecore-features {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
-}
-
-@media (max-width: 768px) {
-  .enforcecore-layout {
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
-    text-align: center;
-  }
-
-  .enforcecore-logo {
-    max-width: 200px;
-    margin: 0 auto;
-  }
-
-  .enforcecore-features {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* =============================================

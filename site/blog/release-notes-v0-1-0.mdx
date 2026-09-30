@@ -6,12 +6,15 @@
 </header>
 
 <div class="post-content">
+
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
   <p class="lead">
-    AKIOS v1.0 is the security runtime you've been waiting for. Run AI agents with confidence — they can't leak data, burn budgets, or escape their sandbox. Everything is auditable, provable, and production-ready.
+    AKIOS v1.0 is the security runtime you've been waiting for. It adds PII redaction, budget limits, an audit log and, on native Linux as root, seccomp-bpf and cgroups v2 limits around AI agent workflows.
   </p>
 
   <p>
-    This isn't a general-purpose AI framework. It's <strong>the secure runtime</strong>: kernel-level isolation, real-time PII redaction, tamper-proof audit trails, and enforced budget controls.
+    This isn't a general-purpose AI framework. It's <strong>the secure runtime</strong>: kernel-level isolation, real-time PII redaction, a hashed audit log, and budget controls.
   </p>
 
   <h2>What's New in v1.0</h2>
@@ -23,7 +26,7 @@
 
   <h3>🛡️ Real-time PII Redaction</h3>
   <p>
-    Over 95% accuracy detecting and redacting sensitive data in under 50ms — <strong>before</strong> it reaches agents. Built-in rule packs for EU AI Act basics and French GDPR presets.
+    Detects and redacts sensitive data in under 50ms — <strong>before</strong> it reaches agents. Built-in rule packs for EU AI Act basics and French GDPR presets.
   </p>
 
   <h3>📊 Tamper-Evident Merkle Audit</h3>
@@ -43,7 +46,7 @@
 
   <h2>Architecture</h2>
   <p>
-    AKIOS splits control and data planes so policies stay signed and enforced before any effect takes place.
+    AKIOS splits control and data planes so policies are checked and enforced before any effect takes place.
   </p>
 
   <figure class="arch-figure">
@@ -52,7 +55,7 @@
 
   <h3>How It Works</h3>
   <ol>
-    <li><strong>Policies Validated:</strong> Your workflow config is checked and cryptographically signed before execution.</li>
+    <li><strong>Policies Validated:</strong> Your workflow config is checked before execution.</li>
     <li><strong>Security Layers Applied:</strong> Linux kernel sandbox (on native) or container isolation (Docker) → PII redaction → budget controls → audit logging.</li>
     <li><strong>Agent Execution:</strong> Only explicitly allowed operations pass through. Everything else is blocked and logged.</li>
   </ol>
@@ -97,7 +100,7 @@ akios output      # Manage workflow outputs</code></pre>
   </p>
 
   <h3>🐍 Pip Package (Recommended for Linux)</h3>
-  <p><strong>Best for:</strong> Python developers, CI/CD pipelines, maximum kernel-hard security</p>
+  <p><strong>Best for:</strong> Python developers, CI/CD pipelines, maximum kernel-level security</p>
   <pre><code>pip install akios
 akios init my-project
 cd my-project
@@ -122,7 +125,7 @@ chmod +x akios
     <tbody>
       <tr>
         <td>Native Linux</td>
-        <td><strong>Maximum:</strong> Kernel-hard (seccomp-bpf + cgroups)</td>
+        <td><strong>Maximum:</strong> Kernel-level (seccomp-bpf + cgroups)</td>
         <td>Production servers, regulated environments</td>
       </tr>
       <tr>
@@ -147,18 +150,9 @@ akios run templates/hello-workflow.yml</code></pre>
 [akios] audit: Merkle trail initialized
 [akios] workflow: completed successfully in 1.2s</code></pre>
 
-  <h2>What's Coming Next</h2>
-  <p>Future versions of AKIOS will add:</p>
-  <ul>
-    <li>Advanced workflow patterns (parallel execution, conditionals, loops)</li>
-    <li>More agents (Database, Email, Slack integrations)</li>
-    <li>REST API for remote control</li>
-    <li>Observability integrations (Prometheus, Jaeger)</li>
-  </ul>
-
   <h2>Ready to Start?</h2>
   <p>
-    <strong>AKIOS v1.0 is production-ready.</strong> Install it now and secure your AI agents in minutes:
+    <strong>AKIOS v1.0 is available.</strong> Install it now:
   </p>
   <ul>
     <li><strong>Quick Start:</strong> <a href="/docs/quickstart/">Get running in 2 minutes</a></li>

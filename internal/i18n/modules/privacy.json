@@ -5,8 +5,8 @@
       "description": "Privacy Policy explaining how AKIOS collects and processes personal data.",
       "heading": "Privacy Policy",
       "last_updated": "Last updated: 2026-01-26",
-      "controller": "Controller: AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – privacy@akioud.ai",
-      "dpo_status": "No designated DPO (contact privacy@akioud.ai for GDPR inquiries).",
+      "controller": "Controller: AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – hello@akios.ai",
+      "dpo_status": "No designated DPO (contact hello@akios.ai for GDPR inquiries).",
       "collect_heading": "Data Collected",
       "collect_1": "Contact/support forms: name, email, message, company (optional).",
       "collect_2": "Account creation / trial (if offered): email, password hash, usage logs.",
@@ -24,11 +24,11 @@
       "retention_3": "Logs: 6 months (security); anonymized aggregates kept longer.",
       "retention_4": "No consent-based cookies: We do not operate analytics/advertising cookies on akios.ai. If we introduce optional features requiring consent (e.g., newsletter), we will update this policy.",
       "sharing_heading": "Sharing / Processors",
-      "sharing_content": "Hosting, CDN, email, error tracking. GDPR-compliant contracts (SCC if transfer outside EU/EEA). Data minimized.",
+      "sharing_content": "Hosting, CDN, email, error tracking. The site is hosted by GitHub (GitHub Pages). GitHub processes technical data such as IP addresses to serve the site; see GitHub's privacy statement. Data minimized.",
       "transfers_heading": "Transfers outside EU/EEA",
-      "transfers_content": "Covered by Standard Contractual Clauses (SCC) or equivalent guarantees.",
+      "transfers_content": "For transfers outside the EU, see GitHub's privacy statement and data protection terms.",
       "rights_heading": "Your Rights",
-      "rights_content": "Access, rectification, erasure, restriction, portability, objection, withdraw consent at any time where processing is based on consent. Requests: privacy@akioud.ai. Complaint possible with CNIL.",
+      "rights_content": "Access, rectification, erasure, restriction, portability, objection, withdraw consent at any time where processing is based on consent. Requests: hello@akios.ai. Complaint possible with CNIL.",
       "security_heading": "Security",
       "security_content": "TLS, access control, least privilege, logging. No guarantee of absolute security.",
       "children_heading": "Minors",
@@ -36,7 +36,7 @@
       "changes_heading": "Changes",
       "changes_content": "Any update will be published here with a new date.",
       "contact_heading": "Contact",
-      "contact_content": "privacy@akioud.ai"
+      "contact_content": "hello@akios.ai"
     }
   },
   "fr": {
@@ -45,8 +45,8 @@
       "description": "Politique de confidentialité expliquant comment AKIOS collecte et traite les données personnelles.",
       "heading": "Politique de confidentialité",
       "last_updated": "Dernière mise à jour : 2026-01-26",
-      "controller": "Responsable de traitement : AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – privacy@akioud.ai",
-      "dpo_status": "Pas de DPO désigné (contactez privacy@akioud.ai pour toute demande RGPD).",
+      "controller": "Responsable de traitement : AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – hello@akios.ai",
+      "dpo_status": "Pas de DPO désigné (contactez hello@akios.ai pour toute demande RGPD).",
       "collect_heading": "Données collectées",
       "collect_1": "Formulaires de contact/support : nom, email, message, société (optionnel).",
       "collect_2": "Création de compte / essai (si proposé) : email, hash du mot de passe, journaux d’utilisation.",
@@ -64,11 +64,11 @@
       "retention_3": "Journaux : 6 mois (sécurité) ; agrégats anonymisés conservés plus longtemps.",
       "retention_4": "Aucun cookie basé sur le consentement : Nous n'exploitons pas de cookies d'analyse/publicité sur akios.ai. Si nous introduisons des fonctionnalités optionnelles nécessitant un consentement (par exemple, newsletter), nous mettrons à jour cette politique.",
       "sharing_heading": "Partage / sous-traitants",
-      "sharing_content": "Hébergement, CDN, email, suivi d’erreurs. Contrats conformes RGPD (SCC si transfert hors UE/EEE). Données minimisées.",
+      "sharing_content": "Hébergement, CDN, email, suivi d’erreurs. Le site est hébergé par GitHub (GitHub Pages). GitHub traite des données techniques, comme les adresses IP, pour servir le site ; voir la déclaration de confidentialité de GitHub. Données minimisées.",
       "transfers_heading": "Transferts hors UE/EEE",
-      "transfers_content": "Encadrés par les clauses contractuelles types (SCC) ou garanties équivalentes.",
+      "transfers_content": "Pour les transferts hors de l'UE, voir la déclaration de confidentialité et les conditions de protection des données de GitHub.",
       "rights_heading": "Vos droits",
-      "rights_content": "Accès, rectification, effacement, limitation, portabilité, opposition, retrait du consentement à tout moment lorsque le traitement est basé sur le consentement. Demandes : privacy@akioud.ai. Réclamation possible auprès de la CNIL.",
+      "rights_content": "Accès, rectification, effacement, limitation, portabilité, opposition, retrait du consentement à tout moment lorsque le traitement est basé sur le consentement. Demandes : hello@akios.ai. Réclamation possible auprès de la CNIL.",
       "security_heading": "Sécurité",
       "security_content": "TLS, contrôle d’accès, moindre privilège, journalisation. Aucune garantie de sécurité absolue.",
       "children_heading": "Mineurs",
@@ -76,7 +76,7 @@
       "changes_heading": "Modifications",
       "changes_content": "Toute mise à jour sera publiée ici avec une nouvelle date.",
       "contact_heading": "Contact",
-      "contact_content": "privacy@akioud.ai"
+      "contact_content": "hello@akios.ai"
     }
   }
 }

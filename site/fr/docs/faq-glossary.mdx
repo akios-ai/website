@@ -10,16 +10,16 @@
 
 ### Comment signaler des problèmes de sécurité ?
 
-Email : **security@akioud.ai**
+Signalez les vulnérabilités via le signalement privé de GitHub sur le dépôt AKIOS (https://github.com/akios-ai/akios/security/advisories/new). Si le formulaire est indisponible, écrivez à hello@akios.ai. Les signalements sont traités au mieux de nos moyens, sans délai de réponse garanti.
 
 Pour les rapports de vulnérabilités, voir [Politique de sécurité](security.html).
 
 ## Glossaire
 - **Cage de sécurité** : Sandbox + politiques + rédaction + audit appliqués à chaque workflow.
-- **Policy-based vs kernel-hard** : Policy (Docker, macOS/Win) via conteneur ; kernel-hard (Linux pip) ajoute seccomp-bpf + cgroups v2 sur l’hôte.
+- **Policy-based vs niveau noyau** : Policy (Docker, macOS/Win) via conteneur ; niveau noyau (Linux pip, en root) ajoute seccomp-bpf + cgroups v2 sur l’hôte.
 - **allowed_paths** : Liste blanche FS pour l’agent filesystem ; le reste est refusé.
 - **Rédaction PII** : Masquage/hachage/retrait en temps réel des données sensibles en entrée/sortie.
-- **Audit Merkle** : Chaîne de logs inviolable ; `akios audit verify` vérifie l’intégrité.
+- **Audit Merkle** : Journal haché (SHA-256 par événement, racine Merkle) ; `akios audit verify` détecte les modifications simples, pas un attaquant qui connaît le format.
 - **mock_llm / --real-api** : Mode mock = sorties synthétiques ; mode réel = appels fournisseur avec budgets/rédaction actifs.
 - **Coupe-circuits coût/boucle** : Limites coût/tokens et détection de boucle pour arrêter un run incontrôlé.
 - **Agents** : Quatre primitives — filesystem, http, llm, tool_executor ; pas d’exécution de code arbitraire hors de ces agents.

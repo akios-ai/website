@@ -1,5 +1,7 @@
 # Use Cases & Real-World Examples
 
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
 See how teams use AKIOS to build secure AI workflows in production. These examples show common patterns you can adapt for your needs.
 
 ## Who Uses AKIOS?
@@ -17,7 +19,7 @@ See how teams use AKIOS to build secure AI workflows in production. These exampl
 **Healthcare**
 - Analyze medical records
 - Research data processing
-- HIPAA-compliant workflows
+- Workflows that handle health data (regulatory compliance remains your responsibility)
 
 **Enterprise IT**
 - Internal document processing
@@ -308,7 +310,7 @@ steps:
 
 **Configuration:**
 ```yaml
-# config.yaml - HIPAA-compliant
+# config.yaml - example for health data
 sandbox_enabled: true
 pii_redaction_enabled: true
 pii_patterns:
@@ -323,10 +325,9 @@ network_access_allowed: false  # Air-gapped
 ```
 
 **Results:**
-- ✅ HIPAA compliant (verified)
 - ✅ All PHI automatically redacted
 - ✅ Research data properly anonymized
-- ✅ Audit trail for compliance officers
+- ✅ Audit trail for review
 
 ### Example 4: DevOps Log Analysis
 

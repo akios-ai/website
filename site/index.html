@@ -28,6 +28,15 @@
 
   <main id="main-content">
 
+  <!-- Status -->
+  <section class="section section-status">
+    <div class="page">
+      <div class="callout" role="note">
+        <p>{{i18n.home.status_banner}}</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Hero Section -->
   <section class="section section-hero">
     <div class="page hero-grid">
@@ -111,7 +120,7 @@ cd my-project
 akios run templates/hello-workflow.yml</code></pre>
 
       <p class="code-caption">{{i18n.home.quickstart_caption}}</p>
-      <pre><code>[akios] environment: native linux (kernel-hard)
+      <pre><code>[akios] environment: native linux (kernel-level)
 [akios] sandbox: seccomp-bpf, cgroups v2
 [akios] pii: redaction enabled (53 patterns)
 [akios] audit: Merkle trail initialized
@@ -133,7 +142,7 @@ akios run templates/hello-workflow.yml</code></pre>
     </div>
   </section>
 
-  <!-- Security guarantees -->
+  <!-- Security controls -->
   <section class="section">
     <div class="page">
       <h2 class="section-heading">{{i18n.home.security_heading}}</h2>
@@ -177,93 +186,6 @@ akios run templates/hello-workflow.yml</code></pre>
 
 
   <!-- Industry Case Studies -->
-  <section class="section">
-    <div class="page">
-      <h2 class="section-heading">{{i18n.case_studies_home.heading}}</h2>
-      <p>{{i18n.case_studies_home.intro}}</p>
-      <div class="case-studies-grid">
-        <a href="case-studies/healthcare-hipaa-security-cage.html" class="case-study-card case-study-available">
-          <span class="case-study-industry">{{i18n.case_studies_home.industry_healthcare}}</span>
-          <p class="case-study-desc">{{i18n.case_studies_home.industry_healthcare_desc}}</p>
-          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
-        </a>
-        <a href="case-studies/banking-fraud-detection.html" class="case-study-card case-study-available">
-          <span class="case-study-industry">{{i18n.case_studies_home.industry_banking}}</span>
-          <p class="case-study-desc">{{i18n.case_studies_home.industry_banking_desc}}</p>
-          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
-        </a>
-        <a href="case-studies/accounting-document-processing.html" class="case-study-card case-study-available">
-          <span class="case-study-industry">{{i18n.case_studies_home.industry_accounting}}</span>
-          <p class="case-study-desc">{{i18n.case_studies_home.industry_accounting_desc}}</p>
-          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
-        </a>
-        <a href="case-studies/legal-contract-review.html" class="case-study-card case-study-available">
-          <span class="case-study-industry">{{i18n.case_studies_home.industry_legal}}</span>
-          <p class="case-study-desc">{{i18n.case_studies_home.industry_legal_desc}}</p>
-          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
-        </a>
-        <a href="case-studies/government-airgap-deployment.html" class="case-study-card case-study-available">
-          <span class="case-study-industry">{{i18n.case_studies_home.industry_gov}}</span>
-          <p class="case-study-desc">{{i18n.case_studies_home.industry_gov_desc}}</p>
-          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
-        </a>
-        <a href="case-studies/insurance-claims-processing.html" class="case-study-card case-study-available">
-          <span class="case-study-industry">{{i18n.case_studies_home.industry_insurance}}</span>
-          <p class="case-study-desc">{{i18n.case_studies_home.industry_insurance_desc}}</p>
-          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
-        </a>
-        <a href="case-studies/pharma-clinical-trials.html" class="case-study-card case-study-available">
-          <span class="case-study-industry">{{i18n.case_studies_home.industry_pharma}}</span>
-          <p class="case-study-desc">{{i18n.case_studies_home.industry_pharma_desc}}</p>
-          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
-        </a>
-        <a href="case-studies/energy-grid-security.html" class="case-study-card case-study-available">
-          <span class="case-study-industry">{{i18n.case_studies_home.industry_energy}}</span>
-          <p class="case-study-desc">{{i18n.case_studies_home.industry_energy_desc}}</p>
-          <span class="case-study-link">{{i18n.case_studies_home.read_case_study}}</span>
-        </a>
-      </div>
-      <div class="case-studies-cta">
-        <a href="case-studies/index.html" class="quickstart-link">{{i18n.case_studies_home.view_all}}</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- EnforceCore Section -->
-  <section class="section bg-alt">
-    <div class="page">
-      <h2 class="section-heading">{{i18n.home.enforcecore_heading}}</h2>
-      <p>{{i18n.home.enforcecore_description}}</p>
-      <div class="enforcecore-layout">
-        <div class="enforcecore-logo">
-          <img class="ec-logo-light" src="{{root}}/assets/img/logo-enforcecore-light.svg" alt="EnforceCore Logo" loading="lazy">
-          <img class="ec-logo-dark" src="{{root}}/assets/img/logo-enforcecore-dark.svg" alt="EnforceCore Logo" loading="lazy">
-        </div>
-        <div class="enforcecore-features">
-          <div class="feature">
-            <h3>{{i18n.home.enforcecore_policy_title}}</h3>
-            <p>{{i18n.home.enforcecore_policy_desc}}</p>
-          </div>
-          <div class="feature">
-            <h3>{{i18n.home.enforcecore_redactor_title}}</h3>
-            <p>{{i18n.home.enforcecore_redactor_desc}}</p>
-          </div>
-          <div class="feature">
-            <h3>{{i18n.home.enforcecore_auditor_title}}</h3>
-            <p>{{i18n.home.enforcecore_auditor_desc}}</p>
-          </div>
-          <div class="feature">
-            <h3>{{i18n.home.enforcecore_guard_title}}</h3>
-            <p>{{i18n.home.enforcecore_guard_desc}}</p>
-          </div>
-        </div>
-      </div>
-      <div class="hero-actions" style="margin-top: var(--space-4);">
-        <a href="docs/enforcecore.html" class="btn btn-primary">{{i18n.home.enforcecore_cta_docs}}</a>
-        <a href="https://github.com/akios-ai/enforcecore" class="btn btn-outline" rel="noopener">{{i18n.home.enforcecore_cta_github}}</a>
-      </div>
-    </div>
-  </section>
 
   <!-- FAQ Section -->
   <section class="section">

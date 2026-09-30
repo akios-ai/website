@@ -7,6 +7,8 @@
 
 <div class="post-content">
 
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
 AKIOS v1.0.7 delivers cryptographic audit proofs that actually work, workflow validation before execution, ablation benchmarking, and secure data erasure controls. This release also includes all v1.0.6 security hardening.
 
 ## What Changed: v1.0.5 &rarr; v1.0.7
@@ -29,7 +31,7 @@ AKIOS v1.0.7 delivers cryptographic audit proofs that actually work, workflow va
     <tr>
       <td><strong>PII Fail-Safe</strong></td>
       <td>Silent passthrough on module failure</td>
-      <td>Blocks data with <code>[PII_REDACTION_UNAVAILABLE]</code> &mdash; never leaks</td>
+      <td>Blocks data with <code>[PII_REDACTION_UNAVAILABLE]</code> &mdash; fails closed</td>
     </tr>
     <tr>
       <td><strong>HTTPS</strong></td>

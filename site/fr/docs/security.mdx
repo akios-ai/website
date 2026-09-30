@@ -3,15 +3,12 @@
 Défense en profondeur à chaque exécution : cage de sécurité, sandbox, rédaction PII, piste d'audit, coupe-circuits coût/boucle.
 
 ## Versions supportées
-| Version | Support | Mises à jour sécu |
-|---------|---------|-------------------|
-| 1.0.x   | ✅ Actif | ✅ Oui |
-| <1.0    | ❌ Fin de vie | ❌ Non |
+AKIOS 1.x n'est plus maintenu et n'est pas destiné à un usage en production. Un AKIOS repensé est en développement.
 
 ## Signaler une vulnérabilité
-Canal privé uniquement : **security@akioud.ai**  
+Signalez les vulnérabilités via le signalement privé de GitHub sur le dépôt AKIOS (https://github.com/akios-ai/akios/security/advisories/new). Si le formulaire est indisponible, écrivez à hello@akios.ai. Les signalements sont traités au mieux de nos moyens, sans délai de réponse garanti. Ne signalez pas les vulnérabilités dans les tickets GitHub publics.  
 Inclure : description, étapes de repro, version affectée, impact (contournement sandbox, fuite PII, dépassement budget), correctif suggéré, contact.  
-Cible de réponse : accusé ≤24h, triage ≤72h, correctifs critiques ≤7 jours, sévérité haute ≤30 jours, divulgation coordonnée, crédit public (Hall of Fame).
+Divulgation coordonnée, crédit public (Hall of Fame).
 
 ## Les quatre couches de sécurité
 
@@ -35,7 +32,7 @@ Quand la cage est **ACTIVE**, ces protections sont appliquées :
 - **Rédaction PII** — Toutes les entrées/sorties automatiquement analysées et rédigées
 - **Verrou réseau** — Seuls les endpoints LLM + `allowed_domains` configurés passent
 - **Sandbox** — Isolation de processus via cgroups v2 + seccomp-bpf (natif) ou politique conteneur (Docker)
-- **Journalisation d'audit** — Chaque action journalisée cryptographiquement avec chaînes de Merkle
+- **Journalisation d'audit** — Chaque action journalisée avec un hash SHA-256 et une racine Merkle
 - **Contrôles de coût** — Kill-switches budget arrêtent l'exécution si les limites sont dépassées
 
 **Désactiver la cage :**
@@ -47,18 +44,18 @@ akios cage down
 akios cage down --keep-data
 ```
 
-> **Avertissement :** `cage down` détruit définitivement `audit/`, `data/output/` et `data/input/`. C'est la promesse de sécurité fondamentale de la cage : zéro résidu de données. Utilisez `--keep-data` uniquement pendant le développement actif.
+> **Avertissement :** `cage down` détruit définitivement `audit/`, `data/output/` et `data/input/`. Les fichiers sont écrasés puis supprimés ; sur SSD ou sur un système de fichiers copy-on-write, l'écrasement n'assure pas l'effacement physique. Utilisez `--keep-data` uniquement pendant le développement actif.
 
 ### 1. Sandbox & Isolation
 
 Ce que la V1.0 applique :
-- Isolation conteneur : listes blanches commandes/chemins, quotas cgroups, isolation de processus, réseau deny par défaut.
-- Protections IA : >50 motifs PII (entrées/sorties), détection de boucle, coupe-circuits budget/tokens, limites de taille et validation, retry/backoff.
-- Audit & conformité : logs inviolables type Merkle, PII-safe par défaut, export JSON pour revues.
+- Contrôles : listes d'autorisation de commandes et de chemins vérifiées par les agents intégrés ; quotas cgroups v2 et filtre seccomp-bpf sous Linux natif en root ; accès réseau de l'agent HTTP refusé par défaut.
+- Protections IA : 44 motifs PII (entrées/sorties), détection de boucle, coupe-circuits budget/tokens, limites de taille et validation, retry/backoff.
+- Audit : journal haché (SHA-256 par événement, racine Merkle), PII rédigées par défaut, export JSON pour revues.
 
 ### 2. Rédaction PII
 
-Suppression automatique des données sensibles (>50 motifs) : emails, téléphones, numéros de sécurité sociale, cartes de crédit, clés API, mots de passe, adresses IP, données médicales, comptes financiers.
+Suppression automatique des données sensibles (44 motifs regex) : emails, téléphones, numéros de sécurité sociale, cartes de crédit, clés API, mots de passe, adresses IP, données médicales, comptes financiers.
 
 Appliquée deux fois : avant l'envoi aux fournisseurs IA (entrées) et après réception (sorties).
 
@@ -88,10 +85,10 @@ akios protect preview templates/workflow.yml
 
 ### 4. Piste d'audit
 
-- **Intégrité cryptographique** — Chaînes de hachage type Merkle
+- **Intégrité** — Hash SHA-256 par événement et racine Merkle (détecte uniquement les modifications simples)
 - **Couverture complète** — Chaque action journalisée
 - **PII-safe** — Données sensibles rédigées dans les logs
-- **Prêt conformité** — Export pour SOX/HIPAA/RGPD
+- **Export** — Export JSON du journal d'audit
 
 ## Vérifier maintenant
 ```bash
@@ -102,8 +99,11 @@ Si différent, voir [Installation](installation.html) et [Référence de configu
 
 
 ## Spécificités plateforme
-- **Linux natif (pip)** : kernel-hard (cgroups v2 + seccomp-bpf), meilleure isolation/perf. **Prérequis :** kernel ≥5.4, paquets système `libseccomp-dev` et `python3-seccomp`, sudo pour la protection kernel-hard complète.
+- **Linux natif (pip)** : niveau noyau (cgroups v2 + seccomp-bpf), meilleure isolation/perf. **Prérequis :** kernel ≥5.4, paquets système `libseccomp-dev` et `python3-seccomp`, sudo pour la protection complète au niveau noyau.
 - **Docker (macOS/Windows/Linux)** : isolation forte par politiques et rédaction; permissions FS hôte et strictesse seccomp dépendent de l’hôte — privilégier Linux natif pour le haut niveau d’assurance.
+
+AKIOS 1.x est un logiciel en version bêta. Linux natif en root ajoute des contrôles au niveau noyau ; Docker apporte l'isolation conteneur en plus des vérifications de politique.
+
 
 ## Vérifier votre posture
 ```bash
@@ -111,7 +111,7 @@ akios status --security          # tableau de bord
 akios status --security --json   # format machine
 ```
 
-Affiche : niveau de sécurité (Full/Strong), protection PII, réseau autorisé/bloqué, statut audit, limites coût/token, indicateurs conformité.
+Affiche : niveau de sécurité (Full/Strong), protection PII, réseau autorisé/bloqué, statut audit, limites coût/token, indicateurs de posture.
 
 **Rappel :** aucun logiciel n’est sûr à 100 % ; exécutez AKIOS dans des environnements isolés et validez les sorties.
 ## Sortie déployable
@@ -133,14 +133,14 @@ cage up → protections activées → workflows exécutés → données génér�
                                                            ↓
 cage down → audit/ détruit → data/output/ détruit → data/input/ détruit
                                                            ↓
-                                                    ZÉRO RÉSIDU DE DONNÉES
+                                                 DONNÉES DE SESSION SUPPRIMÉES
 ```
 
-Chaque session démarre propre et se termine propre. Aucun artefact sensible ne survit à une session de cage.
+Les fichiers sont écrasés puis supprimés à la fin de la session. Sur SSD ou sur un système de fichiers copy-on-write, l'écrasement n'assure pas l'effacement physique des données.
 
 ## Sécurité réseau & liste blanche HTTPS
 
-Par défaut, **tout accès réseau externe est bloqué** (sécurité d'abord). Les endpoints LLM (OpenAI, Anthropic, Grok, Mistral, Gemini) passent toujours quel que soit ce paramètre — `network_access_allowed` contrôle uniquement l'agent HTTP.
+Par défaut, **l'agent HTTP n'a pas accès au réseau externe**. Les endpoints LLM (OpenAI, Anthropic, Grok, Mistral, Gemini) passent toujours quel que soit ce paramètre — `network_access_allowed` contrôle uniquement l'agent HTTP. Les commandes lancées par `tool_executor` ne sont pas restreintes au niveau réseau.
 
 **Configurer une liste blanche HTTPS pour l'agent HTTP :**
 
@@ -159,19 +159,10 @@ AKIOS_ALLOWED_DOMAINS="api.salesforce.com,api.mycompany.com"
 
 Les sous-domaines doivent être ajoutés explicitement — ils ne sont pas automatiquement autorisés.
 
-## Cadres de conformité
+## Conformité
 
-Les exports d'audit AKIOS sont conçus pour l'examen réglementaire transversal :
+AKIOS n'évalue ni ne certifie la conformité à aucune réglementation. Ses exports d'audit et le rapport de posture informatif (`akios compliance report`) sont des éléments que vous pouvez utiliser dans votre propre démarche de conformité ; ce ne sont pas une évaluation de conformité.
 
-| Secteur | Réglementation | Fonctionnalités de conformité |
-|---------|---------------|-------------------------------|
-| Santé | HIPAA, HITECH | Rédaction PHI, journalisation d'accès, preuve d'audit |
-| Banque | PCI-DSS, BSA-AML, GLBA | Rédaction PII financières, audit de transactions |
-| Assurance | NAIC, State DOI | Protection des données de sinistres, audit détection fraude |
-| Comptabilité | SOX 302/404, PCAOB | Piste d'audit financière, vérification des contrôles |
-| Gouvernement | FISMA, FedRAMP, Privacy Act | Protection données classifiées, audit d'accès |
-| Juridique | ABA Rule 1.6, FRE 502 | Protection du privilège, rédaction données affaires |
-| UE/France | RGPD, CNIL, ANSSI | Rédaction DCP, conformité RGS, cycle de vie des données |
 ## Related
 - [Référence de configuration](config-reference.html)
 - [Débogage](debugging.html)

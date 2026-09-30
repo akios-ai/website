@@ -78,7 +78,7 @@ We welcome contributions in these areas:
 ## Code Review Process
 
 1. All submissions require review before merging
-2. Maintainers will provide feedback within 1-2 weeks
+2. Maintainers will provide feedback
 3. Address review comments and update your PR
 4. Once approved, a maintainer will merge your contribution
 
@@ -99,7 +99,7 @@ npm run build
 
 - **Documentation:** Check the [README](README.md)
 - **Discussions:** Open a GitHub Discussion
-- **Contact:** contact@akios.ai
+- **Contact:** hello@akios.ai
 
 ## License
 

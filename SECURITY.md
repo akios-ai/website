@@ -8,9 +8,7 @@ We take the security of the AKIOS website seriously. If you discover a security 
 
 **DO NOT** open a public GitHub issue for security vulnerabilities.
 
-Instead, please email us directly:
-
-**Email:** security@akios.ai
+Report vulnerabilities through GitHub's private vulnerability reporting on the AKIOS repository (https://github.com/akios-ai/akios/security/advisories/new). If the form is unavailable, write to hello@akios.ai. Reports are handled on a best-effort basis, with no guaranteed response time.
 
 Include the following information:
 
@@ -19,14 +17,6 @@ Include the following information:
 - **Steps to reproduce** – Detailed instructions
 - **Potential impact** – What could an attacker accomplish?
 - **Suggested fix** – If you have recommendations
-
-### Response Timeline
-
-- **Initial response:** Within 48 hours
-- **Status update:** Within 1 week
-- **Resolution:** Varies based on severity
-
-We will acknowledge your report and work with you to understand and address the issue.
 
 ## Scope
 
@@ -70,7 +60,7 @@ We only support the latest deployed version of the website. Security fixes are a
 
 ## Security Updates
 
-Security fixes are deployed immediately upon verification:
+Security fixes follow these steps:
 
 1. Issue verified and patched
 2. Automated deployment to production

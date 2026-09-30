@@ -158,7 +158,7 @@ python3 --version
 
 ### How do I report security issues?
 
-Email: **security@akioud.ai**
+Report vulnerabilities through GitHub's private vulnerability reporting on the AKIOS repository (https://github.com/akios-ai/akios/security/advisories/new). If the form is unavailable, write to hello@akios.ai. Reports are handled on a best-effort basis, with no guaranteed response time.
 
 For vulnerability reports, see [Security Policy](security.html).
 
@@ -171,7 +171,7 @@ The complete security layer AKIOS enforces around every workflow:
 - PII redaction (sensitive data removal)
 - Audit logging (tamper-evident trail)
 
-### Policy-Based vs Kernel-Hard Security
+### Policy-Based vs Kernel-Level Security
 
 **Policy-based (Docker):**
 - Container isolation
@@ -179,7 +179,7 @@ The complete security layer AKIOS enforces around every workflow:
 - Resource limits
 - Works on macOS/Windows/Linux
 
-**Kernel-hard (Linux native):**
+**Kernel-level (Linux native):**
 - All policy-based features PLUS:
 - seccomp-bpf syscall filtering
 - cgroups v2 resource limits
@@ -209,7 +209,7 @@ Real-time masking, hashing, or removal of sensitive patterns:
 - JWTs
 - And more...
 
-> **Note:** Healthcare-specific patterns (NPI, DEA, MRN) were moved to the EnforceCore NER backend in v1.4.0. Install `enforcecore[ner]` for those.
+> **Note:** Healthcare-specific patterns (NPI, DEA, MRN) were removed from the built-in detector in v1.4.0. To detect them, implement a custom detector with `PIIDetectorProtocol`.
 
 **Strategies:**
 - `mask` - Replace with `[REDACTED]`
@@ -352,7 +352,7 @@ The `on_error` field controls what happens when a step fails:
 - `retry` — Retry with `retry_count` and `retry_delay`
 
 ### PIIDetectorProtocol
-A pluggable interface (Python Protocol class) for custom PII detection backends. Implement this protocol to add domain-specific PII patterns beyond the built-in 44 patterns. The EnforceCore NER backend (`enforcecore[ner]`) implements this protocol for entity-based PII detection.
+A pluggable interface (Python Protocol class) for custom PII detection backends. Implement this protocol to add domain-specific PII patterns beyond the built-in 44 patterns.
 
 ### Context Keywords
 A list of domain-specific terms (e.g., `policy_number`, `account_ref`) that suppress false-positive PII matches. Configured via `context_keywords` in `config.yaml`.

@@ -113,7 +113,7 @@ network_access_allowed: true
 
 **`sandbox_enabled: true`**
 - Enables process isolation
-- Kernel-hard on Linux, policy-based in Docker
+- Kernel-level on Linux, policy-based in Docker
 - **Recommended:** Always `true`
 
 **`pii_redaction_enabled: true`**
@@ -228,9 +228,7 @@ Subdomains must be added explicitly — they are not automatically allowed.
 - **Default:** `0`
 
 **`use_enforcecore: false`** (v1.2.0+)
-- Enable EnforceCore integration for enhanced enforcement
-- Requires `pip install akios[enforcecore]`
-- When enabled, AKIOS delegates policy evaluation, PII redaction, and audit to EnforceCore
+- The optional EnforceCore integration of AKIOS 1.x is discontinued together with EnforceCore. Do not enable it.
 - **Default:** `false`
 
 ### General Settings
@@ -367,7 +365,7 @@ akios setup --force
 
 | Use Case | Recommended Method | Why |
 |----------|-------------------|-----|
-| **Maximum security, Linux production** | Pip Package | Kernel-hard security features |
+| **Maximum security, Linux production** | Pip Package | Kernel-level security features |
 | **Cross-platform development team** | Docker | Consistent environment everywhere |
 | **Python ecosystem integration** | Pip Package | Full Python compatibility |
 
@@ -385,7 +383,7 @@ environment: "production"
 # Strong policy-based security
 sandbox_enabled: true  # Container policies + allowlisting
 environment: "production"
-# Note: No kernel-hard seccomp-bpf available
+# Note: No kernel-level seccomp-bpf available
 ```
 
 #### Docker (All Platforms)
@@ -402,7 +400,7 @@ AKIOS validates configuration compatibility with your deployment method:
 
 ```bash
 # Pip package - validates Linux kernel features
-akios status  # Shows kernel-hard security status
+akios status  # Shows kernel-level security status
 
 # Docker - validates container environment
 akios status  # Shows policy-based security status

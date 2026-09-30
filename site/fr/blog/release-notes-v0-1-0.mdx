@@ -5,29 +5,32 @@
   <h1>AKIOS v1.0 : La cage de sécurité est arrivée</h1></header>
 
 <div class="post-content">
+
+> **Statut :** AKIOS 1.x n'est plus maintenu et n'est pas destiné à un usage en production. Un AKIOS repensé est en développement.
+
   <p class="lead">
-    AKIOS v1.0 est la cage de sécurité que vous attendiez. Exécutez des agents IA en toute confiance — ils ne peuvent fuir de données, brûler des budgets ou échapper à leur sandbox. Tout est auditable, prouvable et prêt pour la production.
+    AKIOS v1.0 est la cage de sécurité que vous attendiez. Elle ajoute la rédaction des PII, des limites de budget, un journal d'audit et, sous Linux natif en root, des limites seccomp-bpf et cgroups v2 autour des workflows d'agents IA.
   </p>
 
   <p>
-    Ce n'est pas un framework IA généraliste. C'est <strong>la cage incassable</strong> : isolation au niveau du kernel, rédaction PII en temps réel, audit infalsifiable et contrôles de budget forcés.
+    Ce n'est pas un framework IA généraliste. C'est <strong>la cage de sécurité</strong> : isolation au niveau du kernel, rédaction PII en temps réel, journal d'audit haché et contrôles de budget.
   </p>
 
   <h2>Nouveautés de la v1.0</h2>
 
-  <h3>🔒 Isolation kernel dure</h3>
+  <h3>🔒 Isolation au niveau du kernel</h3>
   <p>
-    Les agents IA s'exécutent dans un sandbox verrouillé. Sur Linux, cela utilise des contrôles au niveau kernel (cgroups + seccomp-bpf) pour imposer des limites strictes sur CPU, mémoire, disque et réseau. Sur d'autres plateformes, Docker fournit une isolation conteneur forte. Dans tous les cas : le contrôle d'accès par défaut-refus signifie que les agents ne peuvent toucher que ce que vous autorisez explicitement.
+    Sous Linux natif en root, AKIOS applique des contrôles au niveau kernel (cgroups v2 + seccomp-bpf) au processus. Sur d'autres plateformes, Docker fournit l'isolation conteneur. Les agents intégrés n'accèdent qu'aux chemins, commandes et domaines autorisés ; ces listes sont vérifiées par AKIOS, pas par le kernel.
   </p>
 
   <h3>🛡️ Rédaction PII en temps réel</h3>
   <p>
-    Plus de 95 % de précision pour détecter et rédiger les données sensibles en moins de 50 ms — <strong>avant</strong> qu'elles n'atteignent les agents. Packs de règles intégrés pour les bases de l'EU AI Act et les préréglages RGPD français.
+    Détection et rédaction des données sensibles en moins de 50 ms — <strong>avant</strong> qu'elles n'atteignent les agents. Packs de règles intégrés pour les bases de l'EU AI Act et les préréglages RGPD français.
   </p>
 
-  <h3>📊 Audit Merkle infalsifiable</h3>
+  <h3>📊 Journal d'audit Merkle</h3>
   <p>
-    Chaque action est prouvée cryptographiquement avec un registre Merkle. Traces d'exécution complètes avec export PDF et JSON propre. Vérification d'intégrité complète intégrée.
+    Chaque action est journalisée avec un hash SHA-256 et une racine Merkle. Traces d'exécution avec export PDF et JSON. La vérification d'intégrité intégrée détecte les modifications simples, pas un attaquant qui connaît le format.
   </p>
 
   <h3>💰 Kill-switches coût et boucles forcés</h3>
@@ -42,7 +45,7 @@
 
   <h2>Architecture</h2>
   <p>
-    AKIOS sépare les plans de contrôle et de données pour que les politiques restent signées et appliquées avant tout effet.
+    AKIOS sépare les plans de contrôle et de données pour que les politiques soient vérifiées et appliquées avant tout effet.
   </p>
 
   <figure class="arch-figure">
@@ -51,7 +54,7 @@
 
   <h3>Fonctionnement</h3>
   <ol>
-    <li><strong>Validation des politiques :</strong> Votre configuration de workflow est vérifiée et signée cryptographiquement avant l'exécution.</li>
+    <li><strong>Validation des politiques :</strong> Votre configuration de workflow est vérifiée avant l'exécution.</li>
     <li><strong>Couches de sécurité appliquées :</strong> Sandbox kernel Linux (en natif) ou isolation conteneur (Docker) → Rédaction PII → Contrôles de budget → Journalisation d'audit.</li>
     <li><strong>Exécution des agents :</strong> Seules les opérations explicitement autorisées passent. Tout le reste est bloqué et journalisé.</li>
   </ol>
@@ -63,9 +66,9 @@
     <li>Isolation de processus avec cgroups v2 + seccomp-bpf (Linux natif)</li>
     <li>Isolation conteneur forte (Docker sur toutes plateformes)</li>
     <li>Détection et rédaction PII en temps réel</li>
-    <li>Journalisation d'audit Merkle infalsifiable</li>
+    <li>Journalisation d'audit Merkle hachée</li>
     <li>Kill-switches coût et boucles durs</li>
-    <li>Accès réseau et système de fichiers refusé par défaut</li>
+    <li>Accès réseau et système de fichiers des agents intégrés refusé par défaut</li>
   </ul>
 
   <h3>Quatre agents principaux</h3>
@@ -122,7 +125,7 @@ chmod +x akios
     <tbody>
       <tr>
         <td>Linux natif</td>
-        <td><strong>Maximum :</strong> Kernel-dur (seccomp-bpf + cgroups)</td>
+        <td><strong>Maximum :</strong> Niveau kernel (seccomp-bpf + cgroups)</td>
         <td>Serveurs de production, environnements réglementés</td>
       </tr>
       <tr>
@@ -147,18 +150,9 @@ akios run templates/hello-workflow.yml</code></pre>
 [akios] audit: Merkle trail initialized
 [akios] workflow: completed successfully in 1.2s</code></pre>
 
-  <h2>Prochaines étapes</h2>
-  <p>Les futures versions d'AKIOS ajouteront :</p>
-  <ul>
-    <li>Patterns de workflow avancés (exécution parallèle, conditionnelles, boucles)</li>
-    <li>Plus d'agents (Base de données, Email, intégrations Slack)</li>
-    <li>API REST pour contrôle à distance</li>
-    <li>Intégrations d'observabilité (Prometheus, Jaeger)</li>
-  </ul>
-
   <h2>Prêt à commencer ?</h2>
   <p>
-    <strong>AKIOS v1.0 est prêt pour la production.</strong> Installez-le maintenant et sécurisez vos agents IA en quelques minutes :
+    <strong>AKIOS v1.0 est disponible.</strong> Installez-le maintenant :
   </p>
   <ul>
     <li><strong>Démarrage rapide :</strong> <a href="/docs/quickstart/">Lancez-vous en 2 minutes</a></li>

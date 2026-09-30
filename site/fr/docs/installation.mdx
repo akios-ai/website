@@ -1,11 +1,13 @@
 # Installation (AKIOS V1.0)
 
+> **Statut :** AKIOS 1.x n'est plus maintenu et n'est pas destiné à un usage en production. Un AKIOS repensé est en développement.
+
 Choisissez la méthode adaptée à votre plateforme et à votre niveau de sécurité.
 
 ## Paquet Pip (recommandé sur Linux natif)
-Sécurité maximale (kernel-hard : cgroups + seccomp). Fonctionne sur macOS/Windows avec isolation standard.
+Sécurité maximale (niveau noyau : cgroups + seccomp, en root). Fonctionne sur macOS/Windows avec isolation standard.
 
-**Prérequis Linux pour la sécurité kernel-hard complète :**
+**Prérequis Linux pour la sécurité complète au niveau noyau :**
 ```bash
 # Installer les paquets système pour le support seccomp
 sudo apt install libseccomp-dev python3-seccomp
@@ -41,7 +43,7 @@ docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run template
 ```
 
 ## Arbre de décision
-- **Linux + sécu max** → Pip (kernel-hard).
+- **Linux + sécu max** → Pip (niveau noyau).
 - **Équipe multi-OS** → Wrapper Docker.
 - **CI / secours** → Docker direct.
 
@@ -49,7 +51,7 @@ docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run template
 ## Que choisir
 | Option | Idéal pour | Niveau de sécurité |
 |--------|------------|--------------------|
-| Pip (Linux) | Sécu max, workflows Python | Kernel-hard complet |
+| Pip (Linux) | Sécu max, workflows Python | Niveau noyau complet |
 | Wrapper Docker | Équipes multi-OS | Isolation conteneur forte |
 | Docker direct | CI / secours | Isolation conteneur forte |
 

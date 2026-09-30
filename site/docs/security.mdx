@@ -14,11 +14,12 @@ AKIOS protects your AI workflows with multiple layers of defense. This guide exp
 
 | Platform | Security Level | What You Get |
 |----------|---------------|--------------|
-| **Native Linux + sudo** | Full (kernel-hard) | cgroups v2 + seccomp-bpf syscall filtering = maximum isolation |
+| **Native Linux + sudo** | Full (kernel-level) | cgroups v2 + seccomp-bpf syscall filtering = maximum isolation |
 | **Native Linux (no sudo)** | Strong (graceful degradation) | Policy-based sandbox with most protections active |
 | **Docker** (all platforms) | Strong (policy-based) | Container isolation + command allowlisting = excellent cross-platform security |
 
-**Both are production-ready.** Use native Linux for absolute maximum, Docker for excellent security everywhere.
+AKIOS 1.x is beta software. Native Linux as root adds kernel-level controls; Docker gives container isolation plus the policy checks.
+
 
 ## The Four Security Layers
 
@@ -103,13 +104,13 @@ akios status --security
 - Health insurance IDs, medical records, medication dosages, lab results, diagnosis codes
 - Postal addresses, GPS coordinates
 
-> **Note (v1.4.0):** Specialized healthcare identifiers (NPI, DEA, MRN) and financial patterns (IBAN, BIC, routing numbers) were removed from AKIOS OSS to focus on general-purpose detection. Contact us if you need extended PII coverage.
+> **Note (v1.4.0):** Specialized healthcare identifiers (NPI, DEA, MRN) and financial patterns (IBAN, BIC, routing numbers) were removed from AKIOS OSS to focus on general-purpose detection.
 
 **Applied twice:**
 - Before sending to AI providers (inputs)
 - After receiving from AI providers (outputs)
 
-**Pluggable PII backend:** AKIOS uses a `PIIDetectorProtocol` interface, allowing custom PII detection implementations. The default regex-based detector covers 44 patterns with >95% accuracy. When EnforceCore is installed (`pip install akios[enforcecore]`), an additional NER-based detection tier (Presidio) and 11-category secret scanner are layered on top.
+**Pluggable PII backend:** AKIOS uses a `PIIDetectorProtocol` interface, allowing custom PII detection implementations. The default regex-based detector covers 44 patterns with >95% accuracy.
 
 **Context keywords:** Reduce false-positive PII matches by requiring contextual keywords near a pattern match. Configure `context_keywords` in your policy to require words like "SSN", "social security", or "tax ID" near a numeric pattern before flagging it.
 
@@ -138,7 +139,7 @@ akios protect scan data/input/document.txt
 akios protect preview templates/workflow.yml
 ```
 
-**PII fail-safe:** If the PII scanner itself encounters an error during processing, the entire input/output is blocked rather than passed through unredacted. This fail-closed behavior ensures sensitive data never leaks due to scanner failures.
+**PII fail-safe:** If the PII scanner itself encounters an error during processing, the entire input/output is blocked rather than passed through unredacted. This fail-closed behavior prevents a scanner failure from passing data through unredacted.
 
 ```bash
 # Inspect PII prompt template
@@ -164,10 +165,10 @@ akios status
 
 **What it does:** Creates tamper-evident logs
 
-- **Cryptographic integrity** - Merkle-style hash chains
+- **Integrity** - SHA-256 hash per event and a Merkle root (detects simple edits only)
 - **Complete coverage** - Every action logged
 - **PII-safe** - Sensitive data redacted in logs
-- **Compliance ready** - Export for SOX/HIPAA/GDPR
+- **Export** - JSON export of the audit log
 
 **Verify it's working:**
 ```bash
@@ -207,7 +208,7 @@ Shows: Security level, PII protection, budget remaining, audit status
 akios status --security
 ```
 
-Shows: All security features, active protections, compliance indicators, resource limits
+Shows: All security features, active protections, posture indicators, resource limits
 
 **Machine-readable (for scripts):**
 ```bash
@@ -218,7 +219,7 @@ akios status --security --json
 
 ### On Native Linux
 ```
-🛡️ Security Level: Full (kernel-hard)
+🛡️ Security Level: Full (kernel-level)
 ✓ Sandbox: cgroups v2 + seccomp-bpf active
 ✓ PII Redaction: Active (inputs + outputs)
 ✓ Audit Logging: Cryptographic integrity verified
@@ -226,7 +227,7 @@ akios status --security --json
 ✓ Cost Controls: $1.00 budget limit active
 ```
 
-**Requirements:** Linux kernel 5.4+, system packages `libseccomp-dev` and `python3-seccomp`, sudo privileges for full kernel-hard protection. Without sudo, AKIOS gracefully degrades to policy-based mode.
+**Requirements:** Linux kernel 5.4+, system packages `libseccomp-dev` and `python3-seccomp`, sudo privileges for full kernel-level protection. Without sudo, AKIOS gracefully degrades to policy-based mode.
 
 ### On Docker (any platform)
 ```
@@ -300,21 +301,9 @@ AKIOS_ALLOWED_DOMAINS="api.salesforce.com,api.mycompany.com"
 
 Subdomains must be added explicitly — they are not automatically allowed.
 
-## Compliance Frameworks
+## Compliance
 
-AKIOS audit exports are designed for regulatory examination across sectors:
-
-| Sector | Regulation | Compliance Features |
-|--------|-----------|-------------------|
-| Healthcare | HIPAA, HITECH | PHI redaction (NPI/DEA/MRN), access logging, audit proof |
-| Banking | PCI-DSS, BSA-AML, GLBA | Financial PII redaction, transaction audit |
-| Insurance | NAIC, State DOI | Claim data protection, fraud detection audit |
-| Accounting | SOX 302/404, PCAOB | Financial audit trail, control verification |
-| Government | FISMA, FedRAMP, Privacy Act | Clearance data protection, access audit |
-| Legal | ABA Rule 1.6, FRE 502 | Privilege protection, case data redaction |
-| EU/France | RGPD, CNIL, ANSSI | DCP redaction, RGS compliance, data lifecycle |
-
-**Weighted compliance scoring:** AKIOS computes a compliance readiness score based on which security components are active. Weights: **security 50%**, **audit 30%**, **cost 20%**. Each component is weighted by its contribution to a given regulatory framework. Run `akios status --security` to see your current compliance score.
+AKIOS does not assess or certify compliance with any regulation. Its audit exports and the informational posture report (`akios compliance report`) are inputs you may use in your own compliance work; they are not a compliance assessment.
 
 ## Non-Root Docker Containers
 
@@ -354,7 +343,7 @@ See `docs/tla/AKIOSEnforcement.tla` in the repository.
 
 ## Report Security Issues
 
-**Found a vulnerability?** Email **security@akioud.ai** (private only — do NOT report via public GitHub issues)
+**Found a vulnerability?** Report vulnerabilities through GitHub's private vulnerability reporting on the AKIOS repository (https://github.com/akios-ai/akios/security/advisories/new). If the form is unavailable, write to hello@akios.ai. Reports are handled on a best-effort basis, with no guaranteed response time. Do NOT report vulnerabilities in public GitHub issues.
 
 **Include:**
 - Clear description of the issue
@@ -364,21 +353,12 @@ See `docs/tla/AKIOSEnforcement.tla` in the repository.
 - Your contact info
 
 **Our response:**
-- Acknowledgment within 24 hours
-- Triage within 72 hours
-- Critical fixes within 7 days
-- High-severity fixes within 30 days
 - Coordinated disclosure
 - Public credit (Hall of Fame)
 
 ## Supported Versions
 
-| Version | Supported | Security Updates |
-|---------|-----------|------------------|
-| 1.0.x | ✅ Active | ✅ Full support |
-| <1.0 | ❌ End of Life | ❌ No support |
-
-Always use the latest 1.0.x version for best security.
+AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
 
 ## Learn More
 

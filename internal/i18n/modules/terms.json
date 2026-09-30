@@ -5,7 +5,7 @@
       "description": "Terms of Use for akios.ai website and AKIOS software.",
       "heading": "Terms of Use",
       "last_updated": "Last updated: 2026-01-26",
-      "operator": "Operator: AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – privacy@akioud.ai — SIREN: 924 929 730",
+      "operator": "Operator: AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – hello@akios.ai — SIREN: 924 929 730",
       "scope_heading": "Scope",
       "scope_content": "These terms govern use of the akios.ai website (content, docs, downloads). Software is licensed under GPL-3.0-only as AKIOS Open Runtime.",
       "acceptable_use_heading": "Acceptable Use",
@@ -24,7 +24,7 @@
       "law_heading": "Governing Law",
       "law_content": "French law; exclusive jurisdiction: Paris courts.",
       "security_heading": "Security / Vulnerability Disclosure",
-      "security_content": "Report vulnerabilities to security@akioud.ai with details and reproduction steps. Acknowledgment within 5 business days."
+      "security_content": "Report vulnerabilities through GitHub's private vulnerability reporting on the AKIOS repository (https://github.com/akios-ai/akios/security/advisories/new). If the form is unavailable, write to hello@akios.ai. Reports are handled on a best-effort basis, with no guaranteed response time."
     }
   },
   "fr": {
@@ -33,7 +33,7 @@
       "description": "Conditions d’utilisation du site akios.ai et du logiciel AKIOS.",
       "heading": "Conditions d’utilisation",
       "last_updated": "Dernière mise à jour : 2026-01-26",
-      "operator": "Exploitant : AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – privacy@akioud.ai — SIREN : 924 929 730",
+      "operator": "Exploitant : AKIOUD AI, SAS – 8b rue Abel, 75012 Paris, France – hello@akios.ai — SIREN : 924 929 730",
       "scope_heading": "Champ d’application",
       "scope_content": "Ces conditions régissent l'usage du site akios.ai (contenu, documentation, téléchargements). Le logiciel est régi par la GPL-3.0-only en tant qu'AKIOS Open Runtime.",
       "acceptable_use_heading": "Usage acceptable",
@@ -52,7 +52,7 @@
       "law_heading": "Droit applicable",
       "law_content": "Droit français ; juridiction exclusive : tribunaux de Paris.",
       "security_heading": "Sécurité / divulgation de vulnérabilités",
-      "security_content": "Signalez toute vulnérabilité à security@akioud.ai avec détails et reproduction. Accusé de réception visé sous 5 jours ouvrés."
+      "security_content": "Signalez les vulnérabilités via le signalement privé de GitHub sur le dépôt AKIOS (https://github.com/akios-ai/akios/security/advisories/new). Si le formulaire est indisponible, écrivez à hello@akios.ai. Les signalements sont traités au mieux de nos moyens, sans délai de réponse garanti."
     }
   }
 }

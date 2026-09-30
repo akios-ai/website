@@ -1,11 +1,11 @@
 # Cas d’usage & motifs
 
-Applications concrètes de la cage de sécurité AKIOS en production.
+Exemples d'utilisation de la cage de sécurité AKIOS.
 
 ## Motifs clés
-- **Agents tiers non sûrs** : exécution avec réseau/fs en deny par défaut et audit signé.
+- **Agents tiers non sûrs** : exécution avec listes d'autorisation réseau/fs et journal d'audit haché.
 - **Pré-vol en CI/CD** : valider politiques et coûts avant déploiement.
-- **Données sensibles** : rédaction PII + journal inviolable à chaque étape.
+- **Données sensibles** : rédaction PII + journal d'audit haché à chaque étape.
 - **Outils restreints** : commandes sur liste blanche, pas de réseau implicite.
 
 ## Exemples
@@ -32,7 +32,7 @@ steps:
       path: "/outputs/summary.txt"
       content: "{{analyze.text}}"
 ```
-*Pourquoi ça colle* : rédaction PII automatique + audit signé.
+*Pourquoi ça colle* : rédaction PII automatique + journal d'audit haché.
 
 ### 2) Enrichissement API avec garde-budget (finance)
 ```yaml

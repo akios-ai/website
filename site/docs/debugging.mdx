@@ -1,5 +1,7 @@
 # Debugging & Troubleshooting
 
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
 Quick solutions to common AKIOS issues. Most problems are configuration-related and easy to fix.
 
 ## Quick Diagnosis
@@ -297,7 +299,7 @@ akios status --security
 # Should show: PII Protection: Active
 ```
 
-If PII is leaking, report to **security@akioud.ai**
+If PII is leaking, treat it as a vulnerability. Report vulnerabilities through GitHub's private vulnerability reporting on the AKIOS repository (https://github.com/akios-ai/akios/security/advisories/new). If the form is unavailable, write to hello@akios.ai. Reports are handled on a best-effort basis, with no guaranteed response time.
 
 ## Performance Issues
 
@@ -384,7 +386,7 @@ akios doctor --json > diagnostics.json
 
 - Check [GitHub Issues](https://github.com/akios-ai/akios/issues)
 - Ask in [GitHub Discussions](https://github.com/akios-ai/akios/discussions)
-- Email: **hello@akioud.ai**
+- Email: **hello@akios.ai**
 
 **Include in bug reports:**
 - `akios --version`

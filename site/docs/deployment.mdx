@@ -1,9 +1,11 @@
 # Deployment (AKIOS V1.0)
 
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
 Minimal, security-first deployment: single-process runtime via pip or Docker. No sidecars, no reverse proxies, no multi-service stacks.
 
 ## Scope (what’s supported)
-- **Pip package** (Linux: kernel-hard security; macOS/Windows: standard isolation).
+- **Pip package** (Linux: kernel-level security; macOS/Windows: standard isolation).
 - **Docker container** (cross-platform, policy-based security).
 - Optional minimal Dockerfile and a single-service example only.
 
@@ -214,7 +216,7 @@ AKIOS V1.6 focuses on single-process and REST API security:
 - Structured JSON logging (v1.0.10+)
 - HTML security reports (`akios run --report`, v1.5.0+)
 
-**Future versions** will add enterprise deployment features. For now: one container, one workflow (or REST API), maximum security.
+Deployment model: one container, one workflow (or the REST API).
 
 ## Legal & Compliance Notes
 

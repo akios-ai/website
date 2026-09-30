@@ -1,5 +1,7 @@
 # Guide de démarrage (AKIOS V1.0)
 
+> **Statut :** AKIOS 1.x n'est plus maintenu et n'est pas destiné à un usage en production. Un AKIOS repensé est en développement.
+
 **Pour qui :** Nouveaux utilisateurs. **Objectif :** Lancer un premier workflow sécurisé. **Temps :** 15–30 min.
 
 **Prérequis :** Python 3.8+, Docker (optionnel), une clé API (OpenAI/Anthropic/Grok/Mistral/Gemini), internet pour le premier pull.
@@ -59,7 +61,7 @@ mon-projet/
 ├── templates/         # Workflows d’exemple
 ├── workflows/         # Vos workflows
 ├── data/input|output/ # Données in/out
-└── audit/             # Journaux infalsifiables
+└── audit/             # Journaux d'audit hachés
 ```
 
 ---
@@ -93,7 +95,7 @@ Statut + contrôles :
 akios status --security
 ```
 
-Piste d’audit (rédigée, signée) :
+Piste d’audit (rédigée, hachée) :
 ```bash
 cat audit/audit_events.jsonl
 ```

@@ -284,10 +284,6 @@ const build = async () => {
                         <li><a href="{{ROOT}}/docs/migration-guide.html">Migration Guide</a></li>
                     </ul>
 
-                    <div class="section-title">Ecosystem</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/docs/enforcecore.html">EnforceCore</a></li>
-                    </ul>
                 </nav>
             </aside>`;
 
@@ -460,36 +456,7 @@ const build = async () => {
                     console.log(`Built MDX docs -> HTML (${locale}): ${htmlDistPath}`);
                 }
             } else if (isEnforceCore) {
-                const ecSidebar = `
-            <aside class="docs-sidebar">
-                <nav class="docs-nav">
-                    <div class="section-title">${t('ec_sidebar.getting_started', locale)}</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/enforcecore/index.html">${t('ec_sidebar.overview', locale)}</a></li>
-                        <li><a href="{{ROOT}}/enforcecore/quickstart.html">${t('ec_sidebar.quickstart', locale)}</a></li>
-                    </ul>
-
-                    <div class="section-title">${t('ec_sidebar.core', locale)}</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/enforcecore/architecture.html">${t('ec_sidebar.architecture', locale)}</a></li>
-                        <li><a href="{{ROOT}}/enforcecore/api-reference.html">${t('ec_sidebar.api_reference', locale)}</a></li>
-                        <li><a href="{{ROOT}}/enforcecore/integrations.html">${t('ec_sidebar.integrations', locale)}</a></li>
-                    </ul>
-
-                    <div class="section-title">${t('ec_sidebar.testing', locale)}</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/enforcecore/evaluation.html">${t('ec_sidebar.evaluation', locale)}</a></li>
-                    </ul>
-
-                    <div class="section-title">${t('ec_sidebar.resources', locale)}</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/enforcecore/troubleshooting.html">${t('ec_sidebar.troubleshooting', locale)}</a></li>
-                        <li><a href="{{ROOT}}/enforcecore/roadmap.html">${t('ec_sidebar.roadmap', locale)}</a></li>
-                        <li><a href="https://github.com/akios-ai/enforcecore" target="_blank" rel="noopener">${t('ec_sidebar.github', locale)} ↗</a></li>
-                    </ul>
-                </nav>
-            </aside>`;
-
+                // EnforceCore is discontinued: a single notice page per language, no sidebar.
                 const baseRel = relPath.replace(ext, '.html');
                 const targets = [baseRel, ...prettyPaths(baseRel)];
                 for (const finalRel of targets) {
@@ -509,80 +476,27 @@ const build = async () => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnforceCore — Runtime Enforcement for AI Agents</title>
+    <title>EnforceCore</title>
     <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
     <link rel="icon" href="{{ROOT}}/assets/img/favicon.svg" type="image/svg+xml">
 </head>
 <body>
     ${header.replace(/{{root}}/g, '{{ROOT}}')}
-    
-    <div class="page">
-        <div class="docs-wrapper">
-            ${ecSidebar}
-            
-            <main class="docs-content">
-                ${htmlBody}
-            </main>
+
+    <main id="main-content" class="section">
+        <div class="page">
+            ${htmlBody}
         </div>
-    </div>
+    </main>
 
     ${footer.replace(/{{root}}/g, '{{ROOT}}')}
-
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script>
-    (function() {
-      var blocks = document.querySelectorAll('pre code.language-mermaid');
-      if (blocks.length) {
-        blocks.forEach(function(el) {
-          var pre = el.parentElement;
-          var div = document.createElement('div');
-          div.className = 'mermaid';
-          div.textContent = el.textContent;
-          pre.replaceWith(div);
-        });
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        mermaid.initialize({
-          startOnLoad: true,
-          theme: 'base',
-          themeVariables: {
-            primaryColor: isDark ? '#164e63' : '#ecfeff',
-            primaryBorderColor: '#06b6d4',
-            primaryTextColor: isDark ? '#fafafa' : '#18181b',
-            lineColor: '#06b6d4',
-            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
-            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
-            background: isDark ? '#09090b' : '#ffffff',
-            mainBkg: isDark ? '#164e63' : '#ecfeff',
-            nodeBorder: '#06b6d4',
-            clusterBkg: isDark ? '#131316' : '#fafafa',
-            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
-            titleColor: isDark ? '#fafafa' : '#18181b',
-            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
-          }
-        });
-      }
-    })();
-    </script>
-    <script>
-        (function() {
-            const path = window.location.pathname;
-            const sidebarLinks = document.querySelectorAll('.docs-nav a');
-            
-            sidebarLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (path.endsWith(href)) {
-                    link.classList.add('active');
-                }
-            });
-        })();
-    </script>
 </body>
 </html>`;
 
                     const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
                     const htmlDistPath = path.join(DIST_DIR, finalRel);
                     await fs.outputFile(htmlDistPath, adjusted);
-                    console.log(`Built MDX enforcecore -> HTML (${locale}): ${htmlDistPath}`);
+                    console.log(`Built MDX enforcecore notice -> HTML (${locale}): ${htmlDistPath}`);
                 }
             } else if (isBlog || isCaseStudy) {
                 let pageContent = `

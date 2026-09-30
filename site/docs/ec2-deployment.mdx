@@ -1,5 +1,7 @@
 # Running AKIOS on AWS EC2
 
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
 Want to test AKIOS at scale? This guide helps you set up on AWS and validate performance for your specific use case.
 
 **Read this if:** You're testing AKIOS on AWS, need to understand performance expectations, or want to validate security on your infrastructure.
@@ -79,7 +81,7 @@ Check output in `data/output/`
 ```bash
 # Check security is active
 akios status --security
-# Look for: "Full (kernel-hard)" or "Strong (policy-based)"
+# Look for: "Full (kernel-level)" or "Strong (policy-based)"
 
 # Check PII redaction
 echo "email: test@example.com" > sample.txt

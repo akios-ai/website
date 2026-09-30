@@ -29,7 +29,7 @@ Violations of this Code of Conduct may result in:
 
 If you experience or witness unacceptable behavior, please report it to:
 
-**Email:** contact@akios.ai
+**Email:** hello@akios.ai
 
 All reports will be handled confidentially.
 

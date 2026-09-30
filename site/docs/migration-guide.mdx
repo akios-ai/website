@@ -1,10 +1,12 @@
 # Migration Guide
 
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
 Upgrade to the latest AKIOS version from earlier releases. This guide covers the V1.1.0–V1.6.0 updates, the V1.0.12–V1.0.15 updates, and the original pre-V1.0 migration.
 
 ## Upgrading to V1.6.0 (from V1.0.15)
 
-V1.6.0 is a **major feature release** with new agents, parallel execution, a plugin system, a REST API, Ollama support, and EnforceCore integration. Most changes are additive — existing workflows continue to work unchanged.
+V1.6.0 is a **major feature release** with new agents, parallel execution, a plugin system, a REST API, and Ollama support. Most changes are additive — existing workflows continue to work unchanged.
 
 ```bash
 # Pip
@@ -25,17 +27,11 @@ akios --version
 - **Plugin system** — pip-installable agent packages via `akios.agents` entry points
 - **Doctor redesigned** — 9 diagnostic checks with structured output
 
-**v1.2.0 — EnforceCore Integration:**
-- **`pip install akios[enforcecore]`** — optional dependency activates EnforceCore as enforcement backend
-- **`use_enforcecore: true`** in `config.yaml` delegates policy, PII, and audit to EnforceCore
-- **`akios protect secrets`** — scan for leaked secrets (requires EnforceCore)
-
-**v1.3.0 — Merkle Bridge:**
-- **Merkle Bridge** — links AKIOS audit entries to EnforceCore's audit store via `external_hash`
+**v1.2.0–v1.3.0 — Optional EnforceCore integration:**
+- The optional EnforceCore integration of AKIOS 1.x is discontinued together with EnforceCore. Do not enable it.
 
 **v1.4.0 — PII Boundary Change (⚠ Breaking):**
-- **53 → 44 PII patterns** — 8 healthcare-specific patterns (NPI, DEA, MRN, etc.) and 5 financial patterns removed from OSS; available via EnforceCore NER backend (`enforcecore[ner]`)
-- **Pluggable PII backend** now supports EnforceCore NER + secret scanner
+- **53 → 44 PII patterns** — 8 healthcare-specific patterns (NPI, DEA, MRN, etc.) and 5 financial patterns removed from OSS
 
 **v1.4.2 — Ollama Provider:**
 - **Ollama support** — run local open-source models (llama3.2, mistral, codellama, etc.)
@@ -57,12 +53,7 @@ akios --version
 
 ### Migration Notes
 
-**PII boundary change (v1.4.0 — ⚠ Breaking):** If you relied on healthcare PII patterns (NPI, DEA, MRN) or financial patterns in the OSS regex engine, these are now available only via EnforceCore's NER backend:
-```bash
-pip install akios[enforcecore] enforcecore[ner]
-# Then in config.yaml:
-use_enforcecore: true
-```
+**PII boundary change (v1.4.0 — ⚠ Breaking):** If you relied on healthcare PII patterns (NPI, DEA, MRN) or financial patterns in the OSS regex engine, these are no longer built in. To detect them, implement a custom detector with `PIIDetectorProtocol` (see [API Reference](api-reference.html)).
 
 **Ollama users (v1.4.2+):** Install Ollama separately, then configure:
 ```bash
@@ -262,7 +253,7 @@ No configuration changes, workflow updates, or data migration needed.
 
 ### Option 1: Pip Installation (Recommended for Linux)
 
-**Maximum security** with kernel-hard isolation.
+**Maximum security** with kernel-level isolation.
 
 ```bash
 # Upgrade AKIOS
@@ -338,7 +329,7 @@ akios status --security
 **Expected output:**
 ```
 AKIOS v{{version}}
-Security Level: Kernel-hard (Linux) or Policy-based (Docker)
+Security Level: Kernel-level (Linux) or Policy-based (Docker)
 Audit: Active
 PII Protection: Active
 Sandbox: Enabled
@@ -506,7 +497,7 @@ from akios.core.runtime.engine import WorkflowEngine
 ### Platform-Specific
 
 **Linux:**
-- Pip installation now provides kernel-hard security
+- Pip installation now provides kernel-level security
 - cgroups v2 + seccomp-bpf automatically enabled
 - No action needed
 
@@ -558,7 +549,7 @@ akios logs --level ERROR
 
 **3. Ask for help:**
 - GitHub Issues: https://github.com/akios-ai/akios/issues
-- Email: hello@akioud.ai
+- Email: hello@akios.ai
 
 **Include:**
 - `akios --version` output

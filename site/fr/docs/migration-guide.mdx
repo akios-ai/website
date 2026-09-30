@@ -1,5 +1,7 @@
 # Guide de migration (vers AKIOS V1.0)
 
+> **Statut :** AKIOS 1.x n'est plus maintenu et n'est pas destiné à un usage en production. Un AKIOS repensé est en développement.
+
 Passez aux distributions V1.0 (pip ou Docker) depuis les versions antérieures.
 
 ## Check-list rapide
@@ -35,5 +37,5 @@ docker run --rm -v "$(pwd):/app" -w /app akiosai/akios:v{{version}} run template
 
 ## Notes de compatibilité
 - Workflows compatibles; validation plus stricte (messages clairs).
-- Docker macOS/Windows reste basé politiques; pip Linux = kernel-hard complet.
+- Docker macOS/Windows reste basé politiques; pip Linux = niveau noyau complet.
 - Configs immuables à l’exécution; garder l’audit activé.

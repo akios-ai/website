@@ -5,15 +5,15 @@ Runtime sécurité‑d’abord : sandbox, rédaction PII, audit, coupe-circuits 
 ## Niveaux de sécurité par plateforme
 | Environnement | Niveau | Notes |
 |---------------|--------|-------|
-| Linux natif | Full (kernel-hard : cgroups v2 + seccomp-bpf) | Isolation et enforcement maximum |
+| Linux natif (root) | Full (niveau noyau : cgroups v2 + seccomp-bpf) | Isolation et enforcement maximum |
 | Docker (macOS/Windows/Linux) | Fort (basé politiques) | Multi-plateforme ; permissions FS/seccomp dépendent de l’hôte |
 
-Docker est pratique et solide ; privilégiez Linux natif pour les garanties maximales.
+Docker est pratique et solide ; privilégiez Linux natif pour les contrôles les plus stricts.
 
 ## Protections essentielles
-- **Sandbox & quotas** : filtrage syscalls, CPU/mémoire/fichiers, réseau deny par défaut.
-- **Rédaction PII** : >50 motifs sur entrées/sorties.
-- **Audit** : logs type Merkle, inviolables.
+- **Sandbox & quotas** : filtrage des syscalls d'administration et quotas CPU/mémoire (Linux natif en root), listes d'autorisation de chemins, commandes et domaines dans les agents intégrés.
+- **Rédaction PII** : 44 motifs regex sur entrées/sorties.
+- **Audit** : journal haché type Merkle ; détecte les modifications simples.
 - **Coupe-circuits** : budgets et tokens, détection de boucle.
 
 ## Agents cœur (4)

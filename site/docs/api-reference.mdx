@@ -1,5 +1,7 @@
 # Python API Reference
 
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
 Use AKIOS programmatically from your Python code. This is useful for integrating AKIOS workflows into larger applications.
 
 ## Installation
@@ -520,7 +522,7 @@ class CustomDetector(PIIDetectorProtocol):
         ...
 ```
 
-The default regex-based detector covers 44 patterns with >95% accuracy. For additional PII categories (healthcare, financial), use the EnforceCore NER backend (`enforcecore[ner]`).
+The default regex-based detector covers 44 patterns with >95% accuracy. For additional PII categories (healthcare, financial), implement a custom detector as shown above.
 
 ## Legacy Compatibility
 

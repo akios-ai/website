@@ -1,10 +1,12 @@
 # Installation
 
+> **Status:** AKIOS 1.x is no longer maintained and is not intended for production use. A redesigned AKIOS is in development.
+
 Get AKIOS running in 2 minutes. Choose the method that works best for you.
 
 ## Quick Install (Most Users)
 
-**On Linux** (maximum security with kernel-hard isolation):
+**On Linux** (maximum security with kernel-level isolation):
 ```bash
 pip install akios>={{version}}
 akios init my-project
@@ -43,7 +45,7 @@ Best for: Developers, CI/CD pipelines, custom extensions, full Python ecosystem 
 
 **Requirements:** Python 3.9 or higher
 
-**Linux prerequisites for full kernel-hard security:**
+**Linux prerequisites for full kernel-level security:**
 ```bash
 # Install system packages for seccomp support
 sudo apt install libseccomp-dev python3-seccomp
@@ -150,7 +152,7 @@ akios status
 
 ## Security Levels Explained
 
-**On Linux (Pip):** Full kernel-hard security
+**On Linux (Pip):** Full kernel-level security
 - cgroups v2 resource isolation
 - seccomp-bpf syscall filtering
 - Maximum protection
@@ -161,7 +163,7 @@ akios status
 - PII redaction
 - Comprehensive audit logging
 
-Both options provide production-grade security. Linux pip gives you the absolute maximum, Docker gives you excellent security everywhere.
+Native Linux (pip) adds kernel-level controls (cgroups v2, seccomp-bpf). Docker relies on container isolation and the policy checks in AKIOS.
 
 ## Troubleshooting
 
