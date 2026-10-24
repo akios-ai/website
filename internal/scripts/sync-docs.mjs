@@ -45,8 +45,8 @@ const README_SECTIONS = {
     'What is enforced on Linux': 'content/readme/linux.md',
     'What is enforced on macOS': 'content/readme/macos.md',
     'The evidence': 'content/readme/evidence.md',
+    'Formal model': 'content/readme/formal-model.md',
     'Coming from 1.x': 'content/readme/from-1x.md',
-    'Security and contact': 'content/readme/security-and-contact.md',
     'License': 'content/readme/license.md',
 };
 

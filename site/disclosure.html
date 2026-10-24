@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{i18n.disclosure_page.title}}</title>
-  <meta name="description" content="{{i18n.disclosure_page.description}}">
+  <title>Security policy · AKIOS</title>
+  <meta name="description" content="How to report a vulnerability in AKIOS, and what is in scope.">
+  <link rel="canonical" href="{{canonical}}">
   <link rel="stylesheet" href="{{root}}/assets/css/styles.css">
   <link rel="icon" href="{{root}}/assets/img/favicon.svg" type="image/svg+xml">
 </head>
@@ -12,38 +13,20 @@
   <!-- {{header}} -->
   <main id="main-content">
   <section class="section">
-    <div class="page">
-      <h1>{{i18n.disclosure_page.heading}}</h1>
-      <p><strong>{{i18n.disclosure_page.last_updated}}</strong></p>
+    <div class="page prose">
+<!-- {{include SECURITY.md}} -->
 
-      <p>{{i18n.disclosure_page.contact_intro}}</p>
-      <p>{{i18n.disclosure_page.report_details}}</p>
+      <h2 id="this-website">This website</h2>
+      <p>To report a vulnerability in the website akios.ai, use the same channel: GitHub's <a href="https://github.com/akios-ai/akios/security/advisories/new" rel="noopener">private vulnerability reporting</a> on the akios repository or, if the form is unavailable, <a href="mailto:hello@akios.ai">hello@akios.ai</a>.</p>
+      <p class="doc-source">The text above this section is a copy of <a href="https://github.com/akios-ai/akios/blob/main/SECURITY.md" rel="noopener">SECURITY.md</a> in the akios repository.</p>
 
-      <h2>{{i18n.disclosure_page.commitments_heading}}</h2>
+      <h2 id="policies">Policies</h2>
       <ul>
-        <li>{{i18n.disclosure_page.commitment_2}}</li>
-        <li>{{i18n.disclosure_page.commitment_3}}</li>
-      </ul>
-
-      <h2>{{i18n.disclosure_page.safe_harbor_heading}}</h2>
-      <p>{{i18n.disclosure_page.safe_harbor_content}}</p>
-
-      <h2>{{i18n.disclosure_page.out_of_scope_heading}}</h2>
-      <ul>
-        <li>{{i18n.disclosure_page.out_of_scope_1}}</li>
-        <li>{{i18n.disclosure_page.out_of_scope_2}}</li>
-      </ul>
-      
-      <p>{{i18n.disclosure_page.footer}}</p>
-
-      <!-- Links to other legal pages -->
-      <hr style="margin: 2rem 0;">
-      <h3>{{i18n.legal_page.policies_links_heading}}</h3>
-      <ul>
-        <li><a href="{{root}}/legal.html">{{i18n.legal_page.link_legal}}</a></li>
-        <li><a href="{{root}}/terms.html">{{i18n.legal_page.link_terms}}</a></li>
-        <li><a href="{{root}}/privacy.html">{{i18n.legal_page.link_privacy}}</a></li>
-        <li><a href="{{root}}/cookies.html">{{i18n.legal_page.link_cookies}}</a></li>
+        <li><a href="{{root}}/legal.html">Legal notice</a></li>
+        <li><a href="{{root}}/terms.html">Terms of use</a></li>
+        <li><a href="{{root}}/privacy.html">Privacy policy</a></li>
+        <li><a href="{{root}}/cookies.html">Cookie policy</a></li>
+        <li><a href="{{root}}/disclosure.html">Security policy</a></li>
       </ul>
     </div>
   </section>

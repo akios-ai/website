@@ -1,647 +1,320 @@
+// Builds the site into dist/.
+//
+// - site/**/*.html: pages. The build replaces <!-- {{header}} -->, <!-- {{footer}} -->,
+//   {{root}} (the relative path to the site root), {{version}}, {{canonical}}, and
+//   <!-- {{include <file> [shift=N]}} --> (a Markdown file of content/, rendered,
+//   its headings moved N levels down).
+// - site/docs/*.md: the documentation, copied from the akios repository by
+//   internal/scripts/sync-docs.mjs, rendered with the docs sidebar.
+// - every other file of site/ is copied as it is.
+//
+// Also writes dist/sitemap.xml and dist/assets/search-index.json (the docs
+// headings, for the search box). Exits with code 1 on any error.
+
 import fs from 'fs-extra';
 import path from 'path';
-import { marked } from 'marked';
+import { Marked } from 'marked';
 
-// Config
 const SRC_DIR = 'site';
 const DIST_DIR = 'dist';
 const PARTIALS_DIR = 'partials';
-const LOCALES_DIR = 'internal/i18n/modules';
+const CONTENT_DIR = 'content';
+const SITE_URL = 'https://akios.ai';
+const REPO = 'https://github.com/akios-ai/akios';
 
-// Load Version - REQUIRED, BUILD FAILS IF MISSING
+// Pages kept out of the sitemap (and given no pretty /name/ copy).
+const NOT_IN_SITEMAP = new Set(['404.html', 'enforcecore/index.html', 'fr/index.html']);
+
+// The documentation, in sidebar order: [file name without .md, label].
+const DOCS_NAV = [
+    ['Start', [
+        ['index', 'Overview'],
+        ['getting-started', 'Getting started'],
+        ['migration-1x-to-2', 'Migrating from 1.x'],
+    ]],
+    ['Design', [
+        ['why-containment', 'Why containment'],
+        ['threat-model', 'Threat model'],
+    ]],
+    ['Specifications', [
+        ['policy-v0', 'Policy language v0'],
+        ['ledger-v0', 'Evidence format v0'],
+    ]],
+    ['Reference', [
+        ['cli-reference', 'CLI reference'],
+        ['configuration', 'Configuration'],
+        ['troubleshooting', 'Troubleshooting'],
+    ]],
+];
+const DOCS_ON_GITHUB = [
+    ['Examples', `${REPO}/blob/main/examples/README.md`],
+    ['Example policies', `${REPO}/tree/main/docs/spec/examples`],
+    ['Formal model (TLA+)', `${REPO}/blob/main/docs/tla/README.md`],
+    ['Roadmap', `${REPO}/blob/main/ROADMAP.md`],
+    ['Changelog', `${REPO}/blob/main/CHANGELOG.md`],
+];
+
+const fail = (message) => {
+    console.error(`build: ${message}`);
+    process.exit(1);
+};
+
+// --- version.json: required ---
 let version;
 try {
-    const versionFile = JSON.parse(fs.readFileSync('version.json', 'utf-8'));
-    version = versionFile.version;
-    if (!version) {
-        console.error('❌ ERROR: version.json exists but "version" field is missing or empty');
-        console.error('   Fix: Add "version" field to version.json');
-        process.exit(1);
-    }
+    version = JSON.parse(fs.readFileSync('version.json', 'utf-8')).version;
 } catch (error) {
-    console.error('❌ CRITICAL ERROR: version.json not found in project root');
-    console.error('   This file is REQUIRED for deployment to ensure version consistency');
-    console.error('   Expected format: {"version": "1.0.4", "releaseDate": "2026-01-29"}');
-    process.exit(1);
+    fail(`cannot read version.json (${error.message})`);
 }
+if (!version) fail('version.json has no "version"');
 
-// Load Locales
-const locales = { en: {}, fr: {} };
-
-try {
-    if (fs.existsSync(LOCALES_DIR)) {
-        const localeFiles = fs.readdirSync(LOCALES_DIR).filter(file => file.endsWith('.json'));
-        for (const file of localeFiles) {
-            const filePath = path.join(LOCALES_DIR, file);
-            const fileContent = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-            if (fileContent.en) Object.assign(locales.en, fileContent.en);
-            if (fileContent.fr) Object.assign(locales.fr, fileContent.fr);
-        }
-    } else {
-        console.error(`Locales directory not found: ${LOCALES_DIR}`);
-        process.exit(1);
-    }
-} catch (error) {
-    console.error('Error loading locales:', error);
-    process.exit(1);
-}
-
-// Helper: Read file content
 const readFile = (filePath) => fs.readFileSync(filePath, 'utf-8');
 
-// Helper: Calculate relative prefix for assets (e.g. "../")
-const getRootPrefixFromTarget = (targetRelPath) => {
-    const depth = targetRelPath.split(path.sep).length - 1;
-    return depth === 0 ? '.' : '../'.repeat(depth);
-};
+const escapeHtml = (s) => s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
-// Helper: pretty path (adds folder/index.html) in addition to original
-const prettyPaths = (relPath) => {
-    if (!relPath.endsWith('.html')) return [];
-    const base = path.basename(relPath, '.html');
-    if (base === 'index') return [];
-    const dir = path.dirname(relPath);
-    const pretty = path.join(dir === '.' ? '' : dir, base, 'index.html');
-    return [pretty];
-};
+const decodeHtml = (s) => s
+    .replace(/<[^>]+>/g, '')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
 
-// Helper: Get Locale from path
-const getLocale = (filePath) => {
-    const relPath = path.relative(SRC_DIR, filePath);
-    // If path starts with 'fr/' or is 'fr', it's French.
-    if (relPath.startsWith('fr/') || relPath === 'fr') return 'fr';
-    return 'en'; // Default
-};
+// --- Markdown ---
 
-// Helper: Translate key
-const t = (key, locale) => {
-    const keys = key.split('.');
-    let val = locales[locale];
-    for (const k of keys) {
-        val = val?.[k];
+const frontmatterOf = (raw) => {
+    const meta = {};
+    if (!raw.startsWith('---\n')) return { meta, body: raw };
+    const end = raw.indexOf('\n---\n', 4);
+    if (end === -1) return { meta, body: raw };
+    for (const line of raw.slice(4, end).split('\n')) {
+        const m = line.match(/^([\w-]+):\s*(.*)$/);
+        if (m) meta[m[1]] = m[2];
     }
-    return val !== undefined ? val : key;
+    return { meta, body: raw.slice(end + 5) };
 };
 
-// Helper: Inject i18n strings into content
-const injectI18n = (content, locale) => {
-    return content.replace(/{{i18n\.([\w\.]+)}}/g, (_, key) => t(key, locale));
+// Heading anchors as GitHub makes them, so that links written for GitHub
+// (docs/threat-model.md#8-known-limitations-of-the-20-design) work on the site.
+const makeSlugger = () => {
+    const seen = new Map();
+    return (text) => {
+        const base = text.toLowerCase().replace(/[^\p{L}\p{M}\p{N}\p{Pc} -]/gu, '').replace(/ /g, '-');
+        const count = seen.get(base) || 0;
+        seen.set(base, count + 1);
+        return count === 0 ? base : `${base}-${count}`;
+    };
 };
 
-// Build Function
+// Renders Markdown. Raw HTML in the source is shown as text: the copied
+// documents contain none on purpose, and `<command>` in prose must stay visible.
+const renderMarkdown = (markdown, { slugger, shift = 0, headings = null }) => {
+    const marked = new Marked({ gfm: true });
+    marked.use({
+        renderer: {
+            heading({ tokens, depth }) {
+                const html = this.parser.parseInline(tokens);
+                const text = decodeHtml(html);
+                const id = slugger(text);
+                if (headings) headings.push({ depth, text, id });
+                const level = Math.min(6, depth + shift);
+                return `<h${level} id="${id}">${html}</h${level}>\n`;
+            },
+            html({ text }) {
+                return escapeHtml(text);
+            },
+        },
+    });
+    return marked.parse(markdown)
+        .replace(/<table>/g, '<div class="table-wrap"><table>')
+        .replace(/<\/table>/g, '</table></div>');
+};
+
+// --- Paths ---
+
+// Relative path from a built file to the site root ("." at the root).
+const rootFor = (relPath) => {
+    if (relPath === '404.html') return ''; // served for any missing path: absolute links
+    const depth = relPath.split('/').length - 1;
+    return depth === 0 ? '.' : Array(depth).fill('..').join('/');
+};
+
+// "community.html" is also written as "community/index.html".
+const prettyCopy = (relPath) => {
+    if (!relPath.endsWith('.html') || path.posix.basename(relPath) === 'index.html') return null;
+    if (NOT_IN_SITEMAP.has(relPath)) return null;
+    return relPath.replace(/\.html$/, '/index.html');
+};
+
+const canonicalPathFor = (relPath) => '/' + relPath.replace(/(^|\/)index\.html$/, '$1');
+
+// --- Partials ---
+
+const headerTemplate = readFile(path.join(PARTIALS_DIR, 'header.html'));
+const footerTemplate = readFile(path.join(PARTIALS_DIR, 'footer.html'));
+
+// Function replacements: a "$" in the inserted text must stay as it is.
+const fillCommon = (html, relPath) => html
+    .replace('<!-- {{header}} -->', () => headerTemplate)
+    .replace('<!-- {{footer}} -->', () => footerTemplate)
+    .replace(/{{version}}/g, () => version)
+    .replace(/{{canonical}}/g, () => SITE_URL + canonicalPathFor(relPath))
+    .replace(/{{root}}/g, () => rootFor(relPath));
+
+const built = [];
+const writePage = async (relPath, html) => {
+    for (const target of [relPath, prettyCopy(relPath)].filter(Boolean)) {
+        const out = fillCommon(html, target);
+        const left = out.match(/{{[^}]*}}/);
+        if (left) fail(`${target}: unreplaced placeholder ${left[0]}`);
+        await fs.outputFile(path.join(DIST_DIR, target), out);
+    }
+    built.push(relPath);
+};
+
+// --- HTML pages ---
+
+const buildHtmlPage = async (relPath) => {
+    let html = readFile(path.join(SRC_DIR, relPath));
+    const slugger = makeSlugger();
+    html = html.replace(/<!-- {{include ([^\s}]+)(?: shift=(\d))?}} -->/g, (_, file, shift) => {
+        const source = path.join(CONTENT_DIR, file);
+        if (!fs.existsSync(source)) fail(`${relPath}: included file ${source} does not exist`);
+        const { body } = frontmatterOf(readFile(source));
+        return renderMarkdown(body, { slugger, shift: Number(shift || 0) });
+    });
+    await writePage(relPath, html);
+};
+
+// --- Docs ---
+
+const docsSidebar = (current) => {
+    const sections = DOCS_NAV.map(([title, pages]) => {
+        const items = pages.map(([name, label]) => {
+            const href = name === 'index' ? '{{root}}/docs/' : `{{root}}/docs/${name}.html`;
+            const active = name === current ? ' class="active" aria-current="page"' : '';
+            return `<li><a href="${href}"${active}>${escapeHtml(label)}</a></li>`;
+        }).join('\n');
+        return `<div class="section-title">${escapeHtml(title)}</div>\n<ul>\n${items}\n</ul>`;
+    }).join('\n');
+    const github = DOCS_ON_GITHUB
+        .map(([label, href]) => `<li><a href="${href}" rel="noopener">${escapeHtml(label)} ↗</a></li>`)
+        .join('\n');
+    return `<aside class="docs-sidebar">
+  <nav class="docs-nav" aria-label="Documentation">
+${sections}
+<div class="section-title">On GitHub</div>
+<ul>
+${github}
+</ul>
+  </nav>
+</aside>`;
+};
+
+const docsPage = ({ name, title, bodyHtml, source }) => `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(title)} · AKIOS documentation</title>
+  <meta name="description" content="${escapeHtml(title)}: AKIOS ${version} documentation.">
+  <link rel="canonical" href="{{canonical}}">
+  <link rel="stylesheet" href="{{root}}/assets/css/styles.css">
+  <link rel="icon" href="{{root}}/assets/img/favicon.svg" type="image/svg+xml">
+</head>
+<body>
+<!-- {{header}} -->
+<div class="page">
+  <div class="docs-wrapper">
+${docsSidebar(name)}
+    <main class="docs-content" id="main-content">
+${bodyHtml}
+      <p class="doc-source">This page is a copy of <a href="${REPO}/blob/main/${source}" rel="noopener">${escapeHtml(source)}</a> in the akios repository.</p>
+    </main>
+  </div>
+</div>
+<!-- {{footer}} -->
+</body>
+</html>
+`;
+
+const renderDocs = () => {
+    const docsDir = path.join(SRC_DIR, 'docs');
+    const files = fs.readdirSync(docsDir).filter((f) => f.endsWith('.md')).map((f) => f.slice(0, -3));
+    const inNav = DOCS_NAV.flatMap(([, pages]) => pages.map(([name]) => name));
+    for (const name of files) if (!inNav.includes(name)) fail(`site/docs/${name}.md is not in DOCS_NAV`);
+    for (const name of inNav) if (!files.includes(name)) fail(`DOCS_NAV lists ${name}, but site/docs/${name}.md does not exist`);
+
+    const labels = Object.fromEntries(DOCS_NAV.flatMap(([, pages]) => pages));
+    return inNav.map((name) => {
+        const { meta, body } = frontmatterOf(readFile(path.join(docsDir, `${name}.md`)));
+        if (!meta.source) fail(`site/docs/${name}.md has no "source:" in its front matter`);
+        const headings = [];
+        const bodyHtml = renderMarkdown(body, { slugger: makeSlugger(), headings });
+        const h1 = headings.find((h) => h.depth === 1);
+        if (!h1) fail(`site/docs/${name}.md has no title`);
+        return { name, label: labels[name], title: h1.text, bodyHtml, source: meta.source, headings };
+    });
+};
+
+// --- Build ---
+
+const walk = (dir) => fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    return entry.isDirectory() ? walk(full) : [full];
+});
+
 const build = async () => {
-    console.log('Building website...');
-
-    // Load partials
-    const headerTemplate = readFile(path.join(PARTIALS_DIR, 'header.html'));
-    const footerTemplate = readFile(path.join(PARTIALS_DIR, 'footer.html'));
-
-    // Clean dist
     await fs.emptyDir(DIST_DIR);
 
-    const multiLocalePages = {
-        'index.html': ['index.html', path.join('fr', 'index.html')],
-        'community.html': ['community.html', path.join('fr', 'community.html')],
-        'legal.html': ['legal.html', path.join('fr', 'legal.html')],
-        'terms.html': ['terms.html', path.join('fr', 'terms.html')],
-        'privacy.html': ['privacy.html', path.join('fr', 'privacy.html')],
-        'cookies.html': ['cookies.html', path.join('fr', 'cookies.html')],
-        'disclosure.html': ['disclosure.html', path.join('fr', 'disclosure.html')],
-        [path.join('blog', 'index.html')]: [
-            path.join('blog', 'index.html'),
-            path.join('fr', 'blog', 'index.html')
-        ],
-        [path.join('case-studies', 'index.html')]: [
-            path.join('case-studies', 'index.html'),
-            path.join('fr', 'case-studies', 'index.html')
-        ]
-    };
+    const docs = renderDocs();
+    for (const doc of docs) {
+        const relPath = `docs/${doc.name}.html`;
+        await writePage(relPath, docsPage(doc));
+    }
 
-    const skipHtml = new Set([
-        path.join('fr', 'index.html'),
-        path.join('fr', 'community.html'),
-        path.join('fr', 'legal.html'),
-        path.join('fr', 'terms.html'),
-        path.join('fr', 'privacy.html'),
-        path.join('fr', 'cookies.html'),
-        path.join('fr', 'disclosure.html'),
-        path.join('fr', 'blog', 'index.html'),
-        path.join('fr', 'case-studies', 'index.html')
-    ]);
-
-    // Helper to process a file
-    const processFile = async (filePath) => {
-        const relPath = path.relative(SRC_DIR, filePath);
-        const distPath = path.join(DIST_DIR, relPath);
-        const ext = path.extname(filePath);
-        const locale = getLocale(filePath);
-
-        if (ext === '.html' && skipHtml.has(relPath)) {
-            return;
+    for (const file of walk(SRC_DIR)) {
+        const relPath = path.relative(SRC_DIR, file).split(path.sep).join('/');
+        if (relPath.startsWith('docs/') && relPath.endsWith('.md')) continue;
+        if (relPath.endsWith('.md') || relPath.endsWith('.mdx')) fail(`${relPath}: Markdown outside site/docs/ is not built`);
+        if (relPath.endsWith('.html')) {
+            await buildHtmlPage(relPath);
+        } else if (path.basename(relPath) !== '.DS_Store') {
+            await fs.copy(file, path.join(DIST_DIR, relPath));
         }
+    }
 
-        if (ext === '.html' && multiLocalePages[relPath]) {
-            const rawContent = readFile(filePath);
+    // Search index: the title and the headings of each documentation page.
+    const index = docs.flatMap((doc) => {
+        const url = doc.name === 'index' ? '/docs/' : `/docs/${doc.name}.html`;
+        return doc.headings
+            .filter((h) => h.depth <= 3)
+            .map((h) => ({
+                title: h.depth === 1 ? doc.label : h.text,
+                section: doc.label,
+                url: h.depth === 1 ? url : `${url}#${h.id}`,
+            }));
+    });
+    await fs.outputFile(path.join(DIST_DIR, 'assets', 'search-index.json'), JSON.stringify(index));
 
-            for (const targetRel of multiLocalePages[relPath]) {
-                const targetLocale = targetRel.startsWith('fr/') ? 'fr' : 'en';
-                
-                // Set dynamic lang_switch_url
-                if (targetRel.startsWith('fr/')) {
-                    locales.fr.meta.lang_switch_url = '/' + targetRel.substring(3);
-                } else {
-                    locales.en.meta.lang_switch_url = '/fr/' + targetRel;
-                }
+    const urls = built
+        .filter((relPath) => !NOT_IN_SITEMAP.has(relPath))
+        .map(canonicalPathFor)
+        .sort();
+    const sitemap = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        + urls.map((u) => `  <url><loc>${SITE_URL}${u}</loc></url>`).join('\n')
+        + '\n</urlset>\n';
+    await fs.outputFile(path.join(DIST_DIR, 'sitemap.xml'), sitemap);
 
-                const header = injectI18n(headerTemplate, targetLocale);
-                const footer = injectI18n(footerTemplate, targetLocale);
-
-                const targets = [targetRel, ...prettyPaths(targetRel)];
-                for (const finalRel of targets) {
-                    const prefix = getRootPrefixFromTarget(finalRel);
-                    const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
-
-                    // Set dynamic lang_switch_url
-                    if (targetRel.startsWith('fr/')) {
-                        locales.fr.meta.lang_switch_url = '/' + targetRel.substring(3);
-                    } else {
-                        locales.en.meta.lang_switch_url = '/fr/' + targetRel;
-                    }
-
-                    let content = rawContent
-                        .replace(/<html lang="[^"]+">/i, `<html lang="${targetLocale}">`)
-                        .replace('<!-- {{header}} -->', header)
-                        .replace('<!-- {{footer}} -->', footer)
-                        .replace(/{{root}}/g, rootReplacement)
-                        .replace(/{{version}}/g, version);
-
-                    const canonical = targetLocale === 'fr' ? 'https://akios.ai/fr/' : 'https://akios.ai/';
-                    content = content.replace(/{{canonical}}/g, canonical);
-
-                    content = injectI18n(content, targetLocale);
-
-                    const targetDistPath = path.join(DIST_DIR, finalRel);
-                    await fs.outputFile(targetDistPath, content);
-                    console.log(`Built HTML (${targetLocale}): ${targetDistPath}`);
-                }
-            }
-
-        } else if (ext === '.html') {
-            const targets = [relPath, ...prettyPaths(relPath)];
-            const rawContent = readFile(filePath);
-
-            for (const finalRel of targets) {
-                const prefix = getRootPrefixFromTarget(finalRel);
-                const rootReplacement = prefix.endsWith('/') ? prefix.slice(0, -1) : prefix;
-
-                // Set dynamic lang_switch_url
-                if (relPath.startsWith('fr/')) {
-                    locales.fr.meta.lang_switch_url = '/' + relPath.substring(3);
-                } else {
-                    locales.en.meta.lang_switch_url = '/fr/' + relPath;
-                }
-
-                const header = injectI18n(headerTemplate, locale);
-                const footer = injectI18n(footerTemplate, locale);
-
-                let content = rawContent
-                    .replace(/<html lang="[^"]+">/i, `<html lang="${locale}">`)
-                    .replace('<!-- {{header}} -->', header)
-                    .replace('<!-- {{footer}} -->', footer)
-                    .replace(/{{root}}/g, rootReplacement)
-                    .replace(/{{version}}/g, version);
-                
-                content = injectI18n(content, locale);
-
-                const targetDistPath = path.join(DIST_DIR, finalRel);
-                await fs.outputFile(targetDistPath, content);
-                console.log(`Built HTML (${locale}): ${targetDistPath}`);
-            }
-
-        } else if (ext === '.md' || ext === '.mdx') {
-            const rawContent = readFile(filePath);
-            
-            // Strip YAML frontmatter
-            let contentWithoutFrontmatter = rawContent;
-            if (rawContent.startsWith('---')) {
-                const endIndex = rawContent.indexOf('---', 3);
-                if (endIndex !== -1) {
-                    contentWithoutFrontmatter = rawContent.substring(endIndex + 3).trim();
-                }
-            }
-            
-            const htmlBody = marked.parse(contentWithoutFrontmatter);
-
-            const isDocs = relPath.startsWith('docs/') || relPath.startsWith('fr/docs/');
-            const isBlog = relPath.startsWith('blog/') || relPath.startsWith('fr/blog/');
-            const isCaseStudy = relPath.startsWith('case-studies/') || relPath.startsWith('fr/case-studies/');
-            const isEnforceCore = relPath.startsWith('enforcecore/') || relPath.startsWith('fr/enforcecore/');
-
-            // Define header and footer for both docs and blog
-            const header = injectI18n(headerTemplate, locale);
-            const footer = injectI18n(footerTemplate, locale);
-
-            if (isDocs) {
-                const docsSidebar = `
-            <aside class="docs-sidebar">
-                <nav class="docs-nav">
-                    <div class="section-title">${t('sidebar.start_here', locale)}</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/docs/index.html">${t('sidebar.overview', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/installation.html">${t('sidebar.installation', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/quickstart.html">${t('sidebar.quickstart', locale)}</a></li>
-                    </ul>
-
-                    <div class="section-title">${t('sidebar.core', locale)}</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/docs/concepts.html">${t('sidebar.concepts', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/security.html">${t('sidebar.security_model', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/use-cases.html">${t('sidebar.use_cases', locale)}</a></li>
-                    </ul>
-
-                    <div class="section-title">${t('sidebar.reference', locale)}</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/docs/config-reference.html">${t('sidebar.config_reference', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/policy-schema.html">${t('sidebar.policy_schema', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/workflow-schema.html">${t('sidebar.workflow_schema', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/cli-reference.html">${t('sidebar.cli_reference', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/debugging.html">${t('sidebar.debugging', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/api-reference.html">${t('sidebar.api_reference', locale)}</a></li>
-                        <li><a href="{{ROOT}}/docs/faq-glossary.html">FAQ & Glossary</a></li>
-                    </ul>
-
-                    <div class="section-title">Integration</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/docs/integration-api.html">API Integration</a></li>
-                        <li><a href="{{ROOT}}/docs/integration-document-processing.html">Document Processing</a></li>
-                    </ul>
-
-                    <div class="section-title">Advanced</div>
-                    <ul>
-                        <li><a href="{{ROOT}}/docs/best-practices.html">Best Practices</a></li>
-                        <li><a href="{{ROOT}}/docs/deployment.html">Deployment</a></li>
-                        <li><a href="{{ROOT}}/docs/ec2-deployment.html">EC2 Deployment</a></li>
-                        <li><a href="{{ROOT}}/docs/migration-guide.html">Migration Guide</a></li>
-                    </ul>
-
-                </nav>
-            </aside>`;
-
-                let pageContent = `
-<!DOCTYPE html>
-<html lang="${locale}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${t('nav.docs', locale)}</title>
-    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
-</head>
-<body>
-    ${header.replace(/{{root}}/g, '{{ROOT}}')}
-    
-    <div class="page">
-        <div class="docs-wrapper">
-            ${docsSidebar}
-            
-            <main class="docs-content">
-                ${htmlBody}
-            </main>
-        </div>
-    </div>
-
-    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
-
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script>
-    (function() {
-      var blocks = document.querySelectorAll('pre code.language-mermaid');
-      if (blocks.length) {
-        blocks.forEach(function(el) {
-          var pre = el.parentElement;
-          var div = document.createElement('div');
-          div.className = 'mermaid';
-          div.textContent = el.textContent;
-          pre.replaceWith(div);
-        });
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        mermaid.initialize({
-          startOnLoad: true,
-          theme: 'base',
-          themeVariables: {
-            primaryColor: isDark ? '#164e63' : '#ecfeff',
-            primaryBorderColor: '#06b6d4',
-            primaryTextColor: isDark ? '#fafafa' : '#18181b',
-            lineColor: '#06b6d4',
-            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
-            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
-            background: isDark ? '#09090b' : '#ffffff',
-            mainBkg: isDark ? '#164e63' : '#ecfeff',
-            nodeBorder: '#06b6d4',
-            clusterBkg: isDark ? '#131316' : '#fafafa',
-            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
-            titleColor: isDark ? '#fafafa' : '#18181b',
-            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
-          }
-        });
-      }
-    })();
-    </script>
-    <script>
-        (function() {
-            const path = window.location.pathname;
-            const sidebarLinks = document.querySelectorAll('.docs-nav a');
-            
-            sidebarLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (path.endsWith(href)) {
-                    link.classList.add('active');
-                }
-            });
-        })();
-    </script>
-</body>
-</html>`;
-
-                const baseRel = relPath.replace(ext, '.html');
-                const targets = [baseRel, ...prettyPaths(baseRel)];
-                for (const finalRel of targets) {
-                    const prefix = getRootPrefixFromTarget(finalRel);
-                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
-
-                    // Set dynamic lang_switch_url
-                    if (relPath.startsWith('fr/')) {
-                        locales.fr.meta.lang_switch_url = '/' + relPath.substring(3).replace(ext, '.html');
-                    } else {
-                        locales.en.meta.lang_switch_url = '/fr/' + relPath.replace(ext, '.html');
-                    }
-
-                    let pageContent = `
-<!DOCTYPE html>
-<html lang="${locale}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${t('nav.docs', locale)}</title>
-    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
-</head>
-<body>
-    ${header.replace(/{{root}}/g, '{{ROOT}}')}
-    
-    <div class="page">
-        <div class="docs-wrapper">
-            ${docsSidebar}
-            
-            <main class="docs-content">
-                ${htmlBody}
-            </main>
-        </div>
-    </div>
-
-    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
-
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script>
-    (function() {
-      var blocks = document.querySelectorAll('pre code.language-mermaid');
-      if (blocks.length) {
-        blocks.forEach(function(el) {
-          var pre = el.parentElement;
-          var div = document.createElement('div');
-          div.className = 'mermaid';
-          div.textContent = el.textContent;
-          pre.replaceWith(div);
-        });
-        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        mermaid.initialize({
-          startOnLoad: true,
-          theme: 'base',
-          themeVariables: {
-            primaryColor: isDark ? '#164e63' : '#ecfeff',
-            primaryBorderColor: '#06b6d4',
-            primaryTextColor: isDark ? '#fafafa' : '#18181b',
-            lineColor: '#06b6d4',
-            secondaryColor: isDark ? '#14532d' : '#f0fdf4',
-            tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
-            background: isDark ? '#09090b' : '#ffffff',
-            mainBkg: isDark ? '#164e63' : '#ecfeff',
-            nodeBorder: '#06b6d4',
-            clusterBkg: isDark ? '#131316' : '#fafafa',
-            clusterBorder: isDark ? '#27272a' : '#e4e4e7',
-            titleColor: isDark ? '#fafafa' : '#18181b',
-            edgeLabelBackground: isDark ? '#131316' : '#ffffff'
-          }
-        });
-      }
-    })();
-    </script>
-    <script>
-        (function() {
-            const path = window.location.pathname;
-            const sidebarLinks = document.querySelectorAll('.docs-nav a');
-            
-            sidebarLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (path.endsWith(href)) {
-                    link.classList.add('active');
-                }
-            });
-        })();
-    </script>
-</body>
-</html>`;
-
-                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
-                    const htmlDistPath = path.join(DIST_DIR, finalRel);
-                    await fs.outputFile(htmlDistPath, adjusted);
-                    console.log(`Built MDX docs -> HTML (${locale}): ${htmlDistPath}`);
-                }
-            } else if (isEnforceCore) {
-                // EnforceCore is discontinued: a single notice page per language, no sidebar.
-                const baseRel = relPath.replace(ext, '.html');
-                const targets = [baseRel, ...prettyPaths(baseRel)];
-                for (const finalRel of targets) {
-                    const prefix = getRootPrefixFromTarget(finalRel);
-                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
-
-                    // Set dynamic lang_switch_url
-                    if (relPath.startsWith('fr/')) {
-                        locales.fr.meta.lang_switch_url = '/' + relPath.substring(3).replace(ext, '.html');
-                    } else {
-                        locales.en.meta.lang_switch_url = '/fr/' + relPath.replace(ext, '.html');
-                    }
-
-                    let pageContent = `
-<!DOCTYPE html>
-<html lang="${locale}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EnforceCore</title>
-    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
-    <link rel="icon" href="{{ROOT}}/assets/img/favicon.svg" type="image/svg+xml">
-</head>
-<body>
-    ${header.replace(/{{root}}/g, '{{ROOT}}')}
-
-    <main id="main-content" class="section">
-        <div class="page">
-            ${htmlBody}
-        </div>
-    </main>
-
-    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
-</body>
-</html>`;
-
-                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
-                    const htmlDistPath = path.join(DIST_DIR, finalRel);
-                    await fs.outputFile(htmlDistPath, adjusted);
-                    console.log(`Built MDX enforcecore notice -> HTML (${locale}): ${htmlDistPath}`);
-                }
-            } else if (isBlog || isCaseStudy) {
-                let pageContent = `
-<!DOCTYPE html>
-<html lang="${locale}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AKIOS — ${isCaseStudy ? t('nav.case_studies', locale) : t('nav.blog', locale)}</title>
-    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
-    <link rel="icon" href="{{ROOT}}/assets/img/favicon.svg" type="image/svg+xml">
-</head>
-<body>
-    ${header.replace(/{{root}}/g, '{{ROOT}}')}
-    
-    <article class="section" id="main-content">
-        <div class="page">
-            <div class="blog-post-wrapper">
-                <div class="blog-post-main">
-                    ${htmlBody}
-                </div>
-            </div>
-        </div>
-    </article>
-
-    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
-
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
-    <script>
-    (function() {
-      var blocks = document.querySelectorAll('pre code.language-mermaid');
-      if (!blocks.length) return;
-      blocks.forEach(function(el) {
-        var pre = el.parentElement;
-        var div = document.createElement('div');
-        div.className = 'mermaid';
-        div.textContent = el.textContent;
-        pre.replaceWith(div);
-      });
-      var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: 'base',
-        themeVariables: {
-          primaryColor: isDark ? '#164e63' : '#ecfeff',
-          primaryBorderColor: '#06b6d4',
-          primaryTextColor: isDark ? '#fafafa' : '#18181b',
-          lineColor: '#06b6d4',
-          secondaryColor: isDark ? '#14532d' : '#f0fdf4',
-          tertiaryColor: isDark ? '#7f1d1d' : '#fef2f2',
-          background: isDark ? '#09090b' : '#ffffff',
-          mainBkg: isDark ? '#164e63' : '#ecfeff',
-          nodeBorder: '#06b6d4',
-          clusterBkg: isDark ? '#131316' : '#fafafa',
-          clusterBorder: isDark ? '#27272a' : '#e4e4e7',
-          titleColor: isDark ? '#fafafa' : '#18181b',
-          edgeLabelBackground: isDark ? '#131316' : '#ffffff'
-        }
-      });
-    })();
-    </script>
-</body>
-</html>`;
-
-                const baseRel = relPath.replace(ext, '.html');
-                const targets = [baseRel, ...prettyPaths(baseRel)];
-                for (const finalRel of targets) {
-                    const prefix = getRootPrefixFromTarget(finalRel);
-                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
-
-                    // Set dynamic lang_switch_url
-                    if (relPath.startsWith('fr/')) {
-                        locales.fr.meta.lang_switch_url = '/' + relPath.substring(3).replace(ext, '.html');
-                    } else {
-                        locales.en.meta.lang_switch_url = '/fr/' + relPath.replace(ext, '.html');
-                    }
-
-                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
-                    const htmlDistPath = path.join(DIST_DIR, finalRel);
-                    await fs.outputFile(htmlDistPath, adjusted);
-                    console.log(`Built MDX blog -> HTML (${locale}): ${htmlDistPath}`);
-                }
-            } else {
-                let pageContent = `
-<!DOCTYPE html>
-<html lang="${locale}">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${t('nav.docs', locale)}</title>
-    <link rel="stylesheet" href="{{ROOT}}/assets/css/styles.css">
-</head>
-<body>
-    ${header.replace(/{{root}}/g, '{{ROOT}}')}
-    
-    <div class="page">
-        ${htmlBody}
-    </div>
-
-    ${footer.replace(/{{root}}/g, '{{ROOT}}')}
-</body>
-</html>`;
-
-                const baseRel = relPath.replace(ext, '.html');
-                const targets = [baseRel, ...prettyPaths(baseRel)];
-                for (const finalRel of targets) {
-                    const prefix = getRootPrefixFromTarget(finalRel);
-                    const rootRepl = (prefix.endsWith('/') ? prefix.slice(0, -1) : prefix);
-
-                    // Set dynamic lang_switch_url
-                    if (relPath.startsWith('fr/')) {
-                        locales.fr.meta.lang_switch_url = '/' + relPath.substring(3).replace(ext, '.html');
-                    } else {
-                        locales.en.meta.lang_switch_url = '/fr/' + relPath.replace(ext, '.html');
-                    }
-
-                    const adjusted = pageContent.replace(/{{ROOT}}/g, rootRepl).replace(/{{version}}/g, version);
-                    const htmlDistPath = path.join(DIST_DIR, finalRel);
-                    await fs.outputFile(htmlDistPath, adjusted);
-                    console.log(`Built MDX page -> HTML (${locale}): ${htmlDistPath}`);
-                }
-            }
-
-        } else {
-            // Copy assets
-            await fs.copy(filePath, distPath);
-        }
-    };
-
-    // Walk directory
-    const walk = async (dir) => {
-        const files = await fs.readdir(dir);
-        for (const file of files) {
-            const filePath = path.join(dir, file);
-            const stat = await fs.stat(filePath);
-            if (stat.isDirectory()) {
-                await walk(filePath);
-            } else {
-                await processFile(filePath);
-            }
-        }
-    };
-
-    await walk(SRC_DIR);
-    console.log('Done.');
+    console.log(`Built ${built.length} pages (${docs.length} documentation pages) for AKIOS ${version} into ${DIST_DIR}/.`);
 };
 
-build().catch(err => console.error(err));
+build().catch((error) => {
+    console.error(error);
+    process.exit(1);
+});

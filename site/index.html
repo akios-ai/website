@@ -3,234 +3,219 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{i18n.home.title}}</title>
-  <meta name="description" content="{{i18n.home.description}}">
+  <title>AKIOS: the open-source fence around any AI agent</title>
+  <meta name="description" content="AKIOS puts a declared policy around a program you already run, has the operating system enforce it on Linux and macOS without root, and keeps a signed record of the run. Open source, GPL-3.0-only. 2.0.0a1 is an alpha.">
   <link rel="canonical" href="{{canonical}}">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="{{i18n.home.title}}">
-  <meta property="og:description" content="{{i18n.home.description}}">
+  <meta property="og:title" content="AKIOS: the open-source fence around any AI agent">
+  <meta property="og:description" content="Declare what it may do, enforce it at the operating system, keep a signed record of what it did.">
   <meta property="og:url" content="{{canonical}}">
   <meta property="og:site_name" content="AKIOS">
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="{{i18n.home.title}}">
-  <meta name="twitter:description" content="{{i18n.home.description}}">
-  <meta name="twitter:url" content="{{canonical}}">
-  <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-  <link rel="preconnect" href="https://img.shields.io" crossorigin>
-  <link rel="preconnect" href="https://contrib.rocks" crossorigin>
   <link rel="stylesheet" href="{{root}}/assets/css/styles.css">
   <link rel="icon" href="{{root}}/assets/img/favicon.svg" type="image/svg+xml">
 </head>
 <body>
 
-  <!-- Header -->
   <!-- {{header}} -->
 
   <main id="main-content">
 
-  <!-- Status -->
   <section class="section section-status">
     <div class="page">
       <div class="callout" role="note">
-        <p>{{i18n.home.status_banner}}</p>
+        <p><strong>Status: 2.0.0 alpha.</strong> AKIOS 2.0 is an alpha: 2.0.0a1 is a pre-release. AKIOS 1.x is no longer maintained and is not intended for production use; see <a href="{{root}}/docs/migration-1x-to-2.html">migrating from 1.x</a>.</p>
       </div>
     </div>
   </section>
 
-  <!-- Hero Section -->
   <section class="section section-hero">
-    <div class="page hero-grid">
-      <div class="hero hero-left">
-        <h1>{{i18n.home.hero_heading}}</h1>
-        <p class="hero-tagline">
-          {{i18n.home.hero_tagline}}
-        </p>
-        <p class="hero-features">
-          {{i18n.home.hero_features}}
-        </p>
-        <p class="hero-meta">
-          {{i18n.home.hero_meta}}
-        </p>
+    <div class="page">
+      <div class="hero home-hero">
+        <h1>The open-source fence around any AI agent</h1>
+        <p class="hero-tagline">Declare what it may do, enforce it at the operating system, keep a signed record of what it did.</p>
+        <p class="hero-meta">Linux and macOS, without root. Python 3.10 to 3.14. GPL-3.0-only.</p>
+        <div class="hero-install" aria-label="Install the alpha">
+          <pre class="hero-install-cmd"><code>pip install --pre akios</code></pre>
+          <pre class="hero-install-cmd"><code>pip install "akios==2.0.0a1"</code></pre>
+        </div>
+        <p class="hero-meta">2.0.0a1 is a pre-release: install it with <code>--pre</code>, or by its version.</p>
         <div class="hero-actions">
-          <a href="docs/quickstart.html" class="btn btn-primary">{{i18n.home.hero_cta_primary}}</a>
-          <a href="https://github.com/akios-ai/akios" class="btn btn-outline" rel="noopener">{{i18n.home.hero_cta_secondary}}</a>
-        </div>
-        <div class="hero-install">
-          <pre class="hero-install-cmd"><code>pip install akios</code></pre>
-        </div>
-        <div class="hero-badges">
-          <a href="https://github.com/akios-ai/akios" class="badge-link"><img src="https://img.shields.io/github/stars/akios-ai/akios?style=flat&logo=github&label=Stars" alt="GitHub Stars" loading="lazy"></a>
-          <a href="https://pypi.org/project/akios/" class="badge-link"><img src="https://img.shields.io/pypi/v/akios?label=PyPI&color=06b6d4" alt="PyPI Version" loading="lazy"></a>
-          <a href="https://github.com/akios-ai/akios/blob/main/LICENSE" class="badge-link"><img src="https://img.shields.io/badge/license-GPL--3.0--only-blue" alt="License" loading="lazy"></a>
-        </div>
-      </div>
-      <figure class="hero-figure">
-        <img src="{{root}}/assets/img/hero-arch.svg" alt="AKIOS control plane and data plane funneling clients, CI/CD and apps into sandboxed agents and policy-gated destinations" loading="lazy">
-      </figure>
-    </div>
-  </section>
-
-  <!-- Why AKIOS Section -->
-  <section class="section">
-    <div class="page">
-      <h2 class="section-heading">{{i18n.home.why_heading}}</h2>
-      <div class="features-grid">
-        <div class="feature">
-          <h3>{{i18n.home.why_sandbox_title}}</h3>
-          <p>{{i18n.home.why_sandbox_body}}</p>
-        </div>
-        <div class="feature">
-          <h3>{{i18n.home.why_cost_title}}</h3>
-          <p>{{i18n.home.why_cost_body}}</p>
-        </div>
-        <div class="feature">
-          <h3>{{i18n.home.why_pii_title}}</h3>
-          <p>{{i18n.home.why_pii_body}}</p>
-        </div>
-        <div class="feature">
-          <h3>{{i18n.home.why_audit_title}}</h3>
-          <p>{{i18n.home.why_audit_body}}</p>
-        </div>
-        <div class="feature">
-          <h3>{{i18n.home.why_policies_title}}</h3>
-          <p>{{i18n.home.why_policies_body}}</p>
-        </div>
-        <div class="feature">
-          <h3>{{i18n.home.why_minimal_title}}</h3>
-          <p>{{i18n.home.why_minimal_body}}</p>
+          <a href="{{root}}/docs/getting-started.html" class="btn btn-primary">Getting started</a>
+          <a href="{{root}}/docs/threat-model.html" class="btn btn-outline">Threat model</a>
+          <a href="https://github.com/akios-ai/akios" class="btn btn-outline" rel="noopener">GitHub</a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Quickstart Section -->
   <section class="section">
     <div class="page">
-      <h2 class="section-heading">{{i18n.home.quickstart_heading}}</h2>
-      <p>{{i18n.home.quickstart_intro}}</p>
-      
-      <pre><code># Install
-pip install akios
+      <h2 class="section-heading">What AKIOS is</h2>
+      <p class="lead">You keep your agent as it is: its code, its model, its libraries, its keys. AKIOS puts a fence around it.</p>
+      <div class="mechanisms">
+        <article class="mechanism">
+          <svg class="mechanism-icon" viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" aria-hidden="true"><path d="M8 40V12l4-5 4 5v28M22 40V12l4-5 4 5v28M36 40V12l4-5 4 5v28M4 18h44M4 32h44"/></svg>
+          <h3>The cage</h3>
+          <p class="mechanism-image">A fence that the operating system holds, not the agent.</p>
+          <p>A policy file declares what the agent may touch: files, programs, network, environment variables, resources. The operating system enforces it, without root. If this host cannot enforce a clause, the run does not start, unless you accept a degraded run, and then the ledger says so before the agent starts.</p>
+          <p class="tests">Tests: K-FS-01 to K-FS-05, K-FS-07, K-SYS-01, K-NET-01 on Linux; M-FS-01 to M-FS-07, M-SYS-01, M-NET-01 on macOS. Fail-closed rules: <a href="{{root}}/docs/threat-model.html#6-fail-closed-rules">threat model §6</a>.</p>
+        </article>
+        <article class="mechanism">
+          <svg class="mechanism-icon" viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 44V6h24v38M6 44h36"/><circle cx="30" cy="26" r="2" fill="currentColor"/></svg>
+          <h3>The doors</h3>
+          <p class="mechanism-image">The way into the cage. Today, one door.</p>
+          <p>Door 1, <code>akios run -- &lt;command&gt;</code>, wraps any program: a coding agent, a Python script, a LangChain application. The policy applies to the program and to every process it starts (K-FS-01, M-FS-01).</p>
+          <p class="tests">Doors 2 and 3 are on the <a href="https://github.com/akios-ai/akios/blob/main/ROADMAP.md" rel="noopener">roadmap</a>: an in-process Python <code>Sandbox(...)</code> API, and an MCP server through which agents route their tool calls.</p>
+        </article>
+        <article class="mechanism">
+          <svg class="mechanism-icon" viewBox="0 0 48 48" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" aria-hidden="true"><path d="M10 4h20l8 8v32H10z"/><path d="M30 4v8h8M16 22h16M16 29h10"/><circle cx="31" cy="36" r="5"/></svg>
+          <h3>The proof</h3>
+          <p class="mechanism-image">A sealed record that anyone can check.</p>
+          <p>Every run leaves a hash-chained ledger with signed checkpoints. <code>akios verify</code> checks an exported run on any machine; with <code>--key</code>, it also checks that the run was signed by the key you expect.</p>
+          <p class="tests">Tests: V-TAMPER-01 to V-TAMPER-07, V-CP-01 to V-CP-03, V-KEY-01, V-XOS-01.</p>
+        </article>
+      </div>
+      <p>AKIOS is not an agent framework, a workflow engine, a model client, a cloud service, or an organisation-level governance tool. Why this design: <a href="{{root}}/docs/why-containment.html">why containment</a>.</p>
+    </div>
+  </section>
 
-# Initialize a project
-akios init my-project
-cd my-project
+  <section class="section band">
+    <div class="page">
+      <h2 class="section-heading">From the policy to the proof</h2>
+      <ol class="flow">
+        <li>
+          <span class="flow-label">Policy</span>
+          <p><code>akios init</code> writes <code>akios.policy.yaml</code>: what the program may read, write and execute, network or none, the environment variables it receives, resource limits. <code>akios policy explain</code> says, for this host, how each clause is enforced and whether the run would start.</p>
+        </li>
+        <li>
+          <span class="flow-label">Run</span>
+          <p><code>akios run -- &lt;command&gt;</code> records its decision before the command starts (<a href="{{root}}/docs/threat-model.html#6-fail-closed-rules">threat model §6</a>); the operating system then enforces the policy on the command and every process it starts.</p>
+        </li>
+        <li>
+          <span class="flow-label">Record</span>
+          <p>The ledger of the run: events chained by SHA-256, checkpoints signed with Ed25519, the enforcement of each clause and the outcome; editing, inserting, deleting, reordering or truncating events makes <code>akios verify</code> fail (V-TAMPER-01 to V-TAMPER-07). On macOS, also what the cage refused (M-SYS-02); on Linux, capturing refusals is planned.</p>
+        </li>
+        <li>
+          <span class="flow-label">Check</span>
+          <p><code>akios report</code> describes the run from its verified ledger. <code>akios verify</code> checks the exported bundle on Linux, macOS or Windows (V-XOS-01), and with <code>--key</code> against the key you expect (V-KEY-01).</p>
+        </li>
+      </ol>
+    </div>
+  </section>
 
-# Run the sample workflow
-akios run templates/hello-workflow.yml</code></pre>
+  <section class="section" id="three-minutes">
+    <div class="page">
+      <h2 class="section-heading">Three minutes</h2>
+      <div class="readme">
+        <!-- {{include readme/three-minutes.md}} -->
+      </div>
+      <details class="readme-details">
+        <summary>The policy flow, step by step, with a policy for a coding agent</summary>
+        <div class="readme">
+          <!-- {{include readme/policy-flow.md}} -->
+        </div>
+      </details>
+    </div>
+  </section>
 
-      <p class="code-caption">{{i18n.home.quickstart_caption}}</p>
-      <pre><code>[akios] environment: native linux (kernel-level)
-[akios] sandbox: seccomp-bpf, cgroups v2
-[akios] pii: redaction enabled (53 patterns)
-[akios] audit: Merkle trail initialized
-[akios] workflow: completed successfully in 1.2s</code></pre>
-      
-      <div class="quickstart-link-row">
-        <a href="docs/quickstart.html" class="quickstart-link">{{i18n.home.quickstart_link}}</a>
+  <section class="section band" id="platforms">
+    <div class="page">
+      <h2 class="section-heading">Two platforms, and their limits</h2>
+      <p>Each property holds for the wrapped program and all its descendants. The test identifiers are those of the <a href="{{root}}/docs/threat-model.html">threat model</a>; its <a href="{{root}}/docs/threat-model.html#10-test-index">test index</a> gives the file of each test, where it runs, and where and when it passed.</p>
+      <div class="platforms">
+        <article class="platform">
+          <h3>Linux</h3>
+          <p class="platform-summary">Landlock, seccomp, namespaces, read-only bind mounts and rlimits, without root.</p>
+          <ul>
+            <li><code>filesystem</code> and <code>exec</code>: Landlock, ABI 3 (Linux 6.2) or later (K-FS-01 to K-FS-04). The signing key and the ledger store are unreachable (K-FS-05).</li>
+            <li><code>filesystem.protect</code>: read-only bind mounts in the run's own mount namespace (K-FS-07).</li>
+            <li>Baseline: kernel modules, mount, <code>ptrace</code>, <code>bpf</code>, <code>io_uring</code>, <code>unshare</code> and other calls return <code>EPERM</code>, by seccomp after <code>PR_SET_NO_NEW_PRIVS</code> (K-SYS-01). The program cannot read or write the wrapper's memory (K-PROC-01).</li>
+            <li><code>network: none</code>: a new network namespace with only the loopback up (K-NET-01); without unprivileged namespaces, IPv4 and IPv6 sockets are denied and the ledger records the fallback (K-NET-02).</li>
+            <li><code>resources</code>: rlimits and a watchdog (R-RES-01, R-RES-02). <code>environment</code>: only the variables the policy passes (R-ENV-01).</li>
+          </ul>
+          <h4>Limits</h4>
+          <ul class="limits">
+            <li>Per-run memory and process accounting with cgroups v2: planned (K-RES-03).</li>
+            <li>Below Linux 6.12, a same-user child can kill the wrapper; the run then fails verification (K-PROC-02 checks both sides).</li>
+            <li>Refusals are not captured: Landlock and seccomp do not log them by default. A capture is planned.</li>
+            <li>Without a delegated cgroup, a descendant that calls <code>setsid()</code> survives the wall-clock kill.</li>
+            <li>Network is <code>none</code> or <code>all</code>; a domain allowlist is experimental and not enforced in 2.0.</li>
+          </ul>
+          <p class="platform-req">Requirements: Landlock enabled (ABI 3, Linux 6.2 or later) for <code>filesystem</code> and <code>exec</code>, unprivileged user namespaces for <code>network: none</code> and <code>filesystem.protect</code>; Python 3.10 to 3.14; no root.</p>
+        </article>
+        <article class="platform">
+          <h3>macOS</h3>
+          <p class="platform-summary">The system sandbox, a denial reader and the developer-tool shims, without root and without an entitlement.</p>
+          <ul>
+            <li>One Seatbelt profile per run, the sandbox built into macOS, enforces <code>baseline</code>, <code>filesystem</code>, <code>exec</code> and <code>network</code>; every process the program starts inherits it and cannot lift it (M-FS-01 to M-FS-04).</li>
+            <li>The signing key and the ledger store are unreachable (M-FS-05); the policy file of the run is read-only inside the cage (M-FS-06); <code>filesystem.protect</code> keeps chosen paths read-only (M-FS-07).</li>
+            <li>Setuid programs do not start and a second sandbox cannot be applied (M-SYS-01); the program cannot signal the wrapper or obtain its task port (M-PROC-01).</li>
+            <li><code>network: none</code>: TCP, UDP and name resolution fail, loopback included (M-NET-01). <code>network: all</code>: Unix-domain sockets outside the write paths still fail (M-NET-02), and TLS verifies certificates with the system's certificates (M-NET-03).</li>
+            <li>Denial reader: what the cage refused is read from the sandbox reports of the system log, recorded in the ledger, and named by <code>akios run</code> and <code>akios report</code>, also after exit code 0 (M-SYS-02).</li>
+            <li>Developer-tool shims: before the run, <code>akios run</code> asks <code>xcrun --find</code> for the tool behind each shim of <code>/usr/bin</code> the command uses, such as <code>python3</code> or <code>git</code>; in the cage the shim finds it in the lookup cache, which it can read but not list (M-SYS-01; <a href="{{root}}/docs/policy-v0.html#57-macos-seatbelt">policy v0 §5.7</a>).</li>
+            <li><code>resources</code>: CPU time and file size are capped, also for a program that ignores <code>SIGXCPU</code>; at the wall-clock limit the run is stopped, and a descendant that left the process group is killed (M-RES-01, M-PROC-02, R-RES-02).</li>
+          </ul>
+          <h4>Limits</h4>
+          <ul class="limits">
+            <li><code>memory_mb</code> is not enforced: a policy that sets it is refused unless the run is degraded.</li>
+            <li>Other processes of the same user can read each other's initial environment; AKIOS overwrites the unpassed values in its own (M-PROC-01).</li>
+            <li>No private loopback: with <code>network: none</code>, a program that runs its own local server needs <code>network: all</code>.</li>
+            <li>The record of denials comes from the system log: a count is a lower bound, and a standard account was not tested.</li>
+            <li><code>ps</code>, <code>top</code> and <code>pgrep</code> do not work in the cage, a program cannot apply its own sandbox there (M-SYS-01), and a sign-in kept in the Keychain is not available.</li>
+            <li>Tested on macOS 26.6.2 on Apple Silicon; Intel Macs and other macOS versions were not tested.</li>
+          </ul>
+          <p class="platform-req">Requirements: macOS on Apple Silicon (tested: macOS 26.6.2, with Python 3.12); Python 3.10 to 3.14; no root and no entitlement. <code>akios doctor</code> runs a self-test of the sandbox.</p>
+        </article>
+      </div>
+      <p>Elsewhere, Windows included, <code>akios run</code> refuses unless the run is degraded; <code>akios verify</code> and <code>akios report</code> have no platform check. Every known limit of 2.0, on Linux and on macOS, is listed in one place: <a href="{{root}}/docs/threat-model.html#8-known-limitations-of-the-20-design">threat model §8</a>. Out of scope, among others: kernel exploits, root, other processes of your own user outside the cage, the content of encrypted traffic (<a href="{{root}}/docs/threat-model.html#3-out-of-scope">threat model §3</a>).</p>
+      <details class="readme-details">
+        <summary>What is enforced on Linux: the table of the README, with where and when the tests passed</summary>
+        <div class="readme">
+          <!-- {{include readme/linux.md}} -->
+        </div>
+      </details>
+      <details class="readme-details">
+        <summary>What is enforced on macOS: the table of the README, with where and when the tests passed</summary>
+        <div class="readme">
+          <!-- {{include readme/macos.md}} -->
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="section" id="evidence">
+    <div class="page">
+      <h2 class="section-heading">The evidence</h2>
+      <div class="readme">
+        <!-- {{include readme/evidence.md}} -->
+        <!-- {{include readme/formal-model.md}} -->
       </div>
     </div>
   </section>
 
-  <!-- Architecture Section (Simple Diagram) -->
-  <section class="section section-last">
+  <section class="section band" id="from-1x">
     <div class="page">
-      <h2 class="section-heading">{{i18n.home.arch_heading}}</h2>
-      <p>{{i18n.home.arch_body}}</p>
-
-      <img src="{{root}}/assets/img/arch.svg" alt="Client or CLI flows into AKIOS policies, sandbox, audit, then agents, then policy-gated tools/APIs" class="arch-svg" loading="lazy">
-    </div>
-  </section>
-
-  <!-- Security controls -->
-  <section class="section">
-    <div class="page">
-      <h2 class="section-heading">{{i18n.home.security_heading}}</h2>
-      <p>{{i18n.home.security_intro}}</p>
-      <ul class="security-list">
-        <li class="security-item"><strong>{{i18n.home.security_title_1}}</strong><span>{{i18n.home.security_item_1}}</span></li>
-        <li class="security-item"><strong>{{i18n.home.security_title_2}}</strong><span>{{i18n.home.security_item_2}}</span></li>
-        <li class="security-item"><strong>{{i18n.home.security_title_3}}</strong><span>{{i18n.home.security_item_3}}</span></li>
-        <li class="security-item"><strong>{{i18n.home.security_title_4}}</strong><span>{{i18n.home.security_item_4}}</span></li>
-        <li class="security-item"><strong>{{i18n.home.security_title_5}}</strong><span>{{i18n.home.security_item_5}}</span></li>
-        <li class="security-item"><strong>{{i18n.home.security_title_6}}</strong><span>{{i18n.home.security_item_6}}</span></li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Core agents -->
-  <section class="section">
-    <div class="page">
-      <h2 class="section-heading">{{i18n.home.agents_heading}}</h2>
-      <p>{{i18n.home.agents_intro}}</p>
-      <div class="agents-grid">
-        <div class="agent-card">
-          <h3>{{i18n.home.agent_fs_title}}</h3>
-          <p>{{i18n.home.agent_fs_body}}</p>
-        </div>
-        <div class="agent-card">
-          <h3>{{i18n.home.agent_http_title}}</h3>
-          <p>{{i18n.home.agent_http_body}}</p>
-        </div>
-        <div class="agent-card">
-          <h3>{{i18n.home.agent_llm_title}}</h3>
-          <p>{{i18n.home.agent_llm_body}}</p>
-        </div>
-        <div class="agent-card">
-          <h3>{{i18n.home.agent_tool_title}}</h3>
-          <p>{{i18n.home.agent_tool_body}}</p>
-        </div>
+      <h2 class="section-heading">Coming from 1.x</h2>
+      <div class="readme">
+        <!-- {{include readme/from-1x.md}} -->
       </div>
     </div>
   </section>
 
-
-  <!-- Industry Case Studies -->
-
-  <!-- FAQ Section -->
-  <section class="section">
+  <section class="section section-last" id="contact">
     <div class="page">
-      <h2 class="section-heading">{{i18n.home.faq_heading}}</h2>
-      <div class="faq-grid">
-        <div class="faq-item">
-          <h4>{{i18n.home.faq_performance_question}}</h4>
-          <p>{{i18n.home.faq_performance_answer}}</p>
+      <div class="contact-grid">
+        <div>
+          <h2 class="section-heading">Security and contact</h2>
+          <p>Do not report a vulnerability in a public issue. Use GitHub's <a href="https://github.com/akios-ai/akios/security/advisories/new" rel="noopener">private vulnerability reporting</a> on the akios repository. If the form is unavailable, write to <a href="mailto:hello@akios.ai">hello@akios.ai</a>. Reports are handled on a best-effort basis; see the <a href="{{root}}/disclosure.html">security policy</a>.</p>
+          <p>Bugs, questions, feature requests: <a href="https://github.com/akios-ai/akios/issues" rel="noopener">GitHub Issues</a>. Anything else: <a href="mailto:hello@akios.ai">hello@akios.ai</a>. Help is given on a best-effort basis; see <a href="{{root}}/support.html">getting help</a>.</p>
         </div>
-        <div class="faq-item">
-          <h4>{{i18n.home.faq_cost_question}}</h4>
-          <p>{{i18n.home.faq_cost_answer}}</p>
-        </div>
-        <div class="faq-item">
-          <h4>{{i18n.home.faq_stack_question}}</h4>
-          <p>{{i18n.home.faq_stack_answer}}</p>
-        </div>
-        <div class="faq-item">
-          <h4>{{i18n.home.faq_security_question}}</h4>
-          <p>{{i18n.home.faq_security_answer}}</p>
-        </div>
-      </div>
-    </div>
-  </section>
-  <section class="section section-cta">
-    <div class="page">
-      <h2 class="section-heading">{{i18n.home.cta_title}}</h2>
-      <p>{{i18n.home.cta_body}}</p>
-      <div class="hero-actions" style="margin-top: var(--space-4);">
-        <a href="docs/quickstart.html" class="btn btn-primary">{{i18n.home.cta_primary_button}}</a>
-        <a href="https://github.com/akios-ai/akios" class="btn btn-outline" rel="noopener">{{i18n.home.cta_secondary_button}}</a>
-      </div>
-    </div>
-  </section>
-
-  <!-- Support Section -->
-  <section class="section">
-    <div class="page">
-      <div class="callout callout-featured">
-        <h3>{{i18n.home.support_title}}</h3>
-        <p class="support-text">{{i18n.home.support_question}}</p>
-        <div class="support-actions">
-          <a href="https://discord.gg/akios">{{i18n.home.support_discord}}</a>
-          <a href="https://github.com/akios-ai/akios/discussions">{{i18n.home.support_discussions}}</a>
+        <div>
+          <h2 class="section-heading">License</h2>
+          <div class="readme">
+            <!-- {{include readme/license.md}} -->
+          </div>
+          <p>AKIOS is provided "as is", with no warranties of any kind; see the <a href="{{root}}/legal.html">legal notice</a>.</p>
         </div>
       </div>
     </div>
@@ -238,7 +223,6 @@ akios run templates/hello-workflow.yml</code></pre>
 
   </main>
 
-  <!-- Footer -->
   <!-- {{footer}} -->
 
 </body>

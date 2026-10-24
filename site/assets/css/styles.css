@@ -2230,3 +2230,261 @@ Mobile: Single column blog layout
 }
 
 
+
+/* --- AKIOS 2.0 pages --- */
+code,
+pre {
+  font-variant-ligatures: none; /* "--" stays two hyphens */
+}
+
+h2[id], h3[id], h4[id], h5[id], h6[id] {
+  scroll-margin-top: calc(var(--header-height) + var(--space-3));
+}
+
+.lead {
+  font-size: 1.125rem;
+  color: var(--text);
+}
+
+.home-hero {
+  max-width: 820px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.home-hero h1 {
+  white-space: normal;
+  font-size: clamp(2rem, 5vw, 3rem);
+}
+
+.home-hero .hero-meta {
+  margin-bottom: var(--space-3);
+}
+
+.home-hero .hero-tagline,
+.home-hero .hero-meta {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.home-hero .hero-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.hero-install {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 var(--space-2);
+}
+
+.hero-install-cmd {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.mechanisms,
+.platforms,
+.contact-grid {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.mechanisms { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.platforms,
+.contact-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.mechanism,
+.platform {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  background: var(--bg);
+  min-width: 0;
+}
+
+.mechanism-icon {
+  color: var(--accent);
+  margin-bottom: var(--space-2);
+}
+
+.mechanism h3,
+.platform h3 {
+  margin-bottom: var(--space-1);
+}
+
+.mechanism p,
+.platform ul {
+  font-size: 0.9375rem;
+}
+
+.mechanism-image {
+  font-weight: 600;
+}
+
+.tests,
+.platform-summary,
+.platform-req {
+  color: var(--muted);
+}
+
+.mechanism .tests,
+.platform-req {
+  font-size: 0.875rem;
+}
+
+.platform h4 {
+  margin: var(--space-3) 0 var(--space-1);
+}
+
+.platform li {
+  margin-bottom: var(--space-1);
+}
+
+.flow {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-4) 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  counter-reset: flow;
+}
+
+.flow li {
+  counter-increment: flow;
+  border-top: 3px solid var(--accent);
+  padding-top: var(--space-2);
+  min-width: 0;
+}
+
+.flow-label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: var(--space-1);
+}
+
+.flow-label::before {
+  content: counter(flow) ". ";
+  color: var(--action);
+}
+
+.flow p {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.readme-details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  margin-top: var(--space-3);
+  background: var(--bg);
+}
+
+.readme-details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.readme-details[open] summary {
+  margin-bottom: var(--space-3);
+}
+
+.readme p,
+.prose p {
+  max-width: 80ch;
+}
+
+.readme ol,
+.readme ul {
+  max-width: 80ch;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  margin-bottom: var(--space-4);
+}
+
+.table-wrap table {
+  margin-bottom: 0;
+}
+
+.table-wrap td {
+  font-size: 0.875rem;
+  vertical-align: top;
+}
+
+.table-wrap td code,
+.table-wrap th code {
+  word-break: break-word;
+}
+
+.docs-content pre,
+.readme pre {
+  white-space: pre;
+}
+
+.page-meta,
+.doc-source {
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.doc-source {
+  margin-top: var(--space-6);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.prose h1 {
+  margin-bottom: var(--space-2);
+}
+
+.prose h2 {
+  margin: var(--space-5) 0 var(--space-2);
+}
+
+.prose h3,
+.prose h4 {
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.prose li {
+  margin-bottom: var(--space-1);
+}
+
+.prose li input[type="checkbox"] {
+  margin-right: var(--space-1);
+}
+
+[data-theme="dark"] .mechanism,
+[data-theme="dark"] .platform,
+[data-theme="dark"] .readme-details {
+  background: var(--bg-alt);
+}
+
+@media (max-width: 900px) {
+  .mechanisms,
+  .platforms,
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .flow {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-install-cmd {
+    font-size: 0.8125rem;
+  }
+}
