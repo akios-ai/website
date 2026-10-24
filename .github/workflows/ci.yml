@@ -25,3 +25,5 @@ jobs:
             echo "Error: dist/index.html not found"
             exit 1
           fi
+      - name: Check links
+        run: npm run check

@@ -57,10 +57,10 @@ rsync -av --delete --delete-excluded \
   --include='scripts/' \
   --include='scripts/*.sh' \
   --include='internal/' \
-  --include='internal/i18n/***' \
   --include='internal/scripts/***' \
   --exclude='internal/**' \
   --exclude='.archive/' \
+  --include='content/***' \
   --include='partials/***' \
   --include='site/***' \
   --exclude='*' \

@@ -1,142 +1,54 @@
-# AKIOS Website
+# AKIOS website
 
-Public website for **[AKIOS](https://akios.ai)** – an advanced agentic runtime with built-in policy enforcement, secure communication, and production-ready workflows.
+The source of [akios.ai](https://akios.ai), the website of [AKIOS](https://github.com/akios-ai/akios): static HTML built with Node, hosted on GitHub Pages.
 
-**Live Site:** [https://akios.ai](https://akios.ai)
-
-## Features
-
-- 🚀 **Automated Deployment** – one-command push to production
-- 🔄 **Auto-Versioning** – version numbers injected across all docs at build time
-- 🌍 **Multilingual** – i18n support (English, French)
-- ⚡ **Fast Build** – optimized static site generation
-- 📱 **Responsive** – mobile-first design
-- 🎨 **MDX Support** – React components in Markdown
-
-## Quick Start
+## Build
 
 ```bash
-# Install dependencies
-npm install
-
-# Start local dev server
-npm run serve
-
-# Build for production
-npm run build
+npm ci
+npm run build    # writes dist/
+npm run check    # internal links and anchors, no third-party resources, one e-mail address
+npm run serve    # serves dist/ on http://localhost:8000
 ```
 
-Visit [http://localhost:8000](http://localhost:8000)
-
-## Project Structure
+## Structure
 
 ```
-site/
-├── index.html          # Marketing home page
-├── docs/               # Documentation (MDX)
-├── blog/               # Blog posts (MDX)
-├── community.html      # Community page
-├── legal.html          # Legal page
-└── assets/             # CSS, images, diagrams
-
-partials/
-├── header.html         # Global navigation
-└── footer.html         # Global footer
-
-internal/
-├── scripts/            # Build & deployment automation
-└── i18n/               # Translation modules
+site/              pages (HTML) and assets
+site/docs/*.md     the documentation, copied from the akios repository
+content/           Markdown included in pages: LEGAL.md, TRADEMARKS.md, SECURITY.md,
+                   SUPPORT.md, and sections of the README of akios (content/readme/)
+partials/          header and footer
+internal/scripts/  build.mjs, check-links.mjs, sync-docs.mjs, serve.mjs
+version.json       the AKIOS version the site describes
 ```
 
-## Development Workflow
+A page includes a file of `content/` with `<!-- {{include LEGAL.md shift=1}} -->`; see the top of `internal/scripts/build.mjs`.
 
-### Local Development
+## The documentation
+
+`site/docs/*.md` and `content/` are copies of the documents of the akios repository, with their links rewritten for the site. Do not edit them here: change the akios repository, then copy them again from a checkout of the version to publish:
 
 ```bash
-npm run serve    # Start dev server (port 8000)
-npm run build    # Build static site to dist/
+npm run sync-docs -- /path/to/akios
+npm run build && npm run check
 ```
 
-### Content Editing
-
-- **Documentation:** Edit `site/docs/*.mdx`
-- **Blog Posts:** Edit `site/blog/*.mdx`
-- **Marketing Pages:** Edit `site/*.html`
-- **Styles:** Edit `site/assets/css/styles.css`
-
-### Version Management
-
-Version numbers are managed via `version.json`:
-
-```json
-{
-  "version": "1.0.5"
-}
-```
-
-All docs automatically reference `{{version}}` – no manual updates needed.
+`content/source.json` records the git tree they were copied from.
 
 ## Deployment
 
-**Automated deployment to production:**
+A push to `main` builds the site and deploys `dist/` to GitHub Pages (`.github/workflows/deploy.yml`).
 
-```bash
-bash scripts/deploy-direct.sh "Your commit message"
-```
+## Contributing and security
 
-This single command:
-- ✅ Syncs content to public repo
-- ✅ Builds the site
-- ✅ Validates changes
-- ✅ Commits and pushes to main
-
-No branch management. No manual steps. No cleanup required.
-
-## Technology Stack
-
-- **Build System:** Node.js (ESM modules)
-- **Content:** MDX (Markdown + JSX)
-- **Styling:** Custom CSS
-- **i18n:** JSON translation modules
-- **Deployment:** Automated shell scripts
-- **Hosting:** GitHub Pages
-
-## Contributing
-
-We welcome contributions! 
-
-1. Fork this repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a Pull Request
-
-**Please read:**
-- [Contributing Guidelines](CONTRIBUTING.md) – How to contribute
-- [Code of Conduct](CODE_OF_CONDUCT.md) – Community standards
-- [Security Policy](SECURITY.md) – Reporting vulnerabilities
-
-**Content Guidelines:**
-- Documentation should be clear and concise
-- Include code examples where relevant
-- Test locally before submitting
-- Follow existing style and structure
+See [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) and [SECURITY.md](SECURITY.md).
 
 ## Licensing
 
 | Component | License |
 |-----------|---------|
-| **AKIOS Open Runtime** (separate repo) | GPL-3.0-only |
-| **Website Source Code** (this repo) | MIT License |
-| **AKIOS PRO** | Proprietary |
+| AKIOS ([akios-ai/akios](https://github.com/akios-ai/akios)) | GPL-3.0-only |
+| Website source code (this repository) | MIT License |
 
 **Trademark Notice:** AKIOS and the AKIOS logo are trademarks of AKIOUD AI, SAS. They are not licensed for use in derivative works. Forks must rebrand and update contact information.
-
-## Links
-
-- **Main Site:** [https://akios.ai](https://akios.ai)
-- **Documentation:** [https://akios.ai/docs](https://akios.ai/docs)
-- **GitHub Organization:** [https://github.com/akios-ai](https://github.com/akios-ai)
-
----
-
-Built with automation. Deployed with confidence. 🚀

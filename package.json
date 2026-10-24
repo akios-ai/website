@@ -1,13 +1,13 @@
 {
   "name": "website",
   "version": "1.0.0",
-  "description": "This repository contains the source code for the public AKIOS website.",
+  "description": "The public website of AKIOS, akios.ai.",
   "main": "index.js",
   "scripts": {
     "build": "node internal/scripts/build.mjs",
+    "check": "node internal/scripts/check-links.mjs",
     "serve": "node internal/scripts/serve.mjs",
-    "diagram": "node internal/scripts/gen-arch.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "sync-docs": "node internal/scripts/sync-docs.mjs"
   },
   "keywords": [],
   "author": "",
@@ -17,5 +17,6 @@
     "fs-extra": "^11.3.3",
     "jsdom": "^27.4.0",
     "marked": "^17.0.1"
-  }
+  },
+  "private": true
 }
