@@ -11,7 +11,7 @@ This is the documentation of **AKIOS 2.0**, in development: a cage you put aroun
 
 - [Why containment](/docs/why-containment.html): the thesis, in one page.
 - [Threat model](/docs/threat-model.html): what is protected, against whom, the test that checks each property, and where and when it passed. Section 9 says what 2.0 changes compared with 1.x.
-- [Policy language v0](/docs/policy-v0.html), with [example policies](https://github.com/akios-ai/akios/tree/main/docs/spec/examples/) and the JSON Schema in `src/akios/policy/schema/policy-v0.json`.
+- [Policy language v0](/docs/policy-v0.html), with [example policies](https://github.com/akios-ai/akios/tree/main/docs/spec/examples) and the JSON Schema in `src/akios/policy/schema/policy-v0.json`.
 - [Evidence format v0](/docs/ledger-v0.html): the signed ledger and the export bundle that `akios verify` checks.
 - [Formal model](https://github.com/akios-ai/akios/blob/main/docs/tla/README.md) of the 2.0 run lifecycle (TLA+; not model-checked yet).
 

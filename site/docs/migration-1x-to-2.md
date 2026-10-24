@@ -29,7 +29,7 @@ akios report --export evidence/               # the bundle of the last run
 akios verify evidence/akios-run-<id>/         # check it, here or on another machine
 ```
 
-The starter policy reads the system directories, writes the current directory, allows no network and sets resource limits; on Linux and macOS it also grants the Python installations and Homebrew it finds, and on macOS the Command Line Tools and `$TMPDIR`. Edit it for your agent: a model API needs `network: all`, and its key needs `environment.pass`. Policies for a coding agent, a Python script and a LangChain application are in [spec/examples](https://github.com/akios-ai/akios/tree/main/docs/spec/examples/); complete programs with their policies are in the repository's `examples/` directory.
+The starter policy reads the system directories, writes the current directory, allows no network and sets resource limits; on Linux and macOS it also grants the Python installations and Homebrew it finds, and on macOS the Command Line Tools and `$TMPDIR`. Edit it for your agent: a model API needs `network: all`, and its key needs `environment.pass`. Policies for a coding agent, a Python script and a LangChain application are in [spec/examples](https://github.com/akios-ai/akios/tree/main/docs/spec/examples); complete programs with their policies are in the repository's `examples/` directory.
 
 If this host cannot enforce a clause the policy needs, `akios run` starts nothing and exits with code 3. `--allow-degraded` runs anyway, and the ledger records, before the command starts, what was not enforced.
 

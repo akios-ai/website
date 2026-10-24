@@ -82,8 +82,7 @@ const rewriteTarget = (target, fromFile) => {
     if (!fs.existsSync(path.join(src, resolved))) {
         problems.push(`${fromFile}: link to a missing file: ${target}`);
     }
-    const keepSlash = base.endsWith('/') ? '/' : '';
-    return siteUrlFor(resolved, fragment) || githubUrlFor(resolved + keepSlash, fragment);
+    return siteUrlFor(resolved, fragment) || githubUrlFor(resolved, fragment);
 };
 
 // Rewrites inline links outside code (fenced blocks and code spans).
