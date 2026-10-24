@@ -15,6 +15,7 @@ Each row holds for the wrapped program and all its descendants. The test identif
 | `resources` | CPU time, address space and file size are capped; at the wall-clock limit the process group is stopped and the ledger records it | rlimits, watchdog | R-RES-01, R-RES-02 |
 | `environment` | The program receives only the environment variables the policy passes | the wrapper | R-ENV-01 |
 | Wrapper | The program cannot read or write the wrapper's memory | `PR_SET_DUMPABLE 0`, seccomp | K-PROC-01 |
+| Signals | From Linux 6.12, the program cannot signal the wrapper or any other process outside the run (`EPERM`). Below Linux 6.12 it can: a run whose wrapper it kills ends without a final checkpoint and fails verification | Landlock ABI 6 signal scoping (Linux 6.12) | K-PROC-02 (in CI on Landlock ABI 7; the side below Linux 6.12 locally only, on Linux 6.11) |
 
 Every known limit of 2.0, on Linux and on macOS, is listed in one place: [threat model §8](/docs/threat-model.html#8-known-limitations-of-the-20-design). Per-run memory and process accounting with cgroups v2: planned (K-RES-03). Out of scope, among others: kernel exploits, root, other processes of your own user outside the cage, the content of encrypted traffic ([threat model §3](/docs/threat-model.html#3-out-of-scope)).
 
